@@ -2,13 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
   collection,
+  getDocs,
   onSnapshot,
   query,
-  where
+  where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -25,6 +27,11 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const [userPosts, setUserPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
+  const [showAllHistoryModal, setShowAllHistoryModal] = useState(false);
+  const [postReactions, setPostReactions] = useState({});
+  const [supportiveHistory, setSupportiveHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
 
   // Fetch user's posts from Firebase
   useEffect(() => {
@@ -47,8 +54,8 @@ export default function Profile() {
             category: data.category,
             description: data.description,
             createdAt: data.createdAt,
-            reactions: data.reactions || { support: 0, hug: 0 },
-            commentCount: data.commentCount || 0,
+            reactions: { like: 0, hug: 0, metoo: 0 },
+            commentCount: 0,
           };
         });
         setUserPosts(fetchedPosts);
@@ -61,6 +68,242 @@ export default function Profile() {
     );
 
     return () => unsubscribe();
+  }, [user]);
+
+  // Fetch reaction counts for user's posts in real-time
+  useEffect(() => {
+    if (!user || userPosts.length === 0) return;
+
+    const postIds = userPosts.map((p) => String(p.id));
+    const reactionsRef = collection(db, "reactions");
+
+    // Create listeners for each post's reactions
+    const unsubscribes = postIds.map((postId) => {
+      const q = query(reactionsRef, where("postId", "==", postId));
+
+      return onSnapshot(q, (snapshot) => {
+        const counts = { like: 0, hug: 0, metoo: 0 };
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.type === "like") counts.like++;
+          else if (data.type === "hug") counts.hug++;
+          else if (data.type === "metoo") counts.metoo++;
+        });
+
+        setPostReactions((prev) => ({
+          ...prev,
+          [postId]: counts,
+        }));
+      });
+    });
+
+    return () => {
+      unsubscribes.forEach((unsub) => unsub());
+    };
+  }, [user, userPosts.map((p) => p.id).join(",")]);
+
+  // Fetch user's supportive history (reactions and comments) in real-time
+  useEffect(() => {
+    if (!user) {
+      setLoadingHistory(false);
+      return;
+    }
+
+    const unsubscribes = [];
+
+    // Listen to user's reactions in real-time
+    const reactionsRef = collection(db, "reactions");
+    const reactionsQuery = query(
+      reactionsRef,
+      where("userId", "==", user.uid),
+    );
+
+    const reactionsUnsub = onSnapshot(
+      reactionsQuery,
+      async (reactionsSnapshot) => {
+        const history = [];
+
+        // Process reactions
+        for (const doc of reactionsSnapshot.docs) {
+          const data = doc.data();
+          const postId = data.postId;
+
+          // Fetch post details
+          const postsRef = collection(db, "posts");
+          const postQuery = query(
+            postsRef,
+            where("__name__", "==", postId),
+          );
+          const postSnapshot = await getDocs(postQuery);
+
+          if (!postSnapshot.empty) {
+            const postData = postSnapshot.docs[0].data();
+            let actionText = "";
+            if (data.type === "like") actionText = "Liked this story";
+            else if (data.type === "hug")
+              actionText = "Sent a hug to this";
+            else if (data.type === "metoo")
+              actionText = "You feel the same";
+
+            history.push({
+              id: doc.id,
+              type: data.type,
+              action: actionText,
+              postId: postId,
+              postTitle: postData.title,
+              postCategory: postData.category,
+              timestamp: data.createdAt || new Date().toISOString(),
+            });
+          }
+        }
+
+        // Fetch comments once to add to history
+        const commentsRef = collection(db, "comments");
+        const commentsQuery = query(
+          commentsRef,
+          where("commentorId", "==", user.uid),
+        );
+        const commentsSnapshot = await getDocs(commentsQuery);
+
+        // Process comments
+        for (const doc of commentsSnapshot.docs) {
+          const data = doc.data();
+          const postId = data.postId;
+
+          // Fetch post details
+          const postsRef = collection(db, "posts");
+          const postQuery = query(
+            postsRef,
+            where("__name__", "==", postId),
+          );
+          const postSnapshot = await getDocs(postQuery);
+
+          if (!postSnapshot.empty) {
+            const postData = postSnapshot.docs[0].data();
+
+            history.push({
+              id: doc.id,
+              type: "comment",
+              action: "Commented on this story",
+              postId: postId,
+              postTitle: postData.title,
+              postCategory: postData.category,
+              comment: data.comment,
+              timestamp: data.createdAt || new Date().toISOString(),
+            });
+          }
+        }
+
+        // Sort by timestamp (newest first)
+        history.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+        );
+
+        setSupportiveHistory(history);
+        setLoadingHistory(false);
+      },
+    );
+
+    unsubscribes.push(reactionsUnsub);
+
+    // Listen to user's comments in real-time
+    const commentsRef = collection(db, "comments");
+    const commentsQuery = query(
+      commentsRef,
+      where("commentorId", "==", user.uid),
+    );
+
+    const commentsUnsub = onSnapshot(
+      commentsQuery,
+      async (commentsSnapshot) => {
+        // Re-fetch reactions to combine with comments
+        const reactionsRef = collection(db, "reactions");
+        const reactionsQuery = query(
+          reactionsRef,
+          where("userId", "==", user.uid),
+        );
+        const reactionsSnapshot = await getDocs(reactionsQuery);
+
+        const history = [];
+
+        // Process reactions
+        for (const doc of reactionsSnapshot.docs) {
+          const data = doc.data();
+          const postId = data.postId;
+
+          // Fetch post details
+          const postsRef = collection(db, "posts");
+          const postQuery = query(
+            postsRef,
+            where("__name__", "==", postId),
+          );
+          const postSnapshot = await getDocs(postQuery);
+
+          if (!postSnapshot.empty) {
+            const postData = postSnapshot.docs[0].data();
+            let actionText = "";
+            if (data.type === "like") actionText = "Liked this story";
+            else if (data.type === "hug")
+              actionText = "Sent a hug to this";
+            else if (data.type === "metoo")
+              actionText = "You feel the same";
+
+            history.push({
+              id: doc.id,
+              type: data.type,
+              action: actionText,
+              postId: postId,
+              postTitle: postData.title,
+              postCategory: postData.category,
+              timestamp: data.createdAt || new Date().toISOString(),
+            });
+          }
+        }
+
+        // Process comments
+        for (const doc of commentsSnapshot.docs) {
+          const data = doc.data();
+          const postId = data.postId;
+
+          // Fetch post details
+          const postsRef = collection(db, "posts");
+          const postQuery = query(
+            postsRef,
+            where("__name__", "==", postId),
+          );
+          const postSnapshot = await getDocs(postQuery);
+
+          if (!postSnapshot.empty) {
+            const postData = postSnapshot.docs[0].data();
+
+            history.push({
+              id: doc.id,
+              type: "comment",
+              action: "Commented on this story",
+              postId: postId,
+              postTitle: postData.title,
+              postCategory: postData.category,
+              comment: data.comment,
+              timestamp: data.createdAt || new Date().toISOString(),
+            });
+          }
+        }
+
+        // Sort by timestamp (newest first)
+        history.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+        );
+
+        setSupportiveHistory(history);
+        setLoadingHistory(false);
+      },
+    );
+
+    unsubscribes.push(commentsUnsub);
+
+    return () => {
+      unsubscribes.forEach((unsub) => unsub());
+    };
   }, [user]);
 
   const getTimeAgo = (timestamp) => {
@@ -76,6 +319,14 @@ export default function Profile() {
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInHours < 24) return `${diffInHours}h ago`;
     return `${diffInDays}d ago`;
+  };
+
+  const getHistoryCardTextColor = (type) => {
+    if (type === "like") return "#F06292"; // Pink
+    if (type === "hug") return "#FFB74D"; // Orange/Yellow
+    if (type === "metoo") return "#66BB6A"; // Green
+    if (type === "comment") return "#9575cd"; // Violet
+    return "#FFB74D";
   };
 
   const handleLogout = async () => {
@@ -246,9 +497,13 @@ export default function Profile() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Stories</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAllText}>VIEW ALL</Text>
-            </TouchableOpacity>
+            {userPosts.length > 2 && (
+              <TouchableOpacity
+                onPress={() => setShowAllStoriesModal(true)}
+              >
+                <Text style={styles.viewAllText}>VIEW ALL</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {loadingPosts ? (
@@ -256,34 +511,43 @@ export default function Profile() {
               <Text style={styles.storyText}>Loading your posts...</Text>
             </View>
           ) : userPosts.length > 0 ? (
-            userPosts.slice(0, 3).map((post) => (
-              <TouchableOpacity
-                key={post.id}
-                style={styles.storyCard}
-                onPress={() => router.push(`/post/${post.id}`)}
-              >
-                <Text style={styles.storyCategory}>
-                  {post.category.toUpperCase()}
-                </Text>
-                <Text style={styles.storyTime}>
-                  {getTimeAgo(post.createdAt)}
-                </Text>
-                <Text style={styles.storyText} numberOfLines={2}>
-                  {post.title}
-                </Text>
-                <View style={styles.storyFooter}>
-                  <Ionicons
-                    name="hand-left-outline"
-                    size={16}
-                    color="#9E9E9E"
-                  />
-                  <Text style={styles.storyHugs}>
-                    {post.reactions.hug + post.reactions.support} hugs
-                    received
+            userPosts.slice(0, 2).map((post) => {
+              const reactions = postReactions[post.id] || {
+                like: 0,
+                hug: 0,
+                metoo: 0,
+              };
+              const totalReactions =
+                reactions.like + reactions.hug + reactions.metoo;
+
+              return (
+                <TouchableOpacity
+                  key={post.id}
+                  style={styles.storyCard}
+                  onPress={() => router.push(`/post/${post.id}`)}
+                >
+                  <Text style={styles.storyCategory}>
+                    {post.category.toUpperCase()}
                   </Text>
-                </View>
-              </TouchableOpacity>
-            ))
+                  <Text style={styles.storyTime}>
+                    {getTimeAgo(post.createdAt)}
+                  </Text>
+                  <Text style={styles.storyText} numberOfLines={2}>
+                    {post.title}
+                  </Text>
+                  <View style={styles.storyFooter}>
+                    <Ionicons
+                      name="heart"
+                      size={16}
+                      color="#E57373"
+                    />
+                    <Text style={styles.storyHugs}>
+                      {totalReactions} reactions received
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
           ) : (
             <View style={styles.storyCard}>
               <Text style={styles.storyText}>
@@ -297,30 +561,59 @@ export default function Profile() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Supportive History</Text>
-            <TouchableOpacity>
-              <Text style={styles.recentText}>RECENT</Text>
-            </TouchableOpacity>
+            {supportiveHistory.length > 2 && (
+              <TouchableOpacity
+                onPress={() => setShowAllHistoryModal(true)}
+              >
+                <Text style={styles.recentText}>VIEW MORE</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Reply Card */}
-          <View style={styles.historyCard}>
-            <Text style={styles.historyTag}>REPLIED TO ANONYMOUS</Text>
-            <Text style={styles.historyTime}>1h ago</Text>
-            <Text style={styles.historyText}>
-              "I went through this exact same thing last semester. Please
-              remember..."
-            </Text>
-          </View>
-
-          {/* Hug Card */}
-          <View style={styles.historyCard}>
-            <Text style={styles.historyTag}>SENT A HUG</Text>
-            <Text style={styles.historyTime}>3h ago</Text>
-            <Text style={styles.historyText}>
-              You supported a post in{" "}
-              <Text style={styles.boldText}>Career Growth</Text>
-            </Text>
-          </View>
+          {loadingHistory ? (
+            <View style={styles.historyCard}>
+              <Text style={styles.historyText}>
+                Loading your activity...
+              </Text>
+            </View>
+          ) : supportiveHistory.length > 0 ? (
+            supportiveHistory.slice(0, 2).map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.historyCard}
+                onPress={() => router.push(`/post/${item.postId}`)}
+              >
+                <Text
+                  style={[
+                    styles.historyTag,
+                    { color: getHistoryCardTextColor(item.type) },
+                  ]}
+                >
+                  {item.action.toUpperCase()}
+                </Text>
+                <Text style={styles.historyTime}>
+                  {getTimeAgo(item.timestamp)}
+                </Text>
+                {item.type === "comment" ? (
+                  <Text style={styles.historyText} numberOfLines={2}>
+                    "{item.comment.substring(0, 50)}
+                    {item.comment.length > 50 ? "..." : ""}" in "
+                    {item.postTitle}"
+                  </Text>
+                ) : (
+                  <Text style={styles.historyText} numberOfLines={2}>
+                    {item.postTitle}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.historyCard}>
+              <Text style={styles.historyText}>
+                No activity yet. Start supporting others!
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Action Buttons */}
@@ -353,6 +646,124 @@ export default function Profile() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* All Stories Modal */}
+      <Modal
+        visible={showAllStoriesModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowAllStoriesModal(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>All My Stories</Text>
+            <TouchableOpacity
+              onPress={() => setShowAllStoriesModal(false)}
+            >
+              <Ionicons name="close" size={28} color="#212121" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollView}>
+            {userPosts.map((post) => {
+              const reactions = postReactions[post.id] || {
+                like: 0,
+                hug: 0,
+                metoo: 0,
+              };
+              const totalReactions =
+                reactions.like + reactions.hug + reactions.metoo;
+
+              return (
+                <TouchableOpacity
+                  key={post.id}
+                  style={styles.storyCard}
+                  onPress={() => {
+                    setShowAllStoriesModal(false);
+                    router.push(`/post/${post.id}`);
+                  }}
+                >
+                  <Text style={styles.storyCategory}>
+                    {post.category.toUpperCase()}
+                  </Text>
+                  <Text style={styles.storyTime}>
+                    {getTimeAgo(post.createdAt)}
+                  </Text>
+                  <Text style={styles.storyText} numberOfLines={2}>
+                    {post.title}
+                  </Text>
+                  <View style={styles.storyFooter}>
+                    <Ionicons
+                      name="heart"
+                      size={16}
+                      color="#E57373"
+                    />
+                    <Text style={styles.storyHugs}>
+                      {totalReactions} reactions received
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* All History Modal */}
+      <Modal
+        visible={showAllHistoryModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAllHistoryModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent75}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Supportive History</Text>
+              <TouchableOpacity
+                onPress={() => setShowAllHistoryModal(false)}
+              >
+                <Ionicons name="close" size={28} color="#212121" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView}>
+              {supportiveHistory.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.historyCard}
+                  onPress={() => {
+                    setShowAllHistoryModal(false);
+                    router.push(`/post/${item.postId}`);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.historyTag,
+                      { color: getHistoryCardTextColor(item.type) },
+                    ]}
+                  >
+                    {item.action.toUpperCase()}
+                  </Text>
+                  <Text style={styles.historyTime}>
+                    {getTimeAgo(item.timestamp)}
+                  </Text>
+                  {item.type === "comment" ? (
+                    <Text style={styles.historyText}>
+                      "{item.comment}" in "{item.postTitle}"
+                    </Text>
+                  ) : (
+                    <Text style={styles.historyText}>
+                      {item.postTitle}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -563,6 +974,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontStyle: "italic",
   },
+  commentPreview: {
+    fontSize: 13,
+    color: "#757575",
+    lineHeight: 18,
+    marginTop: 8,
+    fontStyle: "italic",
+  },
   boldText: {
     fontWeight: "700",
     fontStyle: "normal",
@@ -649,5 +1067,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#212121",
+  },
+  modalScrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent75: {
+    height: "75%",
+    backgroundColor: "#F5F5F5",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: "hidden",
   },
 });
