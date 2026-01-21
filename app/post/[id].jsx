@@ -1,9 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { deleteDoc, doc, getDoc } from "firebase/firestore";
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    onSnapshot,
+    query,
+    serverTimestamp,
+    where,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     Alert,
+    KeyboardAvoidingView,
+    Platform,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -82,7 +94,7 @@ export default function PostDetail() {
                     setPost(fetchedPost);
                     setSupportCount(fetchedPost.reactions.support);
                     setHugCount(fetchedPost.reactions.hug);
-                    setComments(fetchedPost.comments);
+                    // Don't set comments here - they're fetched separately in real-time
 
                     // Check if current user is the author
                     if (user && data.authorId === user.uid) {
@@ -95,6 +107,7 @@ export default function PostDetail() {
                         setPost(dummyPost);
                         setSupportCount(dummyPost.reactions.support);
                         setHugCount(dummyPost.reactions.hug);
+                        // For dummy posts, we can use their embedded comments
                         setComments(dummyPost.comments || []);
                     }
                 }
@@ -106,6 +119,7 @@ export default function PostDetail() {
                     setPost(dummyPost);
                     setSupportCount(dummyPost.reactions.support);
                     setHugCount(dummyPost.reactions.hug);
+                    // For dummy posts, we can use their embedded comments
                     setComments(dummyPost.comments || []);
                 }
             } finally {
@@ -115,6 +129,59 @@ export default function PostDetail() {
 
         fetchPost();
     }, [id, user]);
+
+    // Fetch comments for this post in real-time
+    useEffect(() => {
+        if (!id) {
+            return;
+        }
+
+        console.log("Fetching comments for postId:", id, "Type:", typeof id);
+
+        const commentsRef = collection(db, "comments");
+        const q = query(commentsRef, where("postId", "==", String(id)));
+
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                console.log("Comments snapshot size:", snapshot.size);
+                const fetchedComments = snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    console.log("Comment data:", {
+                        postId: data.postId,
+                        comment: data.comment,
+                    });
+                    return {
+                        id: doc.id,
+                        text: data.comment,
+                        username: data.commentorName || "Anonymous",
+                        timestamp: data.createdAt
+                            ? getTimeAgo(data.createdAt)
+                            : "Just now",
+                        commentorId: data.commentorId,
+                        createdAt: data.createdAt,
+                    };
+                });
+                // Sort by createdAt on client side
+                fetchedComments.sort((a, b) => {
+                    if (!a.createdAt) return 1;
+                    if (!b.createdAt) return -1;
+                    return new Date(a.createdAt) - new Date(b.createdAt);
+                });
+                console.log("Total comments fetched:", fetchedComments.length);
+                setComments(fetchedComments);
+            },
+            (error) => {
+                console.error("Error fetching comments:", error);
+                setComments([]);
+            },
+        );
+
+        return () => {
+            console.log("Cleaning up comments listener for postId:", id);
+            unsubscribe();
+        };
+    }, [id]);
 
     // Helper function to calculate time ago
     const getTimeAgo = (timestamp) => {
@@ -159,16 +226,34 @@ export default function PostDetail() {
         setHugCount(hugActive ? hugCount - 1 : hugCount + 1);
     };
 
-    const handleAddComment = () => {
-        if (newComment.trim()) {
-            const comment = {
-                id: Date.now(),
-                text: newComment,
-                timestamp: "Just now",
-                username: "You",
+    const handleAddComment = async () => {
+        if (!newComment.trim()) return;
+
+        if (!user) {
+            Alert.alert("Not Logged In", "Please log in to comment.");
+            return;
+        }
+
+        try {
+            console.log("Creating comment for postId:", id, "Type:", typeof id);
+            // Create comment in Firebase
+            const commentData = {
+                postId: String(id),
+                commentorId: user.uid,
+                commentorName: user.displayName || "Anonymous",
+                comment: newComment.trim(),
+                timestamp: serverTimestamp(),
+                createdAt: new Date().toISOString(),
             };
-            setComments([...comments, comment]);
+            console.log("Comment data to save:", commentData);
+
+            await addDoc(collection(db, "comments"), commentData);
+
             setNewComment("");
+            console.log("Comment added successfully");
+        } catch (error) {
+            console.error("Error adding comment:", error);
+            Alert.alert("Error", "Failed to add comment. Please try again.");
         }
     };
 
@@ -240,170 +325,196 @@ export default function PostDetail() {
                 )}
             </View>
 
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
+            <KeyboardAvoidingView
+                style={styles.flex1}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
             >
-                {/* Post Card */}
-                <View style={styles.postCard}>
-                    <View style={styles.postHeader}>
-                        <View
-                            style={[
-                                styles.categoryBadge,
-                                { backgroundColor: getCategoryColor(post.category) },
-                            ]}
-                        >
-                            <Text style={styles.categoryText}>
-                                {getCategoryLabel(post.category)}
-                            </Text>
-                        </View>
-                        <Text style={styles.timestamp}>{post.timestamp}</Text>
-                    </View>
-
-                    <Text style={styles.postTitle}>{post.title}</Text>
-                    <Text style={styles.postDescription}>{post.description}</Text>
-
-                    {/* Hugs Sent */}
-                    <View style={styles.hugsSentContainer}>
-                        <View style={styles.hugIcon}>
-                            <Ionicons name="heart" size={16} color="#E57373" />
-                        </View>
-                        <View style={styles.hugIcon}>
-                            <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                        </View>
-                        <Text style={styles.hugsSentText}>{totalHugs} hugs sent</Text>
-                    </View>
-
-                    {/* Action Buttons */}
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity
-                            style={[
-                                styles.actionButton,
-                                hugActive && styles.actionButtonActive,
-                            ]}
-                            onPress={handleHug}
-                        >
-                            <Ionicons
-                                name="hand-left"
-                                size={18}
-                                color={hugActive ? "#FFB74D" : "#9575cd"}
-                            />
-                            <Text
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {/* Post Card */}
+                    <View style={styles.postCard}>
+                        <View style={styles.postHeader}>
+                            <View
                                 style={[
-                                    styles.actionButtonText,
-                                    hugActive && styles.actionButtonTextActive,
+                                    styles.categoryBadge,
+                                    { backgroundColor: getCategoryColor(post.category) },
                                 ]}
                             >
-                                Send Hug
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.actionButton,
-                                meTooActive && styles.actionButtonActive,
-                            ]}
-                            onPress={() => setMeTooActive(!meTooActive)}
-                        >
-                            <Ionicons
-                                name="happy"
-                                size={18}
-                                color={meTooActive ? "#66BB6A" : "#9575cd"}
-                            />
-                            <Text
-                                style={[
-                                    styles.actionButtonText,
-                                    meTooActive && styles.actionButtonTextActive,
-                                ]}
-                            >
-                                Me too
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.actionButton,
-                                keepGoingActive && styles.actionButtonActive,
-                            ]}
-                            onPress={() => setKeepGoingActive(!keepGoingActive)}
-                        >
-                            <Ionicons
-                                name="bulb"
-                                size={18}
-                                color={keepGoingActive ? "#FFA726" : "#9575cd"}
-                            />
-                            <Text
-                                style={[
-                                    styles.actionButtonText,
-                                    keepGoingActive && styles.actionButtonTextActive,
-                                ]}
-                            >
-                                Keep going
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                {/* Supportive Replies Section */}
-                <View style={styles.repliesSection}>
-                    <View style={styles.repliesHeader}>
-                        <Text style={styles.repliesTitle}>Supportive Replies</Text>
-                        <Text style={styles.repliesCount}>
-                            {comments.length} REPLIES
-                        </Text>
-                    </View>
-
-                    {/* Comments List */}
-                    {comments.map((comment, index) => (
-                        <View key={comment.id} style={styles.commentCard}>
-                            <View style={styles.commentHeader}>
-                                <Text style={styles.commentUsername}>
-                                    {comment.username || `KindSoul_${index + 1}`}
-                                </Text>
-                                <Text style={styles.commentTimestamp}>
-                                    {comment.timestamp}
+                                <Text style={styles.categoryText}>
+                                    {getCategoryLabel(post.category)}
                                 </Text>
                             </View>
-                            <Text style={styles.commentText}>{comment.text}</Text>
+                            <Text style={styles.timestamp}>{post.timestamp}</Text>
                         </View>
-                    ))}
-                </View>
 
-                {/* Report Button */}
-                <TouchableOpacity
-                    onPress={handleReport}
-                    style={styles.reportButton}
-                >
-                    <Ionicons name="flag-outline" size={16} color="#9E9E9E" />
-                    <Text style={styles.reportText}>REPORT CONTENT</Text>
-                </TouchableOpacity>
-            </ScrollView>
+                        <Text style={styles.postTitle}>{post.title}</Text>
+                        <Text style={styles.postDescription}>{post.description}</Text>
 
-            {/* Bottom Input */}
-            <View style={styles.bottomInput}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Type a message of support..."
-                    placeholderTextColor="#BDBDBD"
-                    value={newComment}
-                    onChangeText={setNewComment}
-                />
-                <TouchableOpacity style={styles.emojiButton}>
-                    <Ionicons name="happy-outline" size={24} color="#9E9E9E" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={handleAddComment}
-                    disabled={!newComment.trim()}
-                >
-                    <Ionicons
-                        name="send"
-                        size={20}
-                        color={newComment.trim() ? "#FFFFFF" : "#BDBDBD"}
+                        {/* Hugs Sent */}
+                        <View style={styles.hugsSentContainer}>
+                            <View style={styles.hugIcon}>
+                                <Ionicons name="heart" size={16} color="#E57373" />
+                            </View>
+                            <View style={styles.hugIcon}>
+                                <Ionicons name="hand-left" size={16} color="#FFB74D" />
+                            </View>
+                            <Text style={styles.hugsSentText}>
+                                {totalHugs} hugs sent
+                            </Text>
+                        </View>
+
+                        {/* Action Buttons */}
+                        <View style={styles.actionButtons}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.actionButton,
+                                    hugActive && styles.actionButtonActive,
+                                ]}
+                                onPress={handleHug}
+                            >
+                                <Ionicons
+                                    name="hand-left"
+                                    size={18}
+                                    color={hugActive ? "#FFB74D" : "#9575cd"}
+                                />
+                                <Text
+                                    style={[
+                                        styles.actionButtonText,
+                                        hugActive && styles.actionButtonTextActive,
+                                    ]}
+                                >
+                                    Send Hug
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.actionButton,
+                                    meTooActive && styles.actionButtonActive,
+                                ]}
+                                onPress={() => setMeTooActive(!meTooActive)}
+                            >
+                                <Ionicons
+                                    name="happy"
+                                    size={18}
+                                    color={meTooActive ? "#66BB6A" : "#9575cd"}
+                                />
+                                <Text
+                                    style={[
+                                        styles.actionButtonText,
+                                        meTooActive && styles.actionButtonTextActive,
+                                    ]}
+                                >
+                                    Me too
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.actionButton,
+                                    keepGoingActive && styles.actionButtonActive,
+                                ]}
+                                onPress={() => setKeepGoingActive(!keepGoingActive)}
+                            >
+                                <Ionicons
+                                    name="bulb"
+                                    size={18}
+                                    color={keepGoingActive ? "#FFA726" : "#9575cd"}
+                                />
+                                <Text
+                                    style={[
+                                        styles.actionButtonText,
+                                        keepGoingActive && styles.actionButtonTextActive,
+                                    ]}
+                                >
+                                    Keep going
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Supportive Replies Section */}
+                    <View style={styles.repliesSection}>
+                        <View style={styles.repliesHeader}>
+                            <Text style={styles.repliesTitle}>Supportive Replies</Text>
+                            <Text style={styles.repliesCount}>
+                                {comments.length} REPLIES
+                            </Text>
+                        </View>
+
+                        {/* Comments List */}
+                        {console.log(
+                            "Rendering comments, count:",
+                            comments.length,
+                            "Data:",
+                            JSON.stringify(comments),
+                        )}
+                        {comments.length > 0 ? (
+                            comments.map((comment, index) => (
+                                <View
+                                    key={comment.id || index}
+                                    style={styles.commentCard}
+                                >
+                                    <View style={styles.commentHeader}>
+                                        <Text style={styles.commentUsername}>
+                                            {comment.username || `KindSoul_${index + 1}`}
+                                        </Text>
+                                        <Text style={styles.commentTimestamp}>
+                                            {comment.timestamp}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.commentText}>
+                                        {comment.text}
+                                    </Text>
+                                </View>
+                            ))
+                        ) : (
+                            <Text style={styles.noCommentsText}>
+                                No comments yet. Be the first to share support!
+                            </Text>
+                        )}
+                    </View>
+
+                    {/* Report Button */}
+                    <TouchableOpacity
+                        onPress={handleReport}
+                        style={styles.reportButton}
+                    >
+                        <Ionicons name="flag-outline" size={16} color="#9E9E9E" />
+                        <Text style={styles.reportText}>REPORT CONTENT</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+
+                {/* Bottom Input */}
+                <View style={styles.bottomInput}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Type a message of support..."
+                        placeholderTextColor="#BDBDBD"
+                        value={newComment}
+                        onChangeText={setNewComment}
                     />
-                </TouchableOpacity>
-            </View>
+                    <TouchableOpacity style={styles.emojiButton}>
+                        <Ionicons name="happy-outline" size={24} color="#9E9E9E" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.sendButton}
+                        onPress={handleAddComment}
+                        disabled={!newComment.trim()}
+                    >
+                        <Ionicons
+                            name="send"
+                            size={20}
+                            color={newComment.trim() ? "#FFFFFF" : "#BDBDBD"}
+                        />
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -412,6 +523,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F5F5F5",
+    },
+    flex1: {
+        flex: 1,
     },
     errorContainer: {
         flex: 1,
@@ -586,6 +700,14 @@ const styles = StyleSheet.create({
         color: "#616161",
         lineHeight: 22,
     },
+    noCommentsText: {
+        fontSize: 14,
+        color: "#BDBDBD",
+        textAlign: "center",
+        marginTop: 20,
+        marginBottom: 20,
+        fontStyle: "italic",
+    },
     reportButton: {
         flexDirection: "row",
         alignItems: "center",
@@ -600,10 +722,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     bottomInput: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
