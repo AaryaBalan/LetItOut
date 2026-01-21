@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { collection, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore";
 import {
   Alert,
   ScrollView,
@@ -10,11 +12,66 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Profile() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [userPosts, setUserPosts] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+
+  // Fetch user's posts from Firebase
+  useEffect(() => {
+    if (!user) {
+      setLoadingPosts(false);
+      return;
+    }
+
+    const postsRef = collection(db, "posts");
+    const q = query(postsRef, where("authorId", "==", user.uid));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fetchedPosts = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            category: data.category,
+            description: data.description,
+            createdAt: data.createdAt,
+            reactions: data.reactions || { support: 0, hug: 0 },
+            commentCount: data.commentCount || 0,
+          };
+        });
+        setUserPosts(fetchedPosts);
+        setLoadingPosts(false);
+      },
+      (error) => {
+        console.error("Error fetching user posts:", error);
+        setLoadingPosts(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return "Just now";
+    const now = new Date();
+    const postDate = new Date(timestamp);
+    const diffInMs = now - postDate;
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return `${diffInDays}d ago`;
+  };
 
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -174,7 +231,7 @@ export default function Profile() {
               <Text style={styles.statLabel}>HUGS SENT</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>5</Text>
+              <Text style={styles.statNumber}>{userPosts.length}</Text>
               <Text style={styles.statLabel}>STORIES SHARED</Text>
             </View>
           </View>
@@ -189,21 +246,39 @@ export default function Profile() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.storyCard}>
-            <Text style={styles.storyCategory}>ACADEMIC STRESS</Text>
-            <Text style={styles.storyTime}>2d ago</Text>
-            <Text style={styles.storyText}>
-              Feeling overwhelmed by finals and personal expectations...
-            </Text>
-            <View style={styles.storyFooter}>
-              <Ionicons
-                name="hand-left-outline"
-                size={16}
-                color="#9E9E9E"
-              />
-              <Text style={styles.storyHugs}>12 hugs received</Text>
+          {loadingPosts ? (
+            <View style={styles.storyCard}>
+              <Text style={styles.storyText}>Loading your posts...</Text>
             </View>
-          </View>
+          ) : userPosts.length > 0 ? (
+            userPosts.slice(0, 3).map((post) => (
+              <TouchableOpacity
+                key={post.id}
+                style={styles.storyCard}
+                onPress={() => router.push(`/post/${post.id}`)}
+              >
+                <Text style={styles.storyCategory}>{post.category.toUpperCase()}</Text>
+                <Text style={styles.storyTime}>{getTimeAgo(post.createdAt)}</Text>
+                <Text style={styles.storyText} numberOfLines={2}>
+                  {post.title}
+                </Text>
+                <View style={styles.storyFooter}>
+                  <Ionicons
+                    name="hand-left-outline"
+                    size={16}
+                    color="#9E9E9E"
+                  />
+                  <Text style={styles.storyHugs}>
+                    {post.reactions.hug + post.reactions.support} hugs received
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.storyCard}>
+              <Text style={styles.storyText}>No posts yet. Share your first thought!</Text>
+            </View>
+          )}
         </View>
 
         {/* Supportive History Section */}
@@ -413,6 +488,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 12,
   },
   storyCategory: {
     fontSize: 11,

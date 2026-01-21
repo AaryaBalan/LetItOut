@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     Alert,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 import { getPostById } from "../../data/dummyData";
 
 const getCategoryColor = (category) => {
@@ -39,8 +40,10 @@ const getCategoryLabel = (category) => {
 export default function PostDetail() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { user } = useAuth();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isAuthor, setIsAuthor] = useState(false);
 
     const [supportCount, setSupportCount] = useState(0);
     const [hugCount, setHugCount] = useState(0);
@@ -74,11 +77,17 @@ export default function PostDetail() {
                         comments: data.comments || [],
                         isAnonymous: data.isAnonymous,
                         authorName: data.authorName || "Anonymous",
+                        authorId: data.authorId,
                     };
                     setPost(fetchedPost);
                     setSupportCount(fetchedPost.reactions.support);
                     setHugCount(fetchedPost.reactions.hug);
                     setComments(fetchedPost.comments);
+                    
+                    // Check if current user is the author
+                    if (user && data.authorId === user.uid) {
+                        setIsAuthor(true);
+                    }
                 } else {
                     // Fallback to dummy data
                     const dummyPost = getPostById(id);
@@ -105,7 +114,7 @@ export default function PostDetail() {
         };
 
         fetchPost();
-    }, [id]);
+    }, [id, user]);
 
     // Helper function to calculate time ago
     const getTimeAgo = (timestamp) => {
@@ -171,6 +180,30 @@ export default function PostDetail() {
         );
     };
 
+    const handleDelete = async () => {
+        Alert.alert(
+            "Delete Post",
+            "Are you sure you want to delete this post? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await deleteDoc(doc(db, "posts", id));
+                            Alert.alert("Success", "Post deleted successfully");
+                            router.back();
+                        } catch (error) {
+                            console.error("Error deleting post:", error);
+                            Alert.alert("Error", "Failed to delete post. Please try again.");
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
     const totalHugs = hugCount + supportCount;
 
     return (
@@ -186,9 +219,15 @@ export default function PostDetail() {
                     <Ionicons name="chevron-back" size={28} color="#212121" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Post Detail</Text>
-                <TouchableOpacity style={styles.moreButton}>
-                    <Ionicons name="ellipsis-horizontal" size={24} color="#212121" />
-                </TouchableOpacity>
+                {isAuthor ? (
+                    <TouchableOpacity style={styles.moreButton} onPress={handleDelete}>
+                        <Ionicons name="trash-outline" size={24} color="#EF5350" />
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity style={styles.moreButton}>
+                        <Ionicons name="ellipsis-horizontal" size={24} color="#212121" />
+                    </TouchableOpacity>
+                )}
             </View>
 
             <ScrollView
