@@ -1,95 +1,185 @@
-import { Picker } from '@react-native-picker/picker';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { categories } from '../../data/dummyData';
+import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { categories } from "../../data/dummyData";
 
 export default function CreatePost() {
   const router = useRouter();
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState(categories[0]);
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true);
 
+  const characterCount = description.length;
+  const maxCharacters = 1000;
+
   const handleSubmit = () => {
-    if (!title.trim() || !description.trim()) {
-      Alert.alert('Missing Information', 'Please fill in both title and description.');
+    if (!title.trim() || !category || !description.trim()) {
+      Alert.alert("Missing Information", "Please fill in all fields.");
       return;
     }
-    Alert.alert('Post Shared!', 'Your feelings have been shared with the community. You are not alone. 💜', [
-      { text: 'View Feed', onPress: () => router.push('/(tabs)/home') },
-      { text: 'OK', style: 'cancel' }
-    ]);
-    setTitle('');
-    setDescription('');
-    setCategory(categories[0]);
+    Alert.alert(
+      "Success!",
+      "Your thought has been shared anonymously with the community. 💜",
+      [
+        { text: "View Feed", onPress: () => router.push("/(tabs)/home") },
+        { text: "OK", style: "cancel" },
+      ],
+    );
+    setTitle("");
+    setDescription("");
+    setCategory("");
     setIsAnonymous(true);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.cancelButton}
+        >
+          <Ionicons name="close" size={28} color="#757575" />
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Create Post</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Share Your Feelings</Text>
-          <Text style={styles.subtitle}>You're in a safe, judgment-free space</Text>
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Main Title */}
+          <Text style={styles.mainTitle}>
+            Release what's on your mind.
+          </Text>
+          <Text style={styles.subtitle}>
+            Everything you share is completely anonymous and kept safe
+            within our community.
+          </Text>
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Title</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Give your post a title..."
-              placeholderTextColor="#9ca3af"
-              value={title}
-              onChangeText={setTitle}
-            />
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Category</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={category}
-                onValueChange={(itemValue) => setCategory(itemValue)}
-                style={styles.picker}
-              >
-                {categories.map((cat) => (
-                  <Picker.Item key={cat} label={cat} value={cat} />
-                ))}
-              </Picker>
+          {/* Form Card */}
+          <View style={styles.formCard}>
+            {/* Title Field */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>TITLE</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Give it a name..."
+                placeholderTextColor="#BDBDBD"
+                value={title}
+                onChangeText={setTitle}
+              />
             </View>
-          </View>
 
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Share what's on your mind..."
-              placeholderTextColor="#9ca3af"
-              multiline
-              numberOfLines={8}
-              value={description}
-              onChangeText={setDescription}
-            />
-          </View>
-
-          <TouchableOpacity onPress={() => setIsAnonymous(!isAnonymous)} style={styles.toggleContainer}>
-            <View style={[styles.toggle, isAnonymous && styles.toggleActive]}>
-              <View style={[styles.toggleCircle, isAnonymous && styles.toggleCircleActive]} />
+            {/* Category Picker */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>CATEGORY</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={category}
+                  onValueChange={(itemValue) => setCategory(itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item
+                    label="Select a topic"
+                    value=""
+                    color="#BDBDBD"
+                  />
+                  {categories.map((cat) => (
+                    <Picker.Item key={cat} label={cat} value={cat} />
+                  ))}
+                </Picker>
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color="#9575cd"
+                  style={styles.pickerIcon}
+                />
+              </View>
             </View>
-            <Text style={styles.toggleLabel}>Post anonymously</Text>
-            <Text style={styles.toggleStatus}>{isAnonymous ? 'ON' : 'OFF'}</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Share Your Feelings</Text>
-          </TouchableOpacity>
+            {/* Story TextArea */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>YOUR STORY</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="What's happening? Be as detailed as you like..."
+                placeholderTextColor="#BDBDBD"
+                multiline
+                numberOfLines={8}
+                value={description}
+                onChangeText={setDescription}
+                maxLength={maxCharacters}
+              />
+              <Text style={styles.characterCount}>
+                {characterCount} / {maxCharacters}
+              </Text>
+            </View>
+
+            {/* Anonymous Toggle */}
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleLeft}>
+                <Text style={styles.toggleTitle}>Post Anonymously</Text>
+                <Text style={styles.toggleSubtitle}>
+                  Identity stays private
+                </Text>
+              </View>
+              <Switch
+                value={isAnonymous}
+                onValueChange={setIsAnonymous}
+                trackColor={{ false: "#E0E0E0", true: "#B39DDB" }}
+                thumbColor={isAnonymous ? "#9575cd" : "#F5F5F5"}
+                ios_backgroundColor="#E0E0E0"
+              />
+            </View>
+
+            {/* Info Message */}
+            <View style={styles.infoContainer}>
+              <Ionicons
+                name="information-circle"
+                size={20}
+                color="#9575cd"
+              />
+              <Text style={styles.infoText}>
+                Your thoughts help build a supportive community.
+                Remember to be kind.
+              </Text>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              onPress={handleSubmit}
+              style={styles.submitButton}
+            >
+              <Ionicons name="send" size={20} color="#FFFFFF" />
+              <Text style={styles.submitButtonText}>Share Thought</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -97,27 +187,172 @@ export default function CreatePost() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
-  keyboardView: { flex: 1 },
-  header: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 12, backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  logo: { fontSize: 24, fontWeight: 'bold', color: '#9575cd', marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1f2937', marginBottom: 4 },
-  subtitle: { color: '#6b7280', fontSize: 14 },
-  scrollView: { flex: 1, backgroundColor: '#f9fafb' },
-  scrollContent: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 24 },
-  fieldContainer: { marginBottom: 20 },
-  label: { fontSize: 16, fontWeight: '600', color: '#1f2937', marginBottom: 8 },
-  input: { backgroundColor: '#ffffff', borderRadius: 8, padding: 16, color: '#374151', borderWidth: 1, borderColor: '#e5e7eb', fontSize: 16 },
-  pickerContainer: { backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
-  picker: { height: 50 },
-  textArea: { minHeight: 140, textAlignVertical: 'top' },
-  toggleContainer: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#f3e8ff', borderRadius: 8, marginBottom: 24 },
-  toggle: { width: 48, height: 24, borderRadius: 12, backgroundColor: '#d1d5db', marginRight: 12 },
-  toggleActive: { backgroundColor: '#9575cd' },
-  toggleCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#ffffff', marginTop: 2, marginLeft: 2 },
-  toggleCircleActive: { marginLeft: 26 },
-  toggleLabel: { color: '#374151', fontWeight: '500', flex: 1 },
-  toggleStatus: { fontSize: 14, color: '#6b7280', fontWeight: '600' },
-  submitButton: { backgroundColor: '#9575cd', paddingVertical: 16, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  submitButtonText: { color: '#ffffff', fontWeight: 'bold', textAlign: 'center', fontSize: 18 },
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  cancelButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  cancelText: {
+    fontSize: 16,
+    color: "#757575",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#212121",
+  },
+  placeholder: {
+    width: 80,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#212121",
+    marginBottom: 12,
+    lineHeight: 38,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#9E9E9E",
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  formCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  fieldContainer: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#9E9E9E",
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  input: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 15,
+    color: "#212121",
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  pickerContainer: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 16,
+    overflow: "hidden",
+    position: "relative",
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  picker: {
+    height: 56,
+    color: "#212121",
+  },
+  pickerIcon: {
+    position: "absolute",
+    right: 16,
+    top: 18,
+    pointerEvents: "none",
+  },
+  textArea: {
+    height: 180,
+    textAlignVertical: "top",
+    paddingTop: 16,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: "#BDBDBD",
+    textAlign: "right",
+    marginTop: 8,
+  },
+  toggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    marginBottom: 24,
+  },
+  toggleLeft: {
+    flex: 1,
+  },
+  toggleTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#212121",
+    marginBottom: 4,
+  },
+  toggleSubtitle: {
+    fontSize: 13,
+    color: "#9E9E9E",
+  },
+  infoContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#F3E5F5",
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+    marginBottom: 24,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#7B1FA2",
+    lineHeight: 20,
+  },
+  submitButton: {
+    backgroundColor: "#9575cd",
+    paddingVertical: 18,
+    borderRadius: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    shadowColor: "#9575cd",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
 });

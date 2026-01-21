@@ -1,7 +1,29 @@
-import { Link } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import CategoryBadge from './CategoryBadge';
+import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+const getCategoryColor = (category) => {
+    const colors = {
+        Study: "#FFE082",
+        "Mental Health": "#B39DDB",
+        Mindfulness: "#FFE082",
+        Stress: "#EF9A9A",
+        Anxiety: "#B39DDB",
+        Relationship: "#F48FB1",
+        Family: "#80CBC4",
+    };
+    return colors[category] || "#E0E0E0";
+};
+
+const getCategoryLabel = (category) => {
+    const labels = {
+        Study: "STUDY SUPPORT",
+        "Mental Health": "MENTAL HEALTH",
+        Mindfulness: "MINDFULNESS",
+    };
+    return labels[category] || category.toUpperCase();
+};
 
 export default function PostCard({ post }) {
     const [supportCount, setSupportCount] = useState(post.reactions.support);
@@ -29,23 +51,32 @@ export default function PostCard({ post }) {
         }
     };
 
+    const commentCount = post.comments?.length || 0;
+
     return (
         <Link href={`/post/${post.id}`} asChild>
             <TouchableOpacity style={styles.card}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>
-                        {post.title}
-                    </Text>
-                    <CategoryBadge category={post.category} />
+                <View style={styles.cardHeader}>
+                    <View
+                        style={[
+                            styles.categoryBadge,
+                            { backgroundColor: getCategoryColor(post.category) },
+                        ]}
+                    >
+                        <Text style={styles.categoryText}>
+                            {getCategoryLabel(post.category)}
+                        </Text>
+                    </View>
+                    <Text style={styles.timestamp}>{post.timestamp}</Text>
                 </View>
 
-                <Text style={styles.preview} numberOfLines={2}>
-                    {post.preview}
+                <Text style={styles.title}>{post.title}</Text>
+
+                <Text style={styles.preview} numberOfLines={3}>
+                    {post.description}
                 </Text>
 
                 <View style={styles.footer}>
-                    <Text style={styles.timestamp}>{post.timestamp}</Text>
-
                     <View style={styles.reactions}>
                         <TouchableOpacity
                             onPress={(e) => {
@@ -54,8 +85,17 @@ export default function PostCard({ post }) {
                             }}
                             style={styles.reactionButton}
                         >
-                            <Text style={styles.emoji}>❤️</Text>
-                            <Text style={[styles.reactionCount, supportActive && styles.reactionActive]}>
+                            <Ionicons
+                                name={supportActive ? "heart" : "heart-outline"}
+                                size={20}
+                                color={supportActive ? "#E57373" : "#9E9E9E"}
+                            />
+                            <Text
+                                style={[
+                                    styles.reactionCount,
+                                    supportActive && styles.reactionActive,
+                                ]}
+                            >
                                 {supportCount}
                             </Text>
                         </TouchableOpacity>
@@ -67,11 +107,29 @@ export default function PostCard({ post }) {
                             }}
                             style={styles.reactionButton}
                         >
-                            <Text style={styles.emoji}>🤗</Text>
-                            <Text style={[styles.reactionCount, hugActive && styles.reactionActiveHug]}>
+                            <Ionicons
+                                name={hugActive ? "hand-left" : "hand-left-outline"}
+                                size={20}
+                                color={hugActive ? "#FFB74D" : "#9E9E9E"}
+                            />
+                            <Text
+                                style={[
+                                    styles.reactionCount,
+                                    hugActive && styles.reactionActiveHug,
+                                ]}
+                            >
                                 {hugCount}
                             </Text>
                         </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.commentSection}>
+                        <Ionicons
+                            name="chatbubble-outline"
+                            size={18}
+                            color="#9E9E9E"
+                        />
+                        <Text style={styles.commentCount}>{commentCount}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
@@ -81,63 +139,83 @@ export default function PostCard({ post }) {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#ffffff',
-        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 16,
         padding: 20,
         marginBottom: 16,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
         elevation: 2,
-        borderWidth: 1,
-        borderColor: '#f3f4f6',
     },
-    header: {
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
         marginBottom: 12,
+    },
+    categoryBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    categoryText: {
+        fontSize: 11,
+        fontWeight: "700",
+        color: "#212121",
+        letterSpacing: 0.5,
+    },
+    timestamp: {
+        fontSize: 13,
+        color: "#BDBDBD",
     },
     title: {
         fontSize: 18,
-        fontWeight: '600',
-        color: '#1f2937',
+        fontWeight: "700",
+        color: "#212121",
         marginBottom: 8,
+        lineHeight: 24,
     },
     preview: {
-        color: '#4b5563',
-        marginBottom: 12,
-        lineHeight: 20,
+        fontSize: 14,
+        color: "#757575",
+        lineHeight: 22,
+        marginBottom: 16,
     },
     footer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    timestamp: {
-        fontSize: 14,
-        color: '#9ca3af',
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
     },
     reactions: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
         gap: 16,
     },
     reactionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    emoji: {
-        fontSize: 18,
-        marginRight: 4,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
     },
     reactionCount: {
         fontSize: 14,
-        fontWeight: '500',
-        color: '#4b5563',
+        fontWeight: "600",
+        color: "#757575",
     },
     reactionActive: {
-        color: '#ef4444',
+        color: "#E57373",
     },
     reactionActiveHug: {
-        color: '#f59e0b',
+        color: "#FFB74D",
+    },
+    commentSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    commentCount: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#757575",
     },
 });
