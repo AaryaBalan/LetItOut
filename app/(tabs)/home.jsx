@@ -79,14 +79,21 @@ export default function Home() {
   // Combine Firebase posts with dummy data
   const allPosts = [...firebasePosts, ...dummyPosts];
 
-  const filteredPosts =
-    selectedCategory === "All Feed"
-      ? allPosts
-      : allPosts.filter((post) =>
-        post.category
-          .toLowerCase()
-          .includes(selectedCategory.toLowerCase()),
-      );
+  const filteredPosts = allPosts.filter((post) => {
+    // Filter by category
+    const matchesCategory =
+      selectedCategory === "All Feed" ||
+      post.category.toLowerCase().includes(selectedCategory.toLowerCase());
+
+    // Filter by search query
+    const matchesSearch =
+      searchQuery.trim() === "" ||
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.category.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
