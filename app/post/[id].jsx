@@ -57,12 +57,13 @@ export default function PostDetail() {
     const [loading, setLoading] = useState(true);
     const [isAuthor, setIsAuthor] = useState(false);
 
-    const [supportCount, setSupportCount] = useState(0);
     const [hugCount, setHugCount] = useState(0);
-    const [supportActive, setSupportActive] = useState(false);
+    const [meTooCount, setMeTooCount] = useState(0);
+    const [likeCount, setLikeCount] = useState(0);
     const [hugActive, setHugActive] = useState(false);
     const [meTooActive, setMeTooActive] = useState(false);
-    const [keepGoingActive, setKeepGoingActive] = useState(false);
+    const [likeActive, setLikeActive] = useState(false);
+    const [userReactions, setUserReactions] = useState({}); // Store user's reaction doc IDs by type
     const [newComment, setNewComment] = useState("");
     const [comments, setComments] = useState([]);
 
@@ -92,9 +93,7 @@ export default function PostDetail() {
                         authorId: data.authorId,
                     };
                     setPost(fetchedPost);
-                    setSupportCount(fetchedPost.reactions.support);
-                    setHugCount(fetchedPost.reactions.hug);
-                    // Don't set comments here - they're fetched separately in real-time
+                    // Reactions are fetched separately in real-time
 
                     // Check if current user is the author
                     if (user && data.authorId === user.uid) {
@@ -105,8 +104,6 @@ export default function PostDetail() {
                     const dummyPost = getPostById(id);
                     if (dummyPost) {
                         setPost(dummyPost);
-                        setSupportCount(dummyPost.reactions.support);
-                        setHugCount(dummyPost.reactions.hug);
                         // For dummy posts, we can use their embedded comments
                         setComments(dummyPost.comments || []);
                     }
@@ -117,8 +114,6 @@ export default function PostDetail() {
                 const dummyPost = getPostById(id);
                 if (dummyPost) {
                     setPost(dummyPost);
-                    setSupportCount(dummyPost.reactions.support);
-                    setHugCount(dummyPost.reactions.hug);
                     // For dummy posts, we can use their embedded comments
                     setComments(dummyPost.comments || []);
                 }
@@ -183,6 +178,48 @@ export default function PostDetail() {
         };
     }, [id]);
 
+    // Fetch reactions for this post in real-time
+    useEffect(() => {
+        if (!id) return;
+
+        const reactionsRef = collection(db, "reactions");
+        const q = query(reactionsRef, where("postId", "==", String(id)));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            // Count reactions by type
+            const counts = { hug: 0, metoo: 0, like: 0 };
+            const userReactionDocs = {};
+
+            snapshot.docs.forEach((docSnap) => {
+                const data = docSnap.data();
+                const type = data.type;
+
+                // Count all reactions
+                if (type === "hug") counts.hug++;
+                else if (type === "metoo") counts.metoo++;
+                else if (type === "like") counts.like++;
+
+                // Track user's own reactions
+                if (user && data.userId === user.uid) {
+                    userReactionDocs[type] = docSnap.id;
+                }
+            });
+
+            setHugCount(counts.hug);
+            setMeTooCount(counts.metoo);
+            setLikeCount(counts.like);
+
+            // Update active states based on user's reactions
+            setHugActive(!!userReactionDocs.hug);
+            setMeTooActive(!!userReactionDocs.metoo);
+            setLikeActive(!!userReactionDocs.like);
+
+            setUserReactions(userReactionDocs);
+        });
+
+        return () => unsubscribe();
+    }, [id, user]);
+
     // Helper function to calculate time ago
     const getTimeAgo = (timestamp) => {
         const now = new Date();
@@ -221,9 +258,85 @@ export default function PostDetail() {
         setSupportCount(supportActive ? supportCount - 1 : supportCount + 1);
     };
 
-    const handleHug = () => {
-        setHugActive(!hugActive);
-        setHugCount(hugActive ? hugCount - 1 : hugCount + 1);
+    const handleHug = async () => {
+        if (!user) {
+            Alert.alert("Not Logged In", "Please log in to react.");
+            return;
+        }
+
+        try {
+            if (hugActive && userReactions.hug) {
+                // Remove reaction
+                await deleteDoc(doc(db, "reactions", userReactions.hug));
+            } else {
+                // Add reaction
+                await addDoc(collection(db, "reactions"), {
+                    postId: String(id),
+                    userId: user.uid,
+                    userName: user.displayName || "Anonymous",
+                    type: "hug",
+                    timestamp: serverTimestamp(),
+                    createdAt: new Date().toISOString(),
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling hug reaction:", error);
+            Alert.alert("Error", "Failed to update reaction. Please try again.");
+        }
+    };
+
+    const handleMeToo = async () => {
+        if (!user) {
+            Alert.alert("Not Logged In", "Please log in to react.");
+            return;
+        }
+
+        try {
+            if (meTooActive && userReactions.metoo) {
+                // Remove reaction
+                await deleteDoc(doc(db, "reactions", userReactions.metoo));
+            } else {
+                // Add reaction
+                await addDoc(collection(db, "reactions"), {
+                    postId: String(id),
+                    userId: user.uid,
+                    userName: user.displayName || "Anonymous",
+                    type: "metoo",
+                    timestamp: serverTimestamp(),
+                    createdAt: new Date().toISOString(),
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling me too reaction:", error);
+            Alert.alert("Error", "Failed to update reaction. Please try again.");
+        }
+    };
+
+    const handleLike = async () => {
+        if (!user) {
+            Alert.alert("Not Logged In", "Please log in to react.");
+            return;
+        }
+
+        try {
+            if (likeActive && userReactions.like) {
+                // Remove reaction
+                await deleteDoc(doc(db, "reactions", userReactions.like));
+            } else {
+                // Add reaction
+                await addDoc(collection(db, "reactions"), {
+                    postId: String(id),
+                    userId: user.uid,
+                    userName: user.displayName || "Anonymous",
+                    type: "like",
+                    timestamp: serverTimestamp(),
+                    createdAt: new Date().toISOString(),
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling like reaction:", error);
+            Alert.alert("Error", "Failed to update reaction. Please try again.");
+        }
     };
 
     const handleAddComment = async () => {
@@ -292,7 +405,7 @@ export default function PostDetail() {
         );
     };
 
-    const totalHugs = hugCount + supportCount;
+    const totalHugs = hugCount + meTooCount + likeCount;
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
@@ -363,13 +476,38 @@ export default function PostDetail() {
                             <View style={styles.hugIcon}>
                                 <Ionicons name="hand-left" size={16} color="#FFB74D" />
                             </View>
+                            <View style={styles.hugIcon}>
+                                <Ionicons name="happy" size={16} color="#66BB6A" />
+                            </View>
                             <Text style={styles.hugsSentText}>
-                                {totalHugs} hugs sent
+                                {likeCount + hugCount + meTooCount} reactions
                             </Text>
                         </View>
 
                         {/* Action Buttons */}
                         <View style={styles.actionButtons}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.actionButton,
+                                    likeActive && styles.actionButtonActive,
+                                ]}
+                                onPress={handleLike}
+                            >
+                                <Ionicons
+                                    name="heart"
+                                    size={18}
+                                    color={likeActive ? "#E57373" : "#9575cd"}
+                                />
+                                <Text
+                                    style={[
+                                        styles.actionButtonText,
+                                        likeActive && styles.actionButtonTextActive,
+                                    ]}
+                                >
+                                    Like {likeCount > 0 && `(${likeCount})`}
+                                </Text>
+                            </TouchableOpacity>
+
                             <TouchableOpacity
                                 style={[
                                     styles.actionButton,
@@ -388,7 +526,7 @@ export default function PostDetail() {
                                         hugActive && styles.actionButtonTextActive,
                                     ]}
                                 >
-                                    Send Hug
+                                    Send Hug {hugCount > 0 && `(${hugCount})`}
                                 </Text>
                             </TouchableOpacity>
 
@@ -397,7 +535,7 @@ export default function PostDetail() {
                                     styles.actionButton,
                                     meTooActive && styles.actionButtonActive,
                                 ]}
-                                onPress={() => setMeTooActive(!meTooActive)}
+                                onPress={handleMeToo}
                             >
                                 <Ionicons
                                     name="happy"
@@ -410,29 +548,7 @@ export default function PostDetail() {
                                         meTooActive && styles.actionButtonTextActive,
                                     ]}
                                 >
-                                    Me too
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.actionButton,
-                                    keepGoingActive && styles.actionButtonActive,
-                                ]}
-                                onPress={() => setKeepGoingActive(!keepGoingActive)}
-                            >
-                                <Ionicons
-                                    name="bulb"
-                                    size={18}
-                                    color={keepGoingActive ? "#FFA726" : "#9575cd"}
-                                />
-                                <Text
-                                    style={[
-                                        styles.actionButtonText,
-                                        keepGoingActive && styles.actionButtonTextActive,
-                                    ]}
-                                >
-                                    Keep going
+                                    Me too {meTooCount > 0 && `(${meTooCount})`}
                                 </Text>
                             </TouchableOpacity>
                         </View>

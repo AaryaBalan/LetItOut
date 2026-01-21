@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useState } from "react";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { db } from "../config/firebase";
 
 const getCategoryColor = (category) => {
     const colors = {
@@ -26,32 +28,51 @@ const getCategoryLabel = (category) => {
 };
 
 export default function PostCard({ post }) {
-    const [supportCount, setSupportCount] = useState(post.reactions.support);
-    const [hugCount, setHugCount] = useState(post.reactions.hug);
-    const [supportActive, setSupportActive] = useState(false);
-    const [hugActive, setHugActive] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [hugCount, setHugCount] = useState(0);
+    const [meTooCount, setMeTooCount] = useState(0);
+    const [commentCount, setCommentCount] = useState(0);
 
-    const handleSupport = () => {
-        if (supportActive) {
-            setSupportCount(supportCount - 1);
-            setSupportActive(false);
-        } else {
-            setSupportCount(supportCount + 1);
-            setSupportActive(true);
-        }
-    };
+    // Fetch reaction counts from Firebase in real-time
+    useEffect(() => {
+        if (!post.id) return;
 
-    const handleHug = () => {
-        if (hugActive) {
-            setHugCount(hugCount - 1);
-            setHugActive(false);
-        } else {
-            setHugCount(hugCount + 1);
-            setHugActive(true);
-        }
-    };
+        const reactionsRef = collection(db, "reactions");
+        const q = query(reactionsRef, where("postId", "==", String(post.id)));
 
-    const commentCount = post.comments?.length || 0;
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const counts = { like: 0, hug: 0, metoo: 0 };
+
+            snapshot.docs.forEach((doc) => {
+                const data = doc.data();
+                const type = data.type;
+
+                if (type === "like") counts.like++;
+                else if (type === "hug") counts.hug++;
+                else if (type === "metoo") counts.metoo++;
+            });
+
+            setLikeCount(counts.like);
+            setHugCount(counts.hug);
+            setMeTooCount(counts.metoo);
+        });
+
+        return () => unsubscribe();
+    }, [post.id]);
+
+    // Fetch comment count from Firebase in real-time
+    useEffect(() => {
+        if (!post.id) return;
+
+        const commentsRef = collection(db, "comments");
+        const q = query(commentsRef, where("postId", "==", String(post.id)));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setCommentCount(snapshot.size);
+        });
+
+        return () => unsubscribe();
+    }, [post.id]);
 
     return (
         <Link href={`/post/${post.id}`} asChild>
@@ -78,49 +99,20 @@ export default function PostCard({ post }) {
 
                 <View style={styles.footer}>
                     <View style={styles.reactions}>
-                        <TouchableOpacity
-                            onPress={(e) => {
-                                e.preventDefault();
-                                handleSupport();
-                            }}
-                            style={styles.reactionButton}
-                        >
-                            <Ionicons
-                                name={supportActive ? "heart" : "heart-outline"}
-                                size={20}
-                                color={supportActive ? "#E57373" : "#9E9E9E"}
-                            />
-                            <Text
-                                style={[
-                                    styles.reactionCount,
-                                    supportActive && styles.reactionActive,
-                                ]}
-                            >
-                                {supportCount}
-                            </Text>
-                        </TouchableOpacity>
+                        <View style={styles.reactionButton}>
+                            <Ionicons name="heart" size={20} color="#E57373" />
+                            <Text style={styles.reactionCount}>{likeCount}</Text>
+                        </View>
 
-                        <TouchableOpacity
-                            onPress={(e) => {
-                                e.preventDefault();
-                                handleHug();
-                            }}
-                            style={styles.reactionButton}
-                        >
-                            <Ionicons
-                                name={hugActive ? "hand-left" : "hand-left-outline"}
-                                size={20}
-                                color={hugActive ? "#FFB74D" : "#9E9E9E"}
-                            />
-                            <Text
-                                style={[
-                                    styles.reactionCount,
-                                    hugActive && styles.reactionActiveHug,
-                                ]}
-                            >
-                                {hugCount}
-                            </Text>
-                        </TouchableOpacity>
+                        <View style={styles.reactionButton}>
+                            <Ionicons name="hand-left" size={20} color="#FFB74D" />
+                            <Text style={styles.reactionCount}>{hugCount}</Text>
+                        </View>
+
+                        <View style={styles.reactionButton}>
+                            <Ionicons name="happy" size={20} color="#66BB6A" />
+                            <Text style={styles.reactionCount}>{meTooCount}</Text>
+                        </View>
                     </View>
 
                     <View style={styles.commentSection}>
