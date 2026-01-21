@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import {
     Alert,
     ScrollView,
@@ -66,7 +66,9 @@ export default function PostDetail() {
                         title: data.title,
                         description: data.description,
                         category: data.category,
-                        timestamp: data.createdAt ? getTimeAgo(data.createdAt) : "Just now",
+                        timestamp: data.createdAt
+                            ? getTimeAgo(data.createdAt)
+                            : "Just now",
                         reactions: data.reactions || { support: 0, hug: 0 },
                         commentCount: data.commentCount || 0,
                         comments: data.comments || [],
