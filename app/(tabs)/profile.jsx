@@ -1,7 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { collection, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore";
 import {
   Alert,
   ScrollView,
@@ -257,8 +262,12 @@ export default function Profile() {
                 style={styles.storyCard}
                 onPress={() => router.push(`/post/${post.id}`)}
               >
-                <Text style={styles.storyCategory}>{post.category.toUpperCase()}</Text>
-                <Text style={styles.storyTime}>{getTimeAgo(post.createdAt)}</Text>
+                <Text style={styles.storyCategory}>
+                  {post.category.toUpperCase()}
+                </Text>
+                <Text style={styles.storyTime}>
+                  {getTimeAgo(post.createdAt)}
+                </Text>
                 <Text style={styles.storyText} numberOfLines={2}>
                   {post.title}
                 </Text>
@@ -269,14 +278,17 @@ export default function Profile() {
                     color="#9E9E9E"
                   />
                   <Text style={styles.storyHugs}>
-                    {post.reactions.hug + post.reactions.support} hugs received
+                    {post.reactions.hug + post.reactions.support} hugs
+                    received
                   </Text>
                 </View>
               </TouchableOpacity>
             ))
           ) : (
             <View style={styles.storyCard}>
-              <Text style={styles.storyText}>No posts yet. Share your first thought!</Text>
+              <Text style={styles.storyText}>
+                No posts yet. Share your first thought!
+              </Text>
             </View>
           )}
         </View>

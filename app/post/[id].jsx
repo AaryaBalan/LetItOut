@@ -83,7 +83,7 @@ export default function PostDetail() {
                     setSupportCount(fetchedPost.reactions.support);
                     setHugCount(fetchedPost.reactions.hug);
                     setComments(fetchedPost.comments);
-                    
+
                     // Check if current user is the author
                     if (user && data.authorId === user.uid) {
                         setIsAuthor(true);
@@ -196,7 +196,10 @@ export default function PostDetail() {
                             router.back();
                         } catch (error) {
                             console.error("Error deleting post:", error);
-                            Alert.alert("Error", "Failed to delete post. Please try again.");
+                            Alert.alert(
+                                "Error",
+                                "Failed to delete post. Please try again.",
+                            );
                         }
                     },
                 },
@@ -220,12 +223,19 @@ export default function PostDetail() {
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Post Detail</Text>
                 {isAuthor ? (
-                    <TouchableOpacity style={styles.moreButton} onPress={handleDelete}>
+                    <TouchableOpacity
+                        style={styles.moreButton}
+                        onPress={handleDelete}
+                    >
                         <Ionicons name="trash-outline" size={24} color="#EF5350" />
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity style={styles.moreButton}>
-                        <Ionicons name="ellipsis-horizontal" size={24} color="#212121" />
+                        <Ionicons
+                            name="ellipsis-horizontal"
+                            size={24}
+                            color="#212121"
+                        />
                     </TouchableOpacity>
                 )}
             </View>
