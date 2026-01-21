@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   ScrollView,
@@ -12,18 +13,76 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
-import { posts } from "../../data/dummyData";
+import { db } from "../../config/firebase";
+import { posts as dummyPosts } from "../../data/dummyData";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
+  const [firebasePosts, setFirebasePosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = ["All Feed", "Stress", "Anxiety", "Self-Care"];
 
+  // Fetch posts from Firebase in real-time
+  useEffect(() => {
+    const postsRef = collection(db, "posts");
+    const q = query(postsRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fetchedPosts = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description,
+            category: data.category,
+            timestamp: data.createdAt
+              ? getTimeAgo(data.createdAt)
+              : "Just now",
+            reactions: data.reactions || { support: 0, hug: 0 },
+            commentCount: data.commentCount || 0,
+            comments: data.comments || [],
+            isAnonymous: data.isAnonymous,
+            authorName: data.authorName || "Anonymous",
+          };
+        });
+        setFirebasePosts(fetchedPosts);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching posts:", error);
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Helper function to calculate time ago
+  const getTimeAgo = (timestamp) => {
+    const now = new Date();
+    const postDate = new Date(timestamp);
+    const diffInMs = now - postDate;
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return `${diffInDays}d ago`;
+  };
+
+  // Combine Firebase posts with dummy data
+  const allPosts = [...firebasePosts, ...dummyPosts];
+
   const filteredPosts =
     selectedCategory === "All Feed"
-      ? posts
-      : posts.filter((post) =>
+      ? allPosts
+      : allPosts.filter((post) =>
         post.category
           .toLowerCase()
           .includes(selectedCategory.toLowerCase()),
@@ -100,6 +159,25 @@ export default function Home() {
         renderItem={({ item }) => <PostCard post={item} />}
         contentContainerStyle={styles.feedContent}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Loading posts...</Text>
+            </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="document-text-outline"
+                size={64}
+                color="#BDBDBD"
+              />
+              <Text style={styles.emptyText}>No posts yet</Text>
+              <Text style={styles.emptySubtext}>
+                Be the first to share your thoughts!
+              </Text>
+            </View>
+          )
+        }
       />
     </SafeAreaView>
   );
@@ -186,5 +264,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#757575",
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: "#BDBDBD",
+    marginTop: 8,
   },
 });

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
 import {
     Alert,
     ScrollView,
@@ -12,6 +13,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { db } from "../../config/firebase";
 import { getPostById } from "../../data/dummyData";
 
 const getCategoryColor = (category) => {
@@ -37,18 +39,95 @@ const getCategoryLabel = (category) => {
 export default function PostDetail() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const post = getPostById(id);
+    const [post, setPost] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const [supportCount, setSupportCount] = useState(
-        post?.reactions.support || 0,
-    );
-    const [hugCount, setHugCount] = useState(post?.reactions.hug || 0);
+    const [supportCount, setSupportCount] = useState(0);
+    const [hugCount, setHugCount] = useState(0);
     const [supportActive, setSupportActive] = useState(false);
     const [hugActive, setHugActive] = useState(false);
     const [meTooActive, setMeTooActive] = useState(false);
     const [keepGoingActive, setKeepGoingActive] = useState(false);
     const [newComment, setNewComment] = useState("");
-    const [comments, setComments] = useState(post?.comments || []);
+    const [comments, setComments] = useState([]);
+
+    // Fetch post from Firebase or dummy data
+    useEffect(() => {
+        const fetchPost = async () => {
+            try {
+                // First, try to fetch from Firebase
+                const docRef = doc(db, "posts", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const fetchedPost = {
+                        id: docSnap.id,
+                        title: data.title,
+                        description: data.description,
+                        category: data.category,
+                        timestamp: data.createdAt ? getTimeAgo(data.createdAt) : "Just now",
+                        reactions: data.reactions || { support: 0, hug: 0 },
+                        commentCount: data.commentCount || 0,
+                        comments: data.comments || [],
+                        isAnonymous: data.isAnonymous,
+                        authorName: data.authorName || "Anonymous",
+                    };
+                    setPost(fetchedPost);
+                    setSupportCount(fetchedPost.reactions.support);
+                    setHugCount(fetchedPost.reactions.hug);
+                    setComments(fetchedPost.comments);
+                } else {
+                    // Fallback to dummy data
+                    const dummyPost = getPostById(id);
+                    if (dummyPost) {
+                        setPost(dummyPost);
+                        setSupportCount(dummyPost.reactions.support);
+                        setHugCount(dummyPost.reactions.hug);
+                        setComments(dummyPost.comments || []);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching post:", error);
+                // Fallback to dummy data on error
+                const dummyPost = getPostById(id);
+                if (dummyPost) {
+                    setPost(dummyPost);
+                    setSupportCount(dummyPost.reactions.support);
+                    setHugCount(dummyPost.reactions.hug);
+                    setComments(dummyPost.comments || []);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPost();
+    }, [id]);
+
+    // Helper function to calculate time ago
+    const getTimeAgo = (timestamp) => {
+        const now = new Date();
+        const postDate = new Date(timestamp);
+        const diffInMs = now - postDate;
+        const diffInMinutes = Math.floor(diffInMs / 60000);
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+
+        if (diffInMinutes < 1) return "Just now";
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+        return `${diffInDays}d ago`;
+    };
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.errorContainer}>
+                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+                <Text style={styles.errorText}>Loading...</Text>
+            </SafeAreaView>
+        );
+    }
 
     if (!post) {
         return (
