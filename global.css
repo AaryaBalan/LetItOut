@@ -1,0 +1,4 @@
+/* Global CSS for Let It Out */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
