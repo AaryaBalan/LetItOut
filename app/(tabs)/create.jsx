@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import {
   Alert,
@@ -16,35 +17,92 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 import { categories } from "../../data/dummyData";
 
 export default function CreatePost() {
   const router = useRouter();
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const characterCount = description.length;
   const maxCharacters = 1000;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !category || !description.trim()) {
       Alert.alert("Missing Information", "Please fill in all fields.");
       return;
     }
-    Alert.alert(
-      "Success!",
-      "Your thought has been shared anonymously with the community. 💜",
-      [
-        { text: "View Feed", onPress: () => router.push("/(tabs)/home") },
-        { text: "OK", style: "cancel" },
-      ],
-    );
-    setTitle("");
-    setDescription("");
-    setCategory("");
-    setIsAnonymous(true);
+
+    if (!user) {
+      Alert.alert("Not Logged In", "Please log in to create a post.");
+      router.push("/auth/login");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Create post object with proper schema
+      const postData = {
+        title: title.trim(),
+        category: category,
+        description: description.trim(),
+        authorName: isAnonymous
+          ? "Anonymous"
+          : user.displayName || "Anonymous",
+        isAnonymous: isAnonymous,
+        timestamp: serverTimestamp(),
+        createdAt: new Date().toISOString(),
+        reactions: {
+          support: 0,
+          hug: 0,
+        },
+        commentCount: 0,
+        comments: [],
+      };
+
+      // Add authorId only if not anonymous (Firestore doesn't accept undefined)
+      if (!isAnonymous) {
+        postData.authorId = user.uid;
+      }
+
+      // Add document to 'posts' collection
+      const docRef = await addDoc(collection(db, "posts"), postData);
+
+      console.log("Post created with ID:", docRef.id);
+
+      Alert.alert(
+        "Success!",
+        "Your thought has been shared with the community. 💜",
+        [
+          {
+            text: "View Feed",
+            onPress: () => router.push("/(tabs)/home"),
+          },
+          { text: "OK", style: "cancel" },
+        ],
+      );
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setCategory("");
+      setIsAnonymous(true);
+    } catch (error) {
+      console.error("Error creating post:", error);
+      Alert.alert(
+        "Error",
+        "Failed to share your thought. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -174,10 +232,16 @@ export default function CreatePost() {
             {/* Submit Button */}
             <TouchableOpacity
               onPress={handleSubmit}
-              style={styles.submitButton}
+              style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled,
+              ]}
+              disabled={isSubmitting}
             >
               <Ionicons name="send" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Share Thought</Text>
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? "Sharing..." : "Share Thought"}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -353,5 +417,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
 });

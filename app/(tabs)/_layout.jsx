@@ -7,6 +7,7 @@ export default function TabsLayout() {
         <Tabs
             screenOptions={{
                 headerShown: false,
+                tabBarShowLabel: false,
                 tabBarActiveTintColor: "#9575cd",
                 tabBarInactiveTintColor: "#BDBDBD",
                 tabBarStyle: {
@@ -30,7 +31,7 @@ export default function TabsLayout() {
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons
                             name={focused ? "home" : "home-outline"}
-                            size={24}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -43,7 +44,7 @@ export default function TabsLayout() {
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons
                             name={focused ? "compass" : "compass-outline"}
-                            size={24}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -67,7 +68,7 @@ export default function TabsLayout() {
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons
                             name={focused ? "chatbubbles" : "chatbubbles-outline"}
-                            size={24}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -80,7 +81,7 @@ export default function TabsLayout() {
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons
                             name={focused ? "person" : "person-outline"}
-                            size={24}
+                            size={26}
                             color={color}
                         />
                     ),
