@@ -40,6 +40,7 @@ export default function PostCard({ post, hideDescription = false }) {
     const [hugCount, setHugCount] = useState(0);
     const [meTooCount, setMeTooCount] = useState(0);
     const [commentCount, setCommentCount] = useState(0);
+    const [reactionCount, setReactionCount] = useState(post.reactionCount || 0);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
 
     // Fetch author profile code
@@ -106,6 +107,12 @@ export default function PostCard({ post, hideDescription = false }) {
 
         return () => unsubscribe();
     }, [post.id]);
+
+    // Calculate total reactionCount (reactions + comments)
+    useEffect(() => {
+        const total = likeCount + hugCount + meTooCount + commentCount;
+        setReactionCount(total);
+    }, [likeCount, hugCount, meTooCount, commentCount]);
 
     return (
         <Link href={`/post/${post.id}`} asChild>

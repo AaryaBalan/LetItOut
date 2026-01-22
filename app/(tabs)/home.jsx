@@ -43,7 +43,7 @@ export default function Home() {
               ? getTimeAgo(data.createdAt)
               : "Just now",
             reactions: data.reactions || { support: 0, hug: 0 },
-            commentCount: data.commentCount || 0,
+            reactionCount: data.reactionCount || 0,
             comments: data.comments || [],
             isAnonymous: data.isAnonymous,
             authorName: data.authorName || "Anonymous",

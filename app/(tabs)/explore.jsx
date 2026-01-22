@@ -122,19 +122,9 @@ export default function Explore() {
             );
         }
         if (selectedSort === "popular") {
-            filtered.sort((a, b) => {
-                const aTotal =
-                    (a.reactions?.like || 0) +
-                    (a.reactions?.hug || 0) +
-                    (a.reactions?.metoo || 0);
-                const bTotal =
-                    (b.reactions?.like || 0) +
-                    (b.reactions?.hug || 0) +
-                    (b.reactions?.metoo || 0);
-                return bTotal - aTotal;
-            });
+            filtered.sort((a, b) => (b.reactionCount || 0) - (a.reactionCount || 0));
         } else if (selectedSort === "mostCommented") {
-            filtered.sort((a, b) => (b.commentCount || 0) - (a.commentCount || 0));
+            filtered.sort((a, b) => (b.reactionCount || 0) - (a.reactionCount || 0));
         }
         setFilteredPosts(filtered);
     }, [posts, selectedCategory, searchQuery, selectedSort]);

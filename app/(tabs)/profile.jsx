@@ -111,7 +111,7 @@ export default function Profile() {
             description: data.description,
             createdAt: data.createdAt,
             reactions: { like: 0, hug: 0, metoo: 0 },
-            commentCount: 0,
+            reactionCount: data.reactionCount || 0,
           };
         });
         setUserPosts(fetchedPosts);

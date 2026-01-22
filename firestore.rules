@@ -13,8 +13,14 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
-                              resource.data.authorId == request.auth.uid;
+      // Allow author to update/delete their own posts
+      allow delete: if request.auth != null && 
+                       resource.data.authorId == request.auth.uid;
+      // Allow author to update all fields, but allow anyone to update reactionCount
+      allow update: if request.auth != null && (
+        resource.data.authorId == request.auth.uid ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionCount']))
+      );
     }
     
     // Comments collection

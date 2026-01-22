@@ -59,12 +59,7 @@ export default function CreatePost() {
         isAnonymous: isAnonymous,
         timestamp: serverTimestamp(),
         createdAt: new Date().toISOString(),
-        reactions: {
-          support: 0,
-          hug: 0,
-        },
-        commentCount: 0,
-        comments: [],
+        reactionCount: 0,
       };
 
       // Add authorId only if not anonymous (Firestore doesn't accept undefined)

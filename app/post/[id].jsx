@@ -6,9 +6,11 @@ import {
     deleteDoc,
     doc,
     getDoc,
+    increment,
     onSnapshot,
     query,
     serverTimestamp,
+    updateDoc,
     where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -289,6 +291,10 @@ export default function PostDetail() {
             if (hugActive && userReactions.hug) {
                 // Remove reaction
                 await deleteDoc(doc(db, "reactions", userReactions.hug));
+                // Decrement reactionCount
+                await updateDoc(doc(db, "posts", String(id)), {
+                    reactionCount: increment(-1)
+                });
             } else {
                 // Add reaction
                 await addDoc(collection(db, "reactions"), {
@@ -298,6 +304,10 @@ export default function PostDetail() {
                     type: "hug",
                     timestamp: serverTimestamp(),
                     createdAt: new Date().toISOString(),
+                });
+                // Increment reactionCount
+                await updateDoc(doc(db, "posts", String(id)), {
+                    reactionCount: increment(1)
                 });
 
                 // Create notification for post author
@@ -327,6 +337,10 @@ export default function PostDetail() {
             if (meTooActive && userReactions.metoo) {
                 // Remove reaction
                 await deleteDoc(doc(db, "reactions", userReactions.metoo));
+                // Decrement reactionCount
+                await updateDoc(doc(db, "posts", String(id)), {
+                    reactionCount: increment(-1)
+                });
             } else {
                 // Add reaction
                 await addDoc(collection(db, "reactions"), {
@@ -336,6 +350,10 @@ export default function PostDetail() {
                     type: "metoo",
                     timestamp: serverTimestamp(),
                     createdAt: new Date().toISOString(),
+                });
+                // Increment reactionCount
+                await updateDoc(doc(db, "posts", String(id)), {
+                    reactionCount: increment(1)
                 });
 
                 // Create notification for post author
@@ -365,6 +383,10 @@ export default function PostDetail() {
             if (likeActive && userReactions.like) {
                 // Remove reaction
                 await deleteDoc(doc(db, "reactions", userReactions.like));
+                // Decrement reactionCount
+                await updateDoc(doc(db, "posts", String(id)), {
+                    reactionCount: increment(-1)
+                });
             } else {
                 // Add reaction
                 await addDoc(collection(db, "reactions"), {
@@ -374,6 +396,10 @@ export default function PostDetail() {
                     type: "like",
                     timestamp: serverTimestamp(),
                     createdAt: new Date().toISOString(),
+                });
+                // Increment reactionCount
+                await updateDoc(doc(db, "posts", String(id)), {
+                    reactionCount: increment(1)
                 });
 
                 // Create notification for post author
@@ -417,6 +443,11 @@ export default function PostDetail() {
             console.log("Comment data to save:", commentData);
 
             await addDoc(collection(db, "comments"), commentData);
+            
+            // Increment reactionCount (comments count towards total)
+            await updateDoc(doc(db, "posts", String(id)), {
+                reactionCount: increment(1)
+            });
 
             // Create notification for post author
             if (post && post.authorId) {
