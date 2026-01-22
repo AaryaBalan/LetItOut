@@ -122,9 +122,13 @@ export default function Explore() {
             );
         }
         if (selectedSort === "popular") {
-            filtered.sort((a, b) => (b.reactionCount || 0) - (a.reactionCount || 0));
+            filtered.sort(
+                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
+            );
         } else if (selectedSort === "mostCommented") {
-            filtered.sort((a, b) => (b.reactionCount || 0) - (a.reactionCount || 0));
+            filtered.sort(
+                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
+            );
         }
         setFilteredPosts(filtered);
     }, [posts, selectedCategory, searchQuery, selectedSort]);

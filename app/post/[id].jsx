@@ -293,7 +293,7 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "reactions", userReactions.hug));
                 // Decrement reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1)
+                    reactionCount: increment(-1),
                 });
             } else {
                 // Add reaction
@@ -307,7 +307,7 @@ export default function PostDetail() {
                 });
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1)
+                    reactionCount: increment(1),
                 });
 
                 // Create notification for post author
@@ -339,7 +339,7 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "reactions", userReactions.metoo));
                 // Decrement reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1)
+                    reactionCount: increment(-1),
                 });
             } else {
                 // Add reaction
@@ -353,7 +353,7 @@ export default function PostDetail() {
                 });
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1)
+                    reactionCount: increment(1),
                 });
 
                 // Create notification for post author
@@ -385,7 +385,7 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "reactions", userReactions.like));
                 // Decrement reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1)
+                    reactionCount: increment(-1),
                 });
             } else {
                 // Add reaction
@@ -399,7 +399,7 @@ export default function PostDetail() {
                 });
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1)
+                    reactionCount: increment(1),
                 });
 
                 // Create notification for post author
@@ -443,10 +443,10 @@ export default function PostDetail() {
             console.log("Comment data to save:", commentData);
 
             await addDoc(collection(db, "comments"), commentData);
-            
+
             // Increment reactionCount (comments count towards total)
             await updateDoc(doc(db, "posts", String(id)), {
-                reactionCount: increment(1)
+                reactionCount: increment(1),
             });
 
             // Create notification for post author
