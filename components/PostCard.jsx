@@ -91,6 +91,26 @@ export default function PostCard({ post }) {
                     <Text style={styles.timestamp}>{post.timestamp}</Text>
                 </View>
 
+                {/* Author Section */}
+                <View style={styles.authorSection}>
+                    <View style={styles.avatarContainer}>
+                        {post.isAnonymous ||
+                            !post.authorName ||
+                            post.authorName === "Anonymous" ? (
+                            <Ionicons name="person" size={16} color="#9575cd" />
+                        ) : (
+                            <Text style={styles.avatarText}>
+                                {post.authorName?.charAt(0).toUpperCase() || "U"}
+                            </Text>
+                        )}
+                    </View>
+                    <Text style={styles.authorName}>
+                        {post.isAnonymous || !post.authorName
+                            ? "Anonymous"
+                            : post.authorName}
+                    </Text>
+                </View>
+
                 <Text style={styles.title}>{post.title}</Text>
 
                 <Text style={styles.preview} numberOfLines={3}>
@@ -161,6 +181,30 @@ const styles = StyleSheet.create({
     timestamp: {
         fontSize: 13,
         color: "#BDBDBD",
+    },
+    authorSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    avatarContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: "#EFE8FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 8,
+    },
+    avatarText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#9575cd",
+    },
+    authorName: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#9575cd",
     },
     title: {
         fontSize: 18,

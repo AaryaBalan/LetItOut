@@ -518,6 +518,26 @@ export default function PostDetail() {
                             <Text style={styles.timestamp}>{post.timestamp}</Text>
                         </View>
 
+                        {/* Author Section */}
+                        <View style={styles.authorSection}>
+                            <View style={styles.avatarContainer}>
+                                {post.isAnonymous ||
+                                    !post.authorName ||
+                                    post.authorName === "Anonymous" ? (
+                                    <Ionicons name="person" size={18} color="#9575cd" />
+                                ) : (
+                                    <Text style={styles.avatarText}>
+                                        {post.authorName?.charAt(0).toUpperCase() || "U"}
+                                    </Text>
+                                )}
+                            </View>
+                            <Text style={styles.authorName}>
+                                {post.isAnonymous || !post.authorName
+                                    ? "Anonymous"
+                                    : post.authorName}
+                            </Text>
+                        </View>
+
                         <Text style={styles.postTitle}>{post.title}</Text>
                         <Text style={styles.postDescription}>{post.description}</Text>
 
@@ -764,6 +784,30 @@ const styles = StyleSheet.create({
     timestamp: {
         fontSize: 13,
         color: "#BDBDBD",
+    },
+    authorSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 16,
+    },
+    avatarContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#EFE8FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 10,
+    },
+    avatarText: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#9575cd",
+    },
+    authorName: {
+        fontSize: 15,
+        fontWeight: "600",
+        color: "#9575cd",
     },
     postTitle: {
         fontSize: 20,

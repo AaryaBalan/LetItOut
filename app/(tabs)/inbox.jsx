@@ -17,7 +17,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
         borderBottomColor: "#F0F0F0",
     },
@@ -407,10 +406,16 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
         paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: "#F5F5F5",
+        marginHorizontal: 10,
+        marginBottom: 8,
+        borderRadius: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
     },
     iconContainer: {
         width: 48,
