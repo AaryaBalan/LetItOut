@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import {
     collection,
     doc,
+    getDoc,
     onSnapshot,
     orderBy,
     query,
@@ -20,6 +21,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 
@@ -29,6 +31,7 @@ export default function Inbox() {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [userProfileCodes, setUserProfileCodes] = useState({});
 
     // Fetch notifications in real-time
     useEffect(() => {
@@ -46,12 +49,35 @@ export default function Inbox() {
 
         const unsubscribe = onSnapshot(
             q,
-            (snapshot) => {
+            async (snapshot) => {
                 const fetchedNotifications = snapshot.docs.map((docSnap) => ({
                     id: docSnap.id,
                     ...docSnap.data(),
                 }));
                 setNotifications(fetchedNotifications);
+
+                // Fetch profile codes for all unique users
+                const userIds = [
+                    ...new Set(
+                        fetchedNotifications.map((n) => n.fromUserId).filter(Boolean),
+                    ),
+                ];
+                const profileCodes = {};
+
+                for (const userId of userIds) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", userId));
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            profileCodes[userId] =
+                                userData.profileCode || userData.email || null;
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user profile:", error);
+                    }
+                }
+
+                setUserProfileCodes(profileCodes);
                 setLoading(false);
                 setRefreshing(false);
             },
@@ -199,6 +225,7 @@ export default function Inbox() {
     const renderNotification = ({ item }) => {
         const icon = getNotificationIcon(item.type);
         const message = getNotificationMessage(item);
+        const profileCode = userProfileCodes[item.fromUserId];
 
         return (
             <TouchableOpacity
@@ -206,10 +233,22 @@ export default function Inbox() {
                 onPress={() => handleNotificationPress(item)}
                 activeOpacity={0.7}
             >
-                <View
-                    style={[styles.iconContainer, { backgroundColor: icon.bgColor }]}
-                >
-                    <Ionicons name={icon.name} size={24} color={icon.color} />
+                <View style={styles.avatarWithIcon}>
+                    {profileCode ? (
+                        <Avatar seed={profileCode} size={40} />
+                    ) : (
+                        <View style={styles.defaultAvatar}>
+                            <Ionicons name="person" size={20} color="#9575cd" />
+                        </View>
+                    )}
+                    <View
+                        style={[
+                            styles.notificationIcon,
+                            { backgroundColor: icon.bgColor },
+                        ]}
+                    >
+                        <Ionicons name={icon.name} size={14} color={icon.color} />
+                    </View>
                 </View>
 
                 <View style={styles.contentContainer}>
@@ -416,6 +455,32 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 1,
+    },
+    avatarWithIcon: {
+        position: "relative",
+        width: 48,
+        height: 48,
+        marginRight: 12,
+    },
+    defaultAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#EFE8FF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    notificationIcon: {
+        position: "absolute",
+        bottom: -2,
+        right: -2,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 2,
+        borderColor: "#FFFFFF",
     },
     iconContainer: {
         width: 48,

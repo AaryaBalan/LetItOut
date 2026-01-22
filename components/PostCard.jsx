@@ -134,7 +134,9 @@ export default function PostCard({ post }) {
                             <Ionicons name="person" size={16} color="#9575cd" />
                         </View>
                     ) : (
-                        <Avatar seed={authorProfileCode} size={32} />
+                        <View style={styles.avatarWrapper}>
+                            <Avatar seed={authorProfileCode} size={32} />
+                        </View>
                     )}
                     <Text style={styles.authorName}>
                         {post.isAnonymous || !post.authorName
@@ -218,6 +220,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 12,
+    },
+    avatarWrapper: {
+        marginRight: 8,
     },
     avatarContainer: {
         width: 32,

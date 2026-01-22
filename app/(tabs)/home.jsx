@@ -47,6 +47,7 @@ export default function Home() {
             comments: data.comments || [],
             isAnonymous: data.isAnonymous,
             authorName: data.authorName || "Anonymous",
+            authorId: data.authorId,
           };
         });
         setFirebasePosts(fetchedPosts);

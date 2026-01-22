@@ -543,7 +543,9 @@ export default function PostDetail() {
                                     <Ionicons name="person" size={18} color="#9575cd" />
                                 </View>
                             ) : (
-                                <Avatar seed={authorProfileCode} size={36} />
+                                <View style={styles.avatarWrapper}>
+                                    <Avatar seed={authorProfileCode} size={36} />
+                                </View>
                             )}
                             <Text style={styles.authorName}>
                                 {post.isAnonymous || !post.authorName
@@ -803,6 +805,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 16,
+    },
+    avatarWrapper: {
+        marginRight: 10,
     },
     avatarContainer: {
         width: 36,
