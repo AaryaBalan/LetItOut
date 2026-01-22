@@ -1,5 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import {
+    FlatList,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -9,396 +12,543 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import PostCard from "../../components/PostCard";
+import { db } from "../../config/firebase";
+
+const CATEGORIES = [
+    {
+        id: "Stress",
+        name: "STRESS",
+        icon: "leaf",
+        iconColor: "#9B8BC9",
+        bgColor: "#E8E4F3",
+        gradientColors: ["#B39DDB", "#9575CD"],
+        quote: "Take a deep breath. You're doing the best you can, and that's enough.",
+    },
+    {
+        id: "Family",
+        name: "FAMILY",
+        icon: "people",
+        iconColor: "#F48FB1",
+        bgColor: "#FFE8EE",
+        gradientColors: ["#F48FB1", "#F06292"],
+        quote: "Family isn't always blood. It's the people who love you unconditionally.",
+    },
+    {
+        id: "Career",
+        name: "CAREER",
+        icon: "briefcase",
+        iconColor: "#FFB74D",
+        bgColor: "#FFF3E0",
+        gradientColors: ["#FFB74D", "#FFA726"],
+        quote: "Your career is a journey, not a destination. Every step counts.",
+    },
+    {
+        id: "Health",
+        name: "HEALTH",
+        icon: "heart",
+        iconColor: "#64B5F6",
+        bgColor: "#E3F2FD",
+        gradientColors: ["#64B5F6", "#42A5F5"],
+        quote: "Your health is your wealth. Take care of yourself first.",
+    },
+    {
+        id: "Growth",
+        name: "GROWTH",
+        icon: "trending-up",
+        iconColor: "#4DB6AC",
+        bgColor: "#E0F2F1",
+        gradientColors: ["#4DB6AC", "#26A69A"],
+        quote: "Growth happens outside your comfort zone. Keep pushing forward.",
+    },
+];
+
+const SORT_OPTIONS = [
+    { id: "recent", name: "Recent", icon: "time-outline" },
+    { id: "popular", name: "Popular", icon: "trending-up-outline" },
+    { id: "mostCommented", name: "Most Commented", icon: "chatbubbles-outline" },
+];
 
 export default function Explore() {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedSort, setSelectedSort] = useState("recent");
+    const [selectedFilter, setSelectedFilter] = useState("latest");
+    const [posts, setPosts] = useState([]);
+    const [filteredPosts, setFilteredPosts] = useState([]);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+
+    useEffect(() => {
+        const postsRef = collection(db, "posts");
+        const q = query(postsRef, orderBy("createdAt", "desc"));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetched = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    title: data.title || "",
+                    description: data.description || "",
+                    category: data.category || "",
+                    timestamp: data.createdAt
+                        ? getTimeAgo(data.createdAt)
+                        : "Just now",
+                    isAnonymous: data.isAnonymous,
+                    authorName: data.authorName || "Anonymous",
+                    authorId: data.authorId,
+                    createdAt: data.createdAt,
+                    reactions: data.reactions || { like: 0, hug: 0, metoo: 0 },
+                    commentCount: data.commentCount || 0,
+                };
+            });
+            setPosts(fetched);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        let filtered = [...posts];
+        if (selectedCategory) {
+            filtered = filtered.filter((p) => p.category === selectedCategory);
+        }
+        if (searchQuery.trim()) {
+            const qText = searchQuery.toLowerCase();
+            filtered = filtered.filter(
+                (p) =>
+                    p.title.toLowerCase().includes(qText) ||
+                    p.description.toLowerCase().includes(qText) ||
+                    (p.category || "").toLowerCase().includes(qText),
+            );
+        }
+        if (selectedSort === "popular") {
+            filtered.sort((a, b) => {
+                const aTotal =
+                    (a.reactions?.like || 0) +
+                    (a.reactions?.hug || 0) +
+                    (a.reactions?.metoo || 0);
+                const bTotal =
+                    (b.reactions?.like || 0) +
+                    (b.reactions?.hug || 0) +
+                    (b.reactions?.metoo || 0);
+                return bTotal - aTotal;
+            });
+        } else if (selectedSort === "mostCommented") {
+            filtered.sort((a, b) => (b.commentCount || 0) - (a.commentCount || 0));
+        }
+        setFilteredPosts(filtered);
+    }, [posts, selectedCategory, searchQuery, selectedSort]);
+
+    const getTimeAgo = (timestamp) => {
+        if (!timestamp) return "Just now";
+        const now = new Date();
+        const postDate = timestamp.toDate
+            ? timestamp.toDate()
+            : new Date(timestamp);
+        const diff = now - postDate;
+        const mins = Math.floor(diff / 60000);
+        const hrs = Math.floor(mins / 60);
+        const days = Math.floor(hrs / 24);
+        if (mins < 1) return "Just now";
+        if (mins < 60) return `${mins}m ago`;
+        if (hrs < 24) return `${hrs}h ago`;
+        if (days === 1) return "Yesterday";
+        return `${days}d ago`;
+    };
+
+    const handleCategoryPress = (id) => {
+        setSelectedCategory(id);
+        setSearchQuery("");
+    };
+
+    const handleBackPress = () => {
+        setSelectedCategory(null);
+        setSearchQuery("");
+        setSelectedFilter("latest");
+    };
+
+    const getSelectedCategoryData = () => {
+        return CATEGORIES.find((cat) => cat.id === selectedCategory);
+    };
+
+    const renderPost = ({ item }) => (
+        <View style={styles.postItemList}>
+            <PostCard post={item} hideDescription={true} />
+        </View>
+    );
+
+    if (selectedCategory) {
+        const categoryData = getSelectedCategoryData();
+        return (
+            <SafeAreaView style={styles.container} edges={["top"]}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor={categoryData.gradientColors[0]}
+                />
+                <View
+                    style={[
+                        styles.categoryHeader,
+                        { backgroundColor: categoryData.gradientColors[0] },
+                    ]}
+                >
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={handleBackPress}
+                    >
+                        <Ionicons name="chevron-back" size={28} color="#FFF" />
+                    </TouchableOpacity>
+                    <View style={styles.categoryHeaderIcon}>
+                        <Ionicons name={categoryData.icon} size={32} color="#FFF" />
+                    </View>
+                    <Text style={styles.categoryHeaderTitle}>{categoryData.id}</Text>
+                    <Text style={styles.categoryHeaderQuote}>
+                        "{categoryData.quote}"
+                    </Text>
+                </View>
+
+                <View style={styles.categoryFilters}>
+                    <View style={styles.filterChipsRow}>
+                        <TouchableOpacity
+                            style={[
+                                styles.filterChipCategory,
+                                selectedFilter === "latest" &&
+                                styles.filterChipCategoryActive,
+                            ]}
+                            onPress={() => setSelectedFilter("latest")}
+                        >
+                            <Text
+                                style={[
+                                    styles.filterChipCategoryText,
+                                    selectedFilter === "latest" &&
+                                    styles.filterChipCategoryTextActive,
+                                ]}
+                            >
+                                LATEST
+                            </Text>
+                            {selectedFilter === "latest" && (
+                                <Ionicons
+                                    name="close"
+                                    size={16}
+                                    color="#9B8BC9"
+                                    style={{ marginLeft: 6 }}
+                                />
+                            )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.filterChipCategory,
+                                selectedFilter === "help" &&
+                                styles.filterChipCategoryActive,
+                            ]}
+                            onPress={() => setSelectedFilter("help")}
+                        >
+                            <Text
+                                style={[
+                                    styles.filterChipCategoryText,
+                                    selectedFilter === "help" &&
+                                    styles.filterChipCategoryTextActive,
+                                ]}
+                            >
+                                HELP NEEDED
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.sortButton}
+                        onPress={() => setShowFilterModal(true)}
+                    >
+                        <Ionicons name="filter" size={18} color="#6B7280" />
+                        <Text style={styles.sortButtonText}>SORT</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <FlatList
+                    data={filteredPosts}
+                    renderItem={renderPost}
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.postsListContainer}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <Ionicons
+                                name="search-outline"
+                                size={64}
+                                color="#BDBDBD"
+                            />
+                            <Text style={styles.emptyStateTitle}>No posts found</Text>
+                            <Text style={styles.emptyStateText}>
+                                Be the first to share in this category
+                            </Text>
+                        </View>
+                    }
+                />
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
-
-            {/* Header */}
-            <View style={styles.header}>
+            <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
+            <View style={styles.exploreHeader}>
                 <Text style={styles.headerTitle}>Explore</Text>
-                <TouchableOpacity style={styles.notificationButton}>
-                    <Ionicons
-                        name="notifications-outline"
-                        size={24}
-                        color="#212121"
+            </View>
+
+            <View style={styles.searchRow}>
+                <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={20} color="#BDBDBD" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search feelings..."
+                        placeholderTextColor="#BDBDBD"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
                     />
+                </View>
+                <TouchableOpacity
+                    style={styles.filterIconButton}
+                    onPress={() => setShowFilterModal(true)}
+                >
+                    <Ionicons name="options-outline" size={24} color="#374151" />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
-                style={styles.scrollView}
+            <View style={styles.communitiesSection}>
+                <Text style={styles.sectionLabel}>COMMUNITY CIRCLES</Text>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.categoriesScroll}
+                >
+                    {CATEGORIES.map((category) => (
+                        <TouchableOpacity
+                            key={category.id}
+                            style={styles.categoryCircle}
+                            onPress={() => handleCategoryPress(category.id)}
+                            activeOpacity={0.7}
+                        >
+                            <View
+                                style={[
+                                    styles.categoryCircleIcon,
+                                    { backgroundColor: category.bgColor },
+                                ]}
+                            >
+                                <Ionicons
+                                    name={category.icon}
+                                    size={28}
+                                    color={category.iconColor}
+                                />
+                            </View>
+                            <Text style={styles.categoryCircleLabel}>
+                                {category.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            <View style={styles.forYouHeader}>
+                <Text style={styles.forYouLabel}>FOR YOU</Text>
+                <TouchableOpacity style={styles.sortDropdown}>
+                    <Text style={styles.sortDropdownText}>MOST RECENT</Text>
+                    <Ionicons name="chevron-down" size={16} color="#9B8BC9" />
+                </TouchableOpacity>
+            </View>
+
+            <FlatList
+                data={filteredPosts}
+                renderItem={renderPost}
+                keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-            >
-                {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#9E9E9E" />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="What's on your mind?"
-                        placeholderTextColor="#BDBDBD"
-                    />
-                </View>
-
-                {/* Trending Right Now */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Trending Right Now</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.seeAllText}>See all</Text>
-                        </TouchableOpacity>
+                contentContainerStyle={styles.postsGridContainer}
+                ListEmptyComponent={
+                    <View style={styles.emptyState}>
+                        <Ionicons name="search-outline" size={64} color="#BDBDBD" />
+                        <Text style={styles.emptyStateTitle}>No posts found</Text>
+                        <Text style={styles.emptyStateText}>
+                            Be the first to share your thoughts
+                        </Text>
                     </View>
-                    <View style={styles.trendingContainer}>
-                        <TouchableOpacity style={styles.trendingTag}>
-                            <Text style={styles.hashtagSymbol}>#</Text>
-                            <Text style={styles.trendingText}>WorkLifeBalance</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.trendingTag}>
-                            <Text style={styles.hashtagSymbol}>#</Text>
-                            <Text style={styles.trendingText}>GriefSupport</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                {/* Categories */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Categories</Text>
-
-                    <View style={styles.categoriesGrid}>
-                        {/* Stress - Finding Peace */}
-                        <TouchableOpacity
-                            style={[styles.categoryCard, styles.categoryPurple]}
-                        >
-                            <View style={[styles.categoryIcon, styles.iconPurple]}>
-                                <Ionicons name="leaf" size={24} color="#6A1B9A" />
-                            </View>
-                            <View style={styles.categoryContent}>
-                                <Text style={styles.categoryLabel}>STRESS</Text>
-                                <Text style={styles.categoryTitle}>
-                                    Finding{"\n"}Peace
-                                </Text>
-                            </View>
-                            <View style={styles.decorationPurple1} />
-                            <View style={styles.decorationPurple2} />
-                            <View style={styles.decorationPurple3} />
-                        </TouchableOpacity>
-
-                        {/* Family - Navigating Relationships */}
-                        <TouchableOpacity
-                            style={[styles.categoryCard, styles.categoryPink]}
-                        >
-                            <View style={[styles.categoryIcon, styles.iconPink]}>
-                                <Ionicons name="heart" size={24} color="#C2185B" />
-                            </View>
-                            <View style={styles.categoryContent}>
-                                <Text style={styles.categoryLabel}>FAMILY</Text>
-                                <Text style={styles.categoryTitle}>
-                                    Navigating{"\n"}Relationships
-                                </Text>
-                            </View>
-                            <View style={styles.decorationPink1} />
-                            <View style={styles.decorationPink2} />
-                        </TouchableOpacity>
-
-                        {/* Mental Health - Daily Wellbeing */}
-                        <TouchableOpacity
-                            style={[styles.categoryCard, styles.categoryYellow]}
-                        >
-                            <View style={[styles.categoryIcon, styles.iconYellow]}>
-                                <Ionicons name="fitness" size={24} color="#F57F17" />
-                            </View>
-                            <View style={styles.categoryContent}>
-                                <Text style={styles.categoryLabel}>MENTAL HEALTH</Text>
-                                <Text style={styles.categoryTitle}>
-                                    Daily{"\n"}Wellbeing
-                                </Text>
-                            </View>
-                            <View style={styles.decorationYellow1} />
-                            <View style={styles.decorationYellow2} />
-                        </TouchableOpacity>
-
-                        {/* Work - Career & Purpose */}
-                        <TouchableOpacity
-                            style={[styles.categoryCard, styles.categoryBlue]}
-                        >
-                            <View style={[styles.categoryIcon, styles.iconBlue]}>
-                                <Ionicons name="briefcase" size={24} color="#00695C" />
-                            </View>
-                            <View style={styles.categoryContent}>
-                                <Text style={styles.categoryLabel}>WORK</Text>
-                                <Text style={styles.categoryTitle}>
-                                    Career &{"\n"}Purpose
-                                </Text>
-                            </View>
-                            <View style={styles.decorationBlue1} />
-                            <View style={styles.decorationBlue2} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </ScrollView>
+                }
+            />
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F5F5F5",
+    container: { flex: 1, backgroundColor: "#FAFAFA" },
+    exploreHeader: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
+    headerTitle: { fontSize: 34, fontWeight: "700", color: "#1F2937" },
+    searchRow: {
+        flexDirection: "row",
+        paddingHorizontal: 20,
+        gap: 12,
+        marginBottom: 20,
     },
-    header: {
+    searchContainer: {
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F3F4F6",
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderRadius: 16,
+        gap: 10,
     },
-    headerTitle: {
-        fontSize: 32,
-        fontWeight: "700",
-        color: "#212121",
-    },
-    notificationButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+    searchInput: { flex: 1, fontSize: 16, color: "#1F2937" },
+    filterIconButton: {
+        width: 50,
+        height: 50,
+        borderRadius: 16,
         backgroundColor: "#FFFFFF",
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    searchContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#FFFFFF",
-        marginHorizontal: 20,
-        marginBottom: 24,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderRadius: 24,
-        gap: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
-        shadowRadius: 3,
+        shadowRadius: 4,
         elevation: 2,
     },
-    searchInput: {
-        flex: 1,
-        fontSize: 16,
-        color: "#212121",
-    },
-    section: {
-        marginBottom: 32,
+    communitiesSection: { marginBottom: 24 },
+    sectionLabel: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#B4B4BD",
+        letterSpacing: 1,
         paddingHorizontal: 20,
-    },
-    sectionHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
         marginBottom: 16,
     },
-    sectionTitle: {
-        fontSize: 22,
-        fontWeight: "700",
-        color: "#212121",
-    },
-    seeAllText: {
-        fontSize: 15,
-        fontWeight: "500",
-        color: "#5DCCB4",
-    },
-    trendingContainer: {
-        flexDirection: "row",
-        gap: 12,
-    },
-    trendingTag: {
-        flexDirection: "row",
+    categoriesScroll: { paddingHorizontal: 20, gap: 16 },
+    categoryCircle: { alignItems: "center", gap: 10 },
+    categoryCircleIcon: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 24,
-        gap: 4,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 2,
     },
-    hashtagSymbol: {
-        fontSize: 18,
+    categoryCircleLabel: {
+        fontSize: 12,
         fontWeight: "700",
-        color: "#5DCCB4",
+        color: "#6B7280",
+        letterSpacing: 0.5,
     },
-    trendingText: {
-        fontSize: 16,
-        fontWeight: "500",
-        color: "#212121",
-    },
-    categoriesGrid: {
+    forYouHeader: {
         flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 16,
-        marginTop: 8,
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        marginBottom: 16,
     },
-    categoryCard: {
-        width: "47%",
-        aspectRatio: 1,
+    forYouLabel: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#B4B4BD",
+        letterSpacing: 1,
+    },
+    sortDropdown: { flexDirection: "row", alignItems: "center", gap: 6 },
+    sortDropdownText: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#9B8BC9",
+        letterSpacing: 0.5,
+    },
+    postsGridContainer: { paddingHorizontal: 20, paddingBottom: 24 },
+    categoryHeader: {
+        paddingTop: 16,
+        paddingBottom: 32,
+        paddingHorizontal: 20,
+        alignItems: "center",
+    },
+    backButton: {
+        position: "absolute",
+        top: 16,
+        left: 16,
+        width: 40,
+        height: 40,
         borderRadius: 20,
-        padding: 20,
-        overflow: "hidden",
-        position: "relative",
+        backgroundColor: "rgba(255,255,255,0.2)",
+        justifyContent: "center",
+        alignItems: "center",
     },
-    categoryPurple: {
-        backgroundColor: "#B39DDB",
-    },
-    categoryPink: {
-        backgroundColor: "#F8BBD0",
-    },
-    categoryYellow: {
-        backgroundColor: "#FFE082",
-    },
-    categoryBlue: {
-        backgroundColor: "#B2DFDB",
-    },
-    categoryIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+    categoryHeaderIcon: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: "rgba(255,255,255,0.2)",
         justifyContent: "center",
         alignItems: "center",
         marginBottom: 16,
     },
-    iconPurple: {
-        backgroundColor: "#E1BEE7",
-    },
-    iconPink: {
-        backgroundColor: "#FFFFFF",
-    },
-    iconYellow: {
-        backgroundColor: "#FFFACD",
-    },
-    iconBlue: {
-        backgroundColor: "#FFFFFF",
-    },
-    categoryContent: {
-        flex: 1,
-        justifyContent: "flex-end",
-    },
-    categoryLabel: {
-        fontSize: 11,
+    categoryHeaderTitle: {
+        fontSize: 32,
         fontWeight: "700",
-        color: "#616161",
+        color: "#FFFFFF",
+        marginBottom: 12,
+    },
+    categoryHeaderQuote: {
+        fontSize: 15,
+        fontStyle: "italic",
+        color: "rgba(255,255,255,0.9)",
+        textAlign: "center",
+        lineHeight: 22,
+        paddingHorizontal: 24,
+    },
+    categoryFilters: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: "#FAFAFA",
+    },
+    filterChipsRow: { flexDirection: "row", gap: 10 },
+    filterChipCategory: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 16,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+    },
+    filterChipCategoryActive: {
+        backgroundColor: "#F3F4F6",
+        borderColor: "#9B8BC9",
+    },
+    filterChipCategoryText: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#9CA3AF",
         letterSpacing: 0.5,
-        marginBottom: 4,
     },
-    categoryTitle: {
-        fontSize: 20,
+    filterChipCategoryTextActive: { color: "#9B8BC9" },
+    sortButton: { flexDirection: "row", alignItems: "center", gap: 6 },
+    sortButtonText: {
+        fontSize: 12,
         fontWeight: "700",
-        color: "#212121",
-        lineHeight: 26,
+        color: "#6B7280",
+        letterSpacing: 0.5,
     },
-    // Decorative elements - Purple card
-    decorationPurple1: {
-        position: "absolute",
-        bottom: 20,
-        right: 20,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: "#9575CD",
-        opacity: 0.4,
+    postsListContainer: { paddingHorizontal: 20, paddingBottom: 24 },
+    postItemList: { marginBottom: 16 },
+    emptyState: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 60,
+        paddingHorizontal: 32,
     },
-    decorationPurple2: {
-        position: "absolute",
-        bottom: 50,
-        right: 40,
-        width: 20,
-        height: 20,
-        transform: [{ rotate: "45deg" }],
-        backgroundColor: "#9575CD",
-        opacity: 0.3,
+    emptyStateTitle: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: "#6B7280",
+        marginTop: 16,
+        marginBottom: 8,
     },
-    decorationPurple3: {
-        position: "absolute",
-        bottom: 80,
-        right: 60,
-        width: 16,
-        height: 16,
-        transform: [{ rotate: "45deg" }],
-        backgroundColor: "#9575CD",
-        opacity: 0.3,
-    },
-    // Decorative elements - Pink card
-    decorationPink1: {
-        position: "absolute",
-        bottom: 10,
-        right: 15,
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: "#F48FB1",
-        opacity: 0.3,
-    },
-    decorationPink2: {
-        position: "absolute",
-        bottom: 20,
-        right: 80,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: "#F48FB1",
-        opacity: 0.25,
-    },
-    // Decorative elements - Yellow card
-    decorationYellow1: {
-        position: "absolute",
-        bottom: 15,
-        right: 20,
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        backgroundColor: "#FFD54F",
-        opacity: 0.3,
-    },
-    decorationYellow2: {
-        position: "absolute",
-        bottom: 40,
-        right: 60,
-        width: 35,
-        height: 35,
-        borderRadius: 18,
-        backgroundColor: "#FFD54F",
-        opacity: 0.25,
-    },
-    // Decorative elements - Blue card
-    decorationBlue1: {
-        position: "absolute",
-        bottom: 10,
-        right: 15,
-        width: 75,
-        height: 75,
-        borderRadius: 38,
-        backgroundColor: "#80CBC4",
-        opacity: 0.3,
-    },
-    decorationBlue2: {
-        position: "absolute",
-        bottom: 50,
-        right: 50,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: "#80CBC4",
-        opacity: 0.25,
+    emptyStateText: {
+        fontSize: 15,
+        color: "#9CA3AF",
+        textAlign: "center",
+        lineHeight: 22,
     },
 });

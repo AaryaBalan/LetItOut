@@ -35,7 +35,7 @@ const getCategoryLabel = (category) => {
     return labels[category] || category.toUpperCase();
 };
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, hideDescription = false }) {
     const [likeCount, setLikeCount] = useState(0);
     const [hugCount, setHugCount] = useState(0);
     const [meTooCount, setMeTooCount] = useState(0);
@@ -147,9 +147,11 @@ export default function PostCard({ post }) {
 
                 <Text style={styles.title}>{post.title}</Text>
 
-                <Text style={styles.preview} numberOfLines={3}>
-                    {post.description}
-                </Text>
+                {!hideDescription && (
+                    <Text style={styles.preview} numberOfLines={3}>
+                        {post.description}
+                    </Text>
+                )}
 
                 <View style={styles.footer}>
                     <View style={styles.reactions}>
