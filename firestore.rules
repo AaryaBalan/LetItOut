@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if true; // Anyone can read user profiles
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+                              resource.data.authorId == request.auth.uid;
+    }
+    
+    // Comments collection
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+                              resource.data.commentorId == request.auth.uid;
+    }
+    
+    // Reactions collection
+    match /reactions/{reactionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && 
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can read a single notification if it's theirs
+      allow get: if request.auth != null && 
+                    resource.data.toUserId == request.auth.uid;
+      
+      // Users can list/query their notifications
+      // This rule allows queries like: where("toUserId", "==", user.uid)
+      allow list: if request.auth != null;
+      
+      // Authenticated users can create notifications
+      allow create: if request.auth != null;
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if request.auth != null && 
+                       resource.data.toUserId == request.auth.uid;
+      
+      // Users can delete their own notifications
+      allow delete: if request.auth != null && 
+                       resource.data.toUserId == request.auth.uid;
+    }
+  }
+}

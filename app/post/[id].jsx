@@ -28,6 +28,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { getPostById } from "../../data/dummyData";
+import {
+    createCommentNotification,
+    createHugNotification,
+    createLikeNotification,
+    createMeTooNotification,
+} from "../../utils/notifications";
 
 const getCategoryColor = (category) => {
     const colors = {
@@ -278,6 +284,17 @@ export default function PostDetail() {
                     timestamp: serverTimestamp(),
                     createdAt: new Date().toISOString(),
                 });
+
+                // Create notification for post author
+                if (post && post.authorId) {
+                    await createHugNotification(
+                        post.authorId,
+                        String(id),
+                        post.title,
+                        user.uid,
+                        user.displayName || "Anonymous",
+                    );
+                }
             }
         } catch (error) {
             console.error("Error toggling hug reaction:", error);
@@ -305,6 +322,17 @@ export default function PostDetail() {
                     timestamp: serverTimestamp(),
                     createdAt: new Date().toISOString(),
                 });
+
+                // Create notification for post author
+                if (post && post.authorId) {
+                    await createMeTooNotification(
+                        post.authorId,
+                        String(id),
+                        post.title,
+                        user.uid,
+                        user.displayName || "Anonymous",
+                    );
+                }
             }
         } catch (error) {
             console.error("Error toggling me too reaction:", error);
@@ -332,6 +360,17 @@ export default function PostDetail() {
                     timestamp: serverTimestamp(),
                     createdAt: new Date().toISOString(),
                 });
+
+                // Create notification for post author
+                if (post && post.authorId) {
+                    await createLikeNotification(
+                        post.authorId,
+                        String(id),
+                        post.title,
+                        user.uid,
+                        user.displayName || "Anonymous",
+                    );
+                }
             }
         } catch (error) {
             console.error("Error toggling like reaction:", error);
@@ -349,18 +388,32 @@ export default function PostDetail() {
 
         try {
             console.log("Creating comment for postId:", id, "Type:", typeof id);
+            const commentText = newComment.trim();
+
             // Create comment in Firebase
             const commentData = {
                 postId: String(id),
                 commentorId: user.uid,
                 commentorName: user.displayName || "Anonymous",
-                comment: newComment.trim(),
+                comment: commentText,
                 timestamp: serverTimestamp(),
                 createdAt: new Date().toISOString(),
             };
             console.log("Comment data to save:", commentData);
 
             await addDoc(collection(db, "comments"), commentData);
+
+            // Create notification for post author
+            if (post && post.authorId) {
+                await createCommentNotification(
+                    post.authorId,
+                    String(id),
+                    post.title,
+                    user.uid,
+                    user.displayName || "Anonymous",
+                    commentText,
+                );
+            }
 
             setNewComment("");
             console.log("Comment added successfully");
