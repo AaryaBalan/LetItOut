@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -29,6 +30,7 @@ export default function CreatePost() {
   const [description, setDescription] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [helpNeeded, setHelpNeeded] = useState(false);
+  const [moodLevel, setMoodLevel] = useState(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const characterCount = description.length;
@@ -59,6 +61,7 @@ export default function CreatePost() {
           : user.displayName || "Anonymous",
         isAnonymous: isAnonymous,
         helpNeeded: helpNeeded,
+        feelPercentage: moodLevel,
         timestamp: serverTimestamp(),
         createdAt: new Date().toISOString(),
         reactionCount: 0,
@@ -92,6 +95,7 @@ export default function CreatePost() {
       setCategory("");
       setIsAnonymous(true);
       setHelpNeeded(false);
+      setMoodLevel(50);
     } catch (error) {
       console.error("Error creating post:", error);
       Alert.alert(
@@ -214,6 +218,36 @@ export default function CreatePost() {
               />
             </View>
 
+            {/* Mood Slider */}
+            <View style={styles.moodContainer}>
+              <Text style={styles.label}>HOW ARE YOU FEELING?</Text>
+              <View style={styles.moodLabels}>
+                <View style={styles.moodLabelLeft}>
+                  <Ionicons name="sad" size={20} color="#7986CB" />
+                  <Text style={styles.moodLabelText}>Depression</Text>
+                </View>
+                <Text style={styles.moodPercentage}>{moodLevel}%</Text>
+                <View style={styles.moodLabelRight}>
+                  <Text style={styles.moodLabelText}>Happiness</Text>
+                  <Ionicons name="happy" size={20} color="#FFB74D" />
+                </View>
+              </View>
+              <Slider
+                style={styles.slider}
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                value={moodLevel}
+                onValueChange={setMoodLevel}
+                minimumTrackTintColor="#7986CB"
+                maximumTrackTintColor="#FFB74D"
+                thumbTintColor="#9575cd"
+              />
+              <Text style={styles.moodHint}>
+                Swipe to indicate your current mood
+              </Text>
+            </View>
+
             {/* Help Needed Toggle */}
             <View style={styles.toggleContainer}>
               <View style={styles.toggleLeft}>
@@ -304,26 +338,26 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
   mainTitle: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "700",
     color: "#212121",
-    marginBottom: 8,
-    lineHeight: 32,
+    marginBottom: 6,
+    lineHeight: 30,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#9E9E9E",
-    lineHeight: 20,
-    marginBottom: 20,
+    lineHeight: 18,
+    marginBottom: 16,
   },
   formCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -331,20 +365,20 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   fieldContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   label: {
     fontSize: 11,
     fontWeight: "700",
     color: "#9E9E9E",
-    marginBottom: 6,
+    marginBottom: 4,
     letterSpacing: 0.5,
   },
   input: {
     backgroundColor: "#F5F5F5",
     borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 15,
     color: "#212121",
     borderWidth: 1,
@@ -359,45 +393,85 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   picker: {
-    height: 56,
+    height: 50,
     color: "#212121",
   },
   pickerIcon: {
     position: "absolute",
     right: 16,
-    top: 18,
+    top: 15,
     pointerEvents: "none",
   },
   textArea: {
-    height: 140,
+    height: 120,
     textAlignVertical: "top",
-    paddingTop: 12,
+    paddingTop: 10,
   },
   characterCount: {
     fontSize: 12,
     color: "#BDBDBD",
     textAlign: "right",
-    marginTop: 6,
+    marginTop: 4,
   },
   toggleContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
-    marginBottom: 16,
+    paddingVertical: 8,
+    marginBottom: 10,
   },
   toggleLeft: {
     flex: 1,
   },
   toggleTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
     color: "#212121",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   toggleSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#9E9E9E",
+  },
+  moodContainer: {
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  moodLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  moodLabelLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  moodLabelRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  moodLabelText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#757575",
+  },
+  moodPercentage: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#9575cd",
+  },
+  slider: {
+    width: "100%",
+    height: 40,
+  },
+  moodHint: {
+    fontSize: 12,
+    color: "#BDBDBD",
+    textAlign: "center",
+    marginTop: 4,
   },
   infoContainer: {
     flexDirection: "row",
