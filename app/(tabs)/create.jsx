@@ -28,6 +28,7 @@ export default function CreatePost() {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true);
+  const [helpNeeded, setHelpNeeded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const characterCount = description.length;
@@ -57,6 +58,7 @@ export default function CreatePost() {
           ? "Anonymous"
           : user.displayName || "Anonymous",
         isAnonymous: isAnonymous,
+        helpNeeded: helpNeeded,
         timestamp: serverTimestamp(),
         createdAt: new Date().toISOString(),
         reactionCount: 0,
@@ -89,6 +91,7 @@ export default function CreatePost() {
       setDescription("");
       setCategory("");
       setIsAnonymous(true);
+      setHelpNeeded(false);
     } catch (error) {
       console.error("Error creating post:", error);
       Alert.alert(
@@ -207,6 +210,23 @@ export default function CreatePost() {
                 onValueChange={setIsAnonymous}
                 trackColor={{ false: "#E0E0E0", true: "#B39DDB" }}
                 thumbColor={isAnonymous ? "#9575cd" : "#F5F5F5"}
+                ios_backgroundColor="#E0E0E0"
+              />
+            </View>
+
+            {/* Help Needed Toggle */}
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleLeft}>
+                <Text style={styles.toggleTitle}>Help Needed</Text>
+                <Text style={styles.toggleSubtitle}>
+                  Looking for support and advice
+                </Text>
+              </View>
+              <Switch
+                value={helpNeeded}
+                onValueChange={setHelpNeeded}
+                trackColor={{ false: "#E0E0E0", true: "#FFB74D" }}
+                thumbColor={helpNeeded ? "#FF9800" : "#F5F5F5"}
                 ios_backgroundColor="#E0E0E0"
               />
             </View>

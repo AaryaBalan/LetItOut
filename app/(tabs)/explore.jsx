@@ -108,6 +108,8 @@ export default function Explore() {
                     createdAt: data.createdAt,
                     reactions: data.reactions || { like: 0, hug: 0, metoo: 0 },
                     commentCount: data.commentCount || 0,
+                    reactionCount: data.reactionCount || 0,
+                    helpNeeded: data.helpNeeded || false,
                 };
             });
             setPosts(fetched);
@@ -130,7 +132,18 @@ export default function Explore() {
                     (p.category || "").toLowerCase().includes(qText),
             );
         }
-        if (selectedSort === "popular") {
+
+        // Handle different sort options
+        if (selectedFilter === "help" || selectedSort === "help") {
+            // Sort by help needed first, then by lowest reactionCount
+            filtered.sort((a, b) => {
+                // Help needed posts come first
+                if (a.helpNeeded && !b.helpNeeded) return -1;
+                if (!a.helpNeeded && b.helpNeeded) return 1;
+                // If both are help needed or both are not, sort by lowest reactionCount
+                return (a.reactionCount || 0) - (b.reactionCount || 0);
+            });
+        } else if (selectedSort === "popular") {
             filtered.sort(
                 (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
             );
@@ -140,7 +153,7 @@ export default function Explore() {
             );
         }
         setFilteredPosts(filtered);
-    }, [posts, selectedCategory, searchQuery, selectedSort]);
+    }, [posts, selectedCategory, searchQuery, selectedSort, selectedFilter]);
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return "Just now";
