@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }) => {
             additionalData.displayName ||
             email.split("@")[0],
           photoURL: photoURL || null,
+          profileCode: email, // Initially set to email
           createdAt,
           updatedAt: createdAt,
           ...additionalData,

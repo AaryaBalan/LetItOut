@@ -2,9 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
   collection,
+  doc,
   getDocs,
   onSnapshot,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -19,6 +21,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
+import AvatarSelectionModal from "../../components/AvatarSelectionModal";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 
@@ -32,6 +36,33 @@ export default function Profile() {
   const [postReactions, setPostReactions] = useState({});
   const [supportiveHistory, setSupportiveHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [profileCode, setProfileCode] = useState(
+    user?.profileCode || user?.email || "",
+  );
+
+  // Update profileCode when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfileCode(user.profileCode || user.email || "");
+    }
+  }, [user]);
+
+  const handleAvatarSelect = async (newSeed) => {
+    try {
+      // Update profileCode in Firestore
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        profileCode: newSeed,
+      });
+
+      setProfileCode(newSeed);
+      Alert.alert("Success", "Profile image updated successfully!");
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      Alert.alert("Error", "Failed to update profile image");
+    }
+  };
 
   // Fetch user's posts from Firebase
   useEffect(() => {
@@ -442,9 +473,13 @@ export default function Profile() {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="happy" size={40} color="#9575cd" />
-            </View>
+            <Avatar seed={profileCode} size={100} />
+            <TouchableOpacity
+              style={styles.editAvatarButton}
+              onPress={() => setShowAvatarModal(true)}
+            >
+              <Ionicons name="pencil" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.username}>
@@ -764,6 +799,14 @@ export default function Profile() {
           </View>
         </View>
       </Modal>
+
+      {/* Avatar Selection Modal */}
+      <AvatarSelectionModal
+        visible={showAvatarModal}
+        onClose={() => setShowAvatarModal(false)}
+        onSelect={handleAvatarSelect}
+        currentSeed={profileCode}
+      />
     </SafeAreaView>
   );
 }
@@ -812,6 +855,7 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginBottom: 16,
+    position: "relative",
   },
   avatar: {
     width: 80,
@@ -820,6 +864,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#E1BEE7",
     justifyContent: "center",
     alignItems: "center",
+  },
+  editAvatarButton: {
+    position: "absolute",
+    bottom: 0,
+    right: -8,
+    backgroundColor: "#8B5CF6",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
   },
   username: {
     fontSize: 24,

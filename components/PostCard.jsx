@@ -1,9 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import {
+    collection,
+    doc,
+    getDoc,
+    onSnapshot,
+    query,
+    where,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
+import Avatar from "./Avatar";
 
 const getCategoryColor = (category) => {
     const colors = {
@@ -32,6 +40,31 @@ export default function PostCard({ post }) {
     const [hugCount, setHugCount] = useState(0);
     const [meTooCount, setMeTooCount] = useState(0);
     const [commentCount, setCommentCount] = useState(0);
+    const [authorProfileCode, setAuthorProfileCode] = useState(null);
+
+    // Fetch author profile code
+    useEffect(() => {
+        const fetchAuthorProfile = async () => {
+            if (!post.authorId || post.isAnonymous) {
+                setAuthorProfileCode(null);
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", post.authorId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    setAuthorProfileCode(
+                        userData.profileCode || userData.email || null,
+                    );
+                }
+            } catch (error) {
+                console.error("Error fetching author profile:", error);
+            }
+        };
+
+        fetchAuthorProfile();
+    }, [post.authorId, post.isAnonymous]);
 
     // Fetch reaction counts from Firebase in real-time
     useEffect(() => {
@@ -93,17 +126,16 @@ export default function PostCard({ post }) {
 
                 {/* Author Section */}
                 <View style={styles.authorSection}>
-                    <View style={styles.avatarContainer}>
-                        {post.isAnonymous ||
-                            !post.authorName ||
-                            post.authorName === "Anonymous" ? (
+                    {post.isAnonymous ||
+                        !post.authorName ||
+                        post.authorName === "Anonymous" ||
+                        !authorProfileCode ? (
+                        <View style={styles.avatarContainer}>
                             <Ionicons name="person" size={16} color="#9575cd" />
-                        ) : (
-                            <Text style={styles.avatarText}>
-                                {post.authorName?.charAt(0).toUpperCase() || "U"}
-                            </Text>
-                        )}
-                    </View>
+                        </View>
+                    ) : (
+                        <Avatar seed={authorProfileCode} size={32} />
+                    )}
                     <Text style={styles.authorName}>
                         {post.isAnonymous || !post.authorName
                             ? "Anonymous"

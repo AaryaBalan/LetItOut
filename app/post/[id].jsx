@@ -25,6 +25,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { getPostById } from "../../data/dummyData";
@@ -72,6 +73,7 @@ export default function PostDetail() {
     const [userReactions, setUserReactions] = useState({}); // Store user's reaction doc IDs by type
     const [newComment, setNewComment] = useState("");
     const [comments, setComments] = useState([]);
+    const [authorProfileCode, setAuthorProfileCode] = useState(null);
 
     // Fetch post from Firebase or dummy data
     useEffect(() => {
@@ -104,6 +106,19 @@ export default function PostDetail() {
                     // Check if current user is the author
                     if (user && data.authorId === user.uid) {
                         setIsAuthor(true);
+                    }
+
+                    // Fetch author profile code
+                    if (data.authorId && !data.isAnonymous) {
+                        const userDoc = await getDoc(doc(db, "users", data.authorId));
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            setAuthorProfileCode(
+                                userData.profileCode || userData.email || null,
+                            );
+                        }
+                    } else {
+                        setAuthorProfileCode(null);
                     }
                 } else {
                     // Fallback to dummy data
@@ -520,17 +535,16 @@ export default function PostDetail() {
 
                         {/* Author Section */}
                         <View style={styles.authorSection}>
-                            <View style={styles.avatarContainer}>
-                                {post.isAnonymous ||
-                                    !post.authorName ||
-                                    post.authorName === "Anonymous" ? (
+                            {post.isAnonymous ||
+                                !post.authorName ||
+                                post.authorName === "Anonymous" ||
+                                !authorProfileCode ? (
+                                <View style={styles.avatarContainer}>
                                     <Ionicons name="person" size={18} color="#9575cd" />
-                                ) : (
-                                    <Text style={styles.avatarText}>
-                                        {post.authorName?.charAt(0).toUpperCase() || "U"}
-                                    </Text>
-                                )}
-                            </View>
+                                </View>
+                            ) : (
+                                <Avatar seed={authorProfileCode} size={36} />
+                            )}
                             <Text style={styles.authorName}>
                                 {post.isAnonymous || !post.authorName
                                     ? "Anonymous"
