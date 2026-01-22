@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -23,6 +24,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import AvatarSelectionModal from "../../components/AvatarSelectionModal";
+import EditProfileModal from "../../components/EditProfileModal";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 
@@ -37,16 +39,39 @@ export default function Profile() {
   const [supportiveHistory, setSupportiveHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [profileCode, setProfileCode] = useState(
     user?.profileCode || user?.email || "",
   );
+  const [userProfile, setUserProfile] = useState(null);
 
   // Update profileCode when user data changes
   useEffect(() => {
     if (user) {
       setProfileCode(user.profileCode || user.email || "");
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        setUserProfile(userDoc.data());
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
+  const handleProfileUpdate = () => {
+    // Refresh user profile data
+    fetchUserProfile();
+  };
 
   const handleAvatarSelect = async (newSeed) => {
     try {
@@ -487,12 +512,38 @@ export default function Profile() {
           </Text>
           <Text style={styles.joinDate}>Joined {joinDate}</Text>
 
+          {/* Bio */}
+          {userProfile?.bio && (
+            <Text style={styles.bio}>{userProfile.bio}</Text>
+          )}
+
+          {/* Edit Profile Button */}
+          <TouchableOpacity
+            style={styles.editProfileButton}
+            onPress={() => setShowEditModal(true)}
+          >
+            <Ionicons name="create-outline" size={18} color="#8B5CF6" />
+            <Text style={styles.editProfileText}>Edit Profile</Text>
+          </TouchableOpacity>
+
           {/* Additional Info */}
           <View style={styles.infoSection}>
             <View style={styles.infoItem}>
               <Ionicons name="mail-outline" size={16} color="#757575" />
               <Text style={styles.infoText}>{user.email}</Text>
             </View>
+            {userProfile?.phoneNumber && (
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="call-outline"
+                  size={16}
+                  color="#757575"
+                />
+                <Text style={styles.infoText}>
+                  {userProfile.phoneNumber}
+                </Text>
+              </View>
+            )}
             <View style={styles.infoItem}>
               <Ionicons
                 name="person-outline"
@@ -807,6 +858,14 @@ export default function Profile() {
         onSelect={handleAvatarSelect}
         currentSeed={profileCode}
       />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        visible={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        user={user}
+        onUpdate={handleProfileUpdate}
+      />
     </SafeAreaView>
   );
 }
@@ -887,7 +946,30 @@ const styles = StyleSheet.create({
   joinDate: {
     fontSize: 14,
     color: "#9E9E9E",
+    marginBottom: 12,
+  },
+  bio: {
+    fontSize: 14,
+    color: "#616161",
+    textAlign: "center",
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    lineHeight: 20,
+  },
+  editProfileButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#F3E5F5",
+    borderRadius: 20,
     marginBottom: 20,
+  },
+  editProfileText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#8B5CF6",
   },
   infoSection: {
     width: "100%",
