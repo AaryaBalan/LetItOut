@@ -75,6 +75,8 @@ export default function PostDetail() {
     const [userReactions, setUserReactions] = useState({}); // Store user's reaction doc IDs by type
     const [newComment, setNewComment] = useState("");
     const [comments, setComments] = useState([]);
+    const [commentSupports, setCommentSupports] = useState({}); // Store support counts per comment
+    const [userCommentSupports, setUserCommentSupports] = useState({}); // Store user's support status per comment
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
 
     // Fetch post from Firebase or dummy data
@@ -178,6 +180,7 @@ export default function PostDetail() {
                             : "Just now",
                         commentorId: data.commentorId,
                         createdAt: data.createdAt,
+                        reactionCount: data.reactionCount || 0,
                     };
                 });
                 // Sort by createdAt on client side
@@ -242,6 +245,53 @@ export default function PostDetail() {
 
         return () => unsubscribe();
     }, [id, user]);
+
+    // Fetch comment supports in real-time
+    useEffect(() => {
+        if (!id || comments.length === 0) return;
+
+        const commentSupportsRef = collection(db, "commentSupports");
+        const commentIds = comments.map(c => c.id);
+
+        if (commentIds.length === 0) return;
+
+        const q = query(commentSupportsRef, where("commentId", "in", commentIds));
+
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const supportCounts = {};
+                const userSupports = {};
+
+                snapshot.docs.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const commentId = data.commentId;
+
+                    // Count supports per comment
+                    if (!supportCounts[commentId]) {
+                        supportCounts[commentId] = 0;
+                    }
+                    supportCounts[commentId]++;
+
+                    // Track user's own supports
+                    if (user && data.userId === user.uid) {
+                        userSupports[commentId] = docSnap.id;
+                    }
+                });
+
+                setCommentSupports(supportCounts);
+                setUserCommentSupports(userSupports);
+            },
+            (error) => {
+                console.log("Comment supports fetch error (permission denied - will use default counts):", error.code);
+                // Initialize with zero counts if we don't have permission
+                setCommentSupports({});
+                setUserCommentSupports({});
+            }
+        );
+
+        return () => unsubscribe();
+    }, [id, comments, user]);
 
     // Helper function to calculate time ago
     const getTimeAgo = (timestamp) => {
@@ -439,6 +489,7 @@ export default function PostDetail() {
                 comment: commentText,
                 timestamp: serverTimestamp(),
                 createdAt: new Date().toISOString(),
+                reactionCount: 0,
             };
             console.log("Comment data to save:", commentData);
 
@@ -466,6 +517,44 @@ export default function PostDetail() {
         } catch (error) {
             console.error("Error adding comment:", error);
             Alert.alert("Error", "Failed to add comment. Please try again.");
+        }
+    };
+
+    const handleCommentSupport = async (commentId) => {
+        if (!user) {
+            Alert.alert("Not Logged In", "Please log in to support comments.");
+            return;
+        }
+
+        try {
+            const commentSupportsRef = collection(db, "commentSupports");
+            const commentDocRef = doc(db, "comments", commentId);
+            const isSupported = !!userCommentSupports[commentId];
+
+            if (isSupported) {
+                // Remove support
+                await deleteDoc(doc(db, "commentSupports", userCommentSupports[commentId]));
+                // Decrement reactionCount
+                await updateDoc(commentDocRef, {
+                    reactionCount: increment(-1),
+                });
+            } else {
+                // Add support
+                await addDoc(commentSupportsRef, {
+                    commentId: commentId,
+                    userId: user.uid,
+                    userName: user.displayName || "Anonymous",
+                    timestamp: serverTimestamp(),
+                    createdAt: new Date().toISOString(),
+                });
+                // Increment reactionCount
+                await updateDoc(commentDocRef, {
+                    reactionCount: increment(1),
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling comment support:", error);
+            Alert.alert("Error", "Failed to update support. Please try again.");
         }
     };
 
@@ -678,7 +767,7 @@ export default function PostDetail() {
                     <View style={styles.repliesSection}>
                         <View style={styles.repliesHeader}>
                             <Text style={styles.repliesTitle}>Supportive Replies</Text>
-                            <Text style={styles.repliesCount}>
+                            <Text style={styles.repliesCountText}>
                                 {comments.length} REPLIES
                             </Text>
                         </View>
@@ -691,28 +780,51 @@ export default function PostDetail() {
                             JSON.stringify(comments),
                         )}
                         {comments.length > 0 ? (
-                            comments.map((comment, index) => (
-                                <View
-                                    key={comment.id || index}
-                                    style={styles.commentCard}
-                                >
-                                    <View style={styles.commentHeader}>
-                                        <Text style={styles.commentUsername}>
-                                            {comment.username || `KindSoul_${index + 1}`}
-                                        </Text>
-                                        <Text style={styles.commentTimestamp}>
-                                            {comment.timestamp}
-                                        </Text>
+                            <View style={styles.commentsContainer}>
+                                {comments.map((comment, index) => (
+                                    <View
+                                        key={comment.id || index}
+                                        style={styles.commentItem}
+                                    >
+                                        <View style={styles.commentCard}>
+                                            <View style={styles.commentHeader}>
+                                                <Text style={styles.commentUsername}>
+                                                    {comment.username || `KindSoul_${index + 1}`}
+                                                </Text>
+                                                <Text style={styles.commentTimestamp}>
+                                                    {comment.timestamp}
+                                                </Text>
+                                            </View>
+
+                                            <Text style={styles.commentText}>
+                                                {comment.text}
+                                            </Text>
+
+                                            <View style={styles.commentActions}>
+                                                <TouchableOpacity
+                                                    style={styles.supportButton}
+                                                    onPress={() => handleCommentSupport(comment.id)}
+                                                >
+                                                    <Ionicons
+                                                        name={userCommentSupports[comment.id] ? "heart" : "heart-outline"}
+                                                        size={16}
+                                                        color="#66BB6A"
+                                                    />
+                                                    <Text style={styles.supportText}>
+                                                        {commentSupports[comment.id] || 0} SUPPORT
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
                                     </View>
-                                    <Text style={styles.commentText}>
-                                        {comment.text}
-                                    </Text>
-                                </View>
-                            ))
+                                ))}
+                            </View>
                         ) : (
-                            <Text style={styles.noCommentsText}>
-                                No comments yet. Be the first to share support!
-                            </Text>
+                            <View style={styles.noCommentsContainer}>
+                                <Text style={styles.noCommentsText}>
+                                    No comments yet. Be the first to share support!
+                                </Text>
+                            </View>
                         )}
                     </View>
 
@@ -928,20 +1040,32 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 20,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#F3F4F6",
     },
     repliesTitle: {
         fontSize: 18,
         fontWeight: "700",
         color: "#212121",
     },
-    repliesCount: {
-        fontSize: 12,
-        fontWeight: "700",
-        color: "#9E9E9E",
+    repliesCountText: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#9CA3AF",
         letterSpacing: 0.5,
     },
+    commentsContainer: {
+        gap: 16,
+    },
+    commentItem: {
+        paddingLeft: 0,
+    },
     commentCard: {
-        marginBottom: 20,
+        backgroundColor: "#F8F9FA",
+        padding: 16,
+        borderLeftWidth: 3,
+        borderLeftColor: "#E8E4F3",
     },
     commentHeader: {
         flexDirection: "row",
@@ -956,19 +1080,37 @@ const styles = StyleSheet.create({
     },
     commentTimestamp: {
         fontSize: 12,
-        color: "#BDBDBD",
+        color: "#9CA3AF",
     },
     commentText: {
         fontSize: 14,
-        color: "#616161",
-        lineHeight: 22,
+        color: "#374151",
+        lineHeight: 20,
+        marginBottom: 12,
+    },
+    commentActions: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    supportButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    supportText: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#66BB6A",
+        letterSpacing: 0.5,
+    },
+    noCommentsContainer: {
+        alignItems: "center",
+        paddingVertical: 40,
     },
     noCommentsText: {
         fontSize: 14,
-        color: "#BDBDBD",
+        color: "#9CA3AF",
         textAlign: "center",
-        marginTop: 20,
-        marginBottom: 20,
         fontStyle: "italic",
     },
     reportButton: {

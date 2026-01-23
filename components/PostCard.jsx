@@ -163,17 +163,17 @@ export default function PostCard({ post, hideDescription = false }) {
                 <View style={styles.footer}>
                     <View style={styles.reactions}>
                         <View style={styles.reactionButton}>
-                            <Ionicons name="heart" size={20} color="#E57373" />
+                            <Ionicons name="heart" size={16} color="#E57373" />
                             <Text style={styles.reactionCount}>{likeCount}</Text>
                         </View>
 
                         <View style={styles.reactionButton}>
-                            <Ionicons name="hand-left" size={20} color="#FFB74D" />
+                            <Ionicons name="hand-left" size={16} color="#FFB74D" />
                             <Text style={styles.reactionCount}>{hugCount}</Text>
                         </View>
 
                         <View style={styles.reactionButton}>
-                            <Ionicons name="happy" size={20} color="#66BB6A" />
+                            <Ionicons name="happy" size={16} color="#66BB6A" />
                             <Text style={styles.reactionCount}>{meTooCount}</Text>
                         </View>
                     </View>
@@ -181,7 +181,7 @@ export default function PostCard({ post, hideDescription = false }) {
                     <View style={styles.commentSection}>
                         <Ionicons
                             name="chatbubble-outline"
-                            size={18}
+                            size={15}
                             color="#9E9E9E"
                         />
                         <Text style={styles.commentCount}>{commentCount}</Text>
@@ -216,54 +216,54 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     categoryText: {
-        fontSize: 11,
+        fontSize: 9,
         fontWeight: "700",
         color: "#212121",
-        letterSpacing: 0.5,
+        letterSpacing: 0.3,
     },
     timestamp: {
-        fontSize: 13,
+        fontSize: 11,
         color: "#BDBDBD",
     },
     authorSection: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 12,
+        marginBottom: 10,
     },
     avatarWrapper: {
         marginRight: 8,
     },
     avatarContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
         backgroundColor: "#EFE8FF",
         justifyContent: "center",
         alignItems: "center",
         marginRight: 8,
     },
     avatarText: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: "600",
         color: "#9575cd",
     },
     authorName: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: "600",
         color: "#9575cd",
     },
     title: {
-        fontSize: 18,
+        fontSize: 15,
         fontWeight: "700",
         color: "#212121",
-        marginBottom: 8,
-        lineHeight: 24,
+        marginBottom: 6,
+        lineHeight: 20,
     },
     preview: {
-        fontSize: 14,
+        fontSize: 13,
         color: "#757575",
-        lineHeight: 22,
-        marginBottom: 16,
+        lineHeight: 18,
+        marginBottom: 14,
     },
     footer: {
         flexDirection: "row",
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     reactionCount: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: "600",
         color: "#757575",
     },
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     commentCount: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: "600",
         color: "#757575",
     },
