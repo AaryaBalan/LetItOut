@@ -3,10 +3,9 @@ import { Link } from "expo-router";
 import {
     collection,
     doc,
-    getDoc,
     onSnapshot,
     query,
-    where,
+    where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
