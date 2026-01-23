@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
@@ -15,77 +16,78 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 
-const CATEGORIES = [
-    {
-        id: "Family",
-        name: "FAMILY",
-        icon: "people",
-        iconColor: "#F48FB1",
-        bgColor: "#FFE8EE",
-        gradientColors: ["#F48FB1", "#F06292"],
-        quote: "Family isn't always blood. It's the people who love you unconditionally.",
-    },
-    {
-        id: "Stress",
-        name: "STRESS",
-        icon: "leaf",
-        iconColor: "#9B8BC9",
-        bgColor: "#E8E4F3",
-        gradientColors: ["#B39DDB", "#9575CD"],
-        quote: "Take a deep breath. You're doing the best you can, and that's enough.",
-    },
-    {
-        id: "Relationship",
-        name: "RELATIONSHIP",
-        icon: "heart",
-        iconColor: "#F48FB1",
-        bgColor: "#FFE8EE",
-        gradientColors: ["#F48FB1", "#F06292"],
-        quote: "Love and connection are what make life meaningful.",
-    },
-    {
-        id: "Study",
-        name: "STUDY",
-        icon: "book",
-        iconColor: "#80CBC4",
-        bgColor: "#E0F2F1",
-        gradientColors: ["#80CBC4", "#4DB6AC"],
-        quote: "Every expert was once a beginner. Keep learning and growing.",
-    },
-    {
-        id: "Mental Health",
-        name: "MENTAL HEALTH",
-        icon: "fitness",
-        iconColor: "#FFE082",
-        bgColor: "#FFF9E6",
-        gradientColors: ["#FFE082", "#FFD54F"],
-        quote: "Your mental health matters. It's okay to not be okay.",
-    },
-    {
-        id: "Other",
-        name: "OTHER",
-        icon: "ellipsis-horizontal",
-        iconColor: "#B0BEC5",
-        bgColor: "#ECEFF1",
-        gradientColors: ["#B0BEC5", "#90A4AE"],
-        quote: "Every story deserves to be heard. Share what's on your mind.",
-    },
-];
-
-const SORT_OPTIONS = [
-    { id: "recent", name: "Recent", icon: "time-outline" },
-    { id: "popular", name: "Popular", icon: "trending-up-outline" },
-    { id: "mostCommented", name: "Most Commented", icon: "chatbubbles-outline" },
-];
-
 export default function Explore() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedSort, setSelectedSort] = useState("recent");
-    const [selectedFilter, setSelectedFilter] = useState("latest");
     const [posts, setPosts] = useState([]);
     const [filteredPosts, setFilteredPosts] = useState([]);
     const [showFilterModal, setShowFilterModal] = useState(false);
+
+    const CATEGORIES = [
+        {
+            id: "Family",
+            name: "FAMILY",
+            icon: "people",
+            iconColor: "#F48FB1",
+            bgColor: "#FFE8EE",
+            gradientColors: ["#F48FB1", "#F06292"],
+            quote: "Family isn't always blood. It's the people who love you unconditionally.",
+        },
+        {
+            id: "Stress",
+            name: "STRESS",
+            icon: "leaf",
+            iconColor: "#9B8BC9",
+            bgColor: "#E8E4F3",
+            gradientColors: ["#B39DDB", "#9575CD"],
+            quote: "Take a deep breath. You're doing the best you can, and that's enough.",
+        },
+        {
+            id: "Relationship",
+            name: "RELATIONSHIP",
+            icon: "heart",
+            iconColor: "#F48FB1",
+            bgColor: "#FFE8EE",
+            gradientColors: ["#F48FB1", "#F06292"],
+            quote: "Love and connection are what make life meaningful.",
+        },
+        {
+            id: "Study",
+            name: "STUDY",
+            icon: "book",
+            iconColor: "#80CBC4",
+            bgColor: "#E0F2F1",
+            gradientColors: ["#80CBC4", "#4DB6AC"],
+            quote: "Every expert was once a beginner. Keep learning and growing.",
+        },
+        {
+            id: "Mental Health",
+            name: "MENTAL HEALTH",
+            icon: "fitness",
+            iconColor: "#FFE082",
+            bgColor: "#FFF9E6",
+            gradientColors: ["#FFE082", "#FFD54F"],
+            quote: "Your mental health matters. It's okay to not be okay.",
+        },
+        {
+            id: "Other",
+            name: "OTHER",
+            icon: "ellipsis-horizontal",
+            iconColor: "#B0BEC5",
+            bgColor: "#ECEFF1",
+            gradientColors: ["#B0BEC5", "#90A4AE"],
+            quote: "Every story deserves to be heard. Share what's on your mind.",
+        },
+    ];
+
+    const SORT_OPTIONS = [
+        { id: "recent", name: "Recent", icon: "time-outline" },
+        { id: "popular", name: "Popular", icon: "trending-up-outline" },
+        { id: "mostCommented", name: "Most Commented", icon: "chatbubbles-outline" },
+    ];
+
+
 
     useEffect(() => {
         const postsRef = collection(db, "posts");
@@ -120,9 +122,6 @@ export default function Explore() {
 
     useEffect(() => {
         let filtered = [...posts];
-        if (selectedCategory) {
-            filtered = filtered.filter((p) => p.category === selectedCategory);
-        }
         if (searchQuery.trim()) {
             const qText = searchQuery.toLowerCase();
             filtered = filtered.filter(
@@ -134,26 +133,17 @@ export default function Explore() {
         }
 
         // Handle different sort options
-        if (selectedFilter === "help" || selectedSort === "help") {
-            // Sort by help needed first, then by lowest reactionCount
-            filtered.sort((a, b) => {
-                // Help needed posts come first
-                if (a.helpNeeded && !b.helpNeeded) return -1;
-                if (!a.helpNeeded && b.helpNeeded) return 1;
-                // If both are help needed or both are not, sort by lowest reactionCount
-                return (a.reactionCount || 0) - (b.reactionCount || 0);
-            });
-        } else if (selectedSort === "popular") {
+        if (selectedSort === "popular") {
             filtered.sort(
                 (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
             );
         } else if (selectedSort === "mostCommented") {
             filtered.sort(
-                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
+                (a, b) => (b.commentCount || 0) - (a.commentCount || 0),
             );
         }
         setFilteredPosts(filtered);
-    }, [posts, selectedCategory, searchQuery, selectedSort, selectedFilter]);
+    }, [posts, searchQuery, selectedSort]);
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return "Just now";
@@ -173,18 +163,7 @@ export default function Explore() {
     };
 
     const handleCategoryPress = (id) => {
-        setSelectedCategory(id);
-        setSearchQuery("");
-    };
-
-    const handleBackPress = () => {
-        setSelectedCategory(null);
-        setSearchQuery("");
-        setSelectedFilter("latest");
-    };
-
-    const getSelectedCategoryData = () => {
-        return CATEGORIES.find((cat) => cat.id === selectedCategory);
+        router.push(`/community/${id}`);
     };
 
     const renderPost = ({ item }) => (
@@ -192,115 +171,6 @@ export default function Explore() {
             <PostCard post={item} hideDescription={true} />
         </View>
     );
-
-    if (selectedCategory) {
-        const categoryData = getSelectedCategoryData();
-        return (
-            <SafeAreaView style={styles.container} edges={["top"]}>
-                <StatusBar
-                    barStyle="light-content"
-                    backgroundColor={categoryData.gradientColors[0]}
-                />
-                <View
-                    style={[
-                        styles.categoryHeader,
-                        { backgroundColor: categoryData.gradientColors[0] },
-                    ]}
-                >
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={handleBackPress}
-                    >
-                        <Ionicons name="chevron-back" size={28} color="#FFF" />
-                    </TouchableOpacity>
-                    <View style={styles.categoryHeaderIcon}>
-                        <Ionicons name={categoryData.icon} size={32} color="#FFF" />
-                    </View>
-                    <Text style={styles.categoryHeaderTitle}>{categoryData.id}</Text>
-                    <Text style={styles.categoryHeaderQuote}>
-                        "{categoryData.quote}"
-                    </Text>
-                </View>
-
-                <View style={styles.categoryFilters}>
-                    <View style={styles.filterChipsRow}>
-                        <TouchableOpacity
-                            style={[
-                                styles.filterChipCategory,
-                                selectedFilter === "latest" &&
-                                styles.filterChipCategoryActive,
-                            ]}
-                            onPress={() => setSelectedFilter("latest")}
-                        >
-                            <Text
-                                style={[
-                                    styles.filterChipCategoryText,
-                                    selectedFilter === "latest" &&
-                                    styles.filterChipCategoryTextActive,
-                                ]}
-                            >
-                                LATEST
-                            </Text>
-                            {selectedFilter === "latest" && (
-                                <Ionicons
-                                    name="close"
-                                    size={16}
-                                    color="#9B8BC9"
-                                    style={{ marginLeft: 6 }}
-                                />
-                            )}
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.filterChipCategory,
-                                selectedFilter === "help" &&
-                                styles.filterChipCategoryActive,
-                            ]}
-                            onPress={() => setSelectedFilter("help")}
-                        >
-                            <Text
-                                style={[
-                                    styles.filterChipCategoryText,
-                                    selectedFilter === "help" &&
-                                    styles.filterChipCategoryTextActive,
-                                ]}
-                            >
-                                HELP NEEDED
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity
-                        style={styles.sortButton}
-                        onPress={() => setShowFilterModal(true)}
-                    >
-                        <Ionicons name="filter" size={18} color="#6B7280" />
-                        <Text style={styles.sortButtonText}>SORT</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <FlatList
-                    data={filteredPosts}
-                    renderItem={renderPost}
-                    keyExtractor={(item) => item.id}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.postsListContainer}
-                    ListEmptyComponent={
-                        <View style={styles.emptyState}>
-                            <Ionicons
-                                name="search-outline"
-                                size={64}
-                                color="#BDBDBD"
-                            />
-                            <Text style={styles.emptyStateTitle}>No posts found</Text>
-                            <Text style={styles.emptyStateText}>
-                                Be the first to share in this category
-                            </Text>
-                        </View>
-                    }
-                />
-            </SafeAreaView>
-        );
-    }
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
