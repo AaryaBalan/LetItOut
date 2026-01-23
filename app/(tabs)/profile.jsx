@@ -7,6 +7,7 @@ import {
   getDocs,
   onSnapshot,
   query,
+  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -75,11 +76,14 @@ export default function Profile() {
 
   const handleAvatarSelect = async (newSeed) => {
     try {
-      // Update profileCode in Firestore
+      // Update profileCode in Firestore (creates document if it doesn't exist)
       const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
         profileCode: newSeed,
-      });
+        email: user.email,
+        displayName: user.displayName || "Anonymous",
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
 
       setProfileCode(newSeed);
       Alert.alert("Success", "Profile image updated successfully!");

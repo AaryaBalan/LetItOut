@@ -43,28 +43,33 @@ export default function PostCard({ post, hideDescription = false }) {
     const [reactionCount, setReactionCount] = useState(post.reactionCount || 0);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
 
-    // Fetch author profile code
+    // Fetch author profile code with real-time updates
     useEffect(() => {
-        const fetchAuthorProfile = async () => {
-            if (!post.authorId || post.isAnonymous) {
-                setAuthorProfileCode(null);
-                return;
-            }
+        if (!post.authorId || post.isAnonymous) {
+            setAuthorProfileCode(null);
+            return;
+        }
 
-            try {
-                const userDoc = await getDoc(doc(db, "users", post.authorId));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
+        const userRef = doc(db, "users", post.authorId);
+        const unsubscribe = onSnapshot(
+            userRef,
+            (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userData = docSnapshot.data();
                     setAuthorProfileCode(
                         userData.profileCode || userData.email || null,
                     );
+                } else {
+                    setAuthorProfileCode(null);
                 }
-            } catch (error) {
+            },
+            (error) => {
                 console.error("Error fetching author profile:", error);
+                setAuthorProfileCode(null);
             }
-        };
+        );
 
-        fetchAuthorProfile();
+        return () => unsubscribe();
     }, [post.authorId, post.isAnonymous]);
 
     // Fetch reaction counts from Firebase in real-time

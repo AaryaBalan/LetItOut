@@ -78,6 +78,7 @@ export default function PostDetail() {
     const [commentSupports, setCommentSupports] = useState({}); // Store support counts per comment
     const [userCommentSupports, setUserCommentSupports] = useState({}); // Store user's support status per comment
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
+    const [commentorProfiles, setCommentorProfiles] = useState({}); // Store profile codes for commentors
 
     // Fetch post from Firebase or dummy data
     useEffect(() => {
@@ -163,7 +164,7 @@ export default function PostDetail() {
 
         const unsubscribe = onSnapshot(
             q,
-            (snapshot) => {
+            async (snapshot) => {
                 console.log("Comments snapshot size:", snapshot.size);
                 const fetchedComments = snapshot.docs.map((doc) => {
                     const data = doc.data();
@@ -191,6 +192,23 @@ export default function PostDetail() {
                 });
                 console.log("Total comments fetched:", fetchedComments.length);
                 setComments(fetchedComments);
+
+                // Fetch profile codes for all commentors
+                const profiles = {};
+                for (const comment of fetchedComments) {
+                    if (comment.commentorId) {
+                        try {
+                            const userDoc = await getDoc(doc(db, "users", comment.commentorId));
+                            if (userDoc.exists()) {
+                                const userData = userDoc.data();
+                                profiles[comment.commentorId] = userData.profileCode || userData.email || null;
+                            }
+                        } catch (error) {
+                            console.error("Error fetching commentor profile:", error);
+                        }
+                    }
+                }
+                setCommentorProfiles(profiles);
             },
             (error) => {
                 console.error("Error fetching comments:", error);
@@ -787,33 +805,44 @@ export default function PostDetail() {
                                         style={styles.commentItem}
                                     >
                                         <View style={styles.commentCard}>
-                                            <View style={styles.commentHeader}>
-                                                <Text style={styles.commentUsername}>
-                                                    {comment.username || `KindSoul_${index + 1}`}
-                                                </Text>
-                                                <Text style={styles.commentTimestamp}>
-                                                    {comment.timestamp}
-                                                </Text>
-                                            </View>
+                                            <View style={styles.commentHeaderSection}>
+                                                {comment.commentorId && commentorProfiles[comment.commentorId] ? (
+                                                    <Avatar seed={commentorProfiles[comment.commentorId]} size={32} />
+                                                ) : (
+                                                    <View style={styles.commentAvatarPlaceholder}>
+                                                        <Ionicons name="person" size={16} color="#9575cd" />
+                                                    </View>
+                                                )}
+                                                <View style={styles.commentHeaderContent}>
+                                                    <View style={styles.commentHeader}>
+                                                        <Text style={styles.commentUsername}>
+                                                            {comment.username || `KindSoul_${index + 1}`}
+                                                        </Text>
+                                                        <Text style={styles.commentTimestamp}>
+                                                            {comment.timestamp}
+                                                        </Text>
+                                                    </View>
 
-                                            <Text style={styles.commentText}>
-                                                {comment.text}
-                                            </Text>
-
-                                            <View style={styles.commentActions}>
-                                                <TouchableOpacity
-                                                    style={styles.supportButton}
-                                                    onPress={() => handleCommentSupport(comment.id)}
-                                                >
-                                                    <Ionicons
-                                                        name={userCommentSupports[comment.id] ? "heart" : "heart-outline"}
-                                                        size={16}
-                                                        color="#66BB6A"
-                                                    />
-                                                    <Text style={styles.supportText}>
-                                                        {commentSupports[comment.id] || 0} SUPPORT
+                                                    <Text style={styles.commentText}>
+                                                        {comment.text}
                                                     </Text>
-                                                </TouchableOpacity>
+
+                                                    <View style={styles.commentActions}>
+                                                        <TouchableOpacity
+                                                            style={styles.supportButton}
+                                                            onPress={() => handleCommentSupport(comment.id)}
+                                                        >
+                                                            <Ionicons
+                                                                name={userCommentSupports[comment.id] ? "heart" : "heart-outline"}
+                                                                size={16}
+                                                                color="#66BB6A"
+                                                            />
+                                                            <Text style={styles.supportText}>
+                                                                {commentSupports[comment.id] || 0} SUPPORT
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
                                             </View>
                                         </View>
                                     </View>
@@ -1066,6 +1095,21 @@ const styles = StyleSheet.create({
         padding: 16,
         borderLeftWidth: 3,
         borderLeftColor: "#E8E4F3",
+    },
+    commentHeaderSection: {
+        flexDirection: "row",
+        gap: 12,
+    },
+    commentAvatarPlaceholder: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: "#E8E4F3",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    commentHeaderContent: {
+        flex: 1,
     },
     commentHeader: {
         flexDirection: "row",
