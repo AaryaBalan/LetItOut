@@ -16,13 +16,36 @@ import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { posts as dummyPosts } from "../../data/dummyData";
 
+const getCategoryColor = (category) => {
+  const colors = {
+    "All Feed": "#000000",
+    "Stress": "#B39DDB",
+    "Anxiety": "#7C6BA8",
+    "Self-Care": "#FFE082",
+    "Mental Health": "#FFE082",
+    "Mindfulness": "#B2DFDB",
+    "Study": "#B2DFDB",
+    "Relationship": "#F48FB1",
+    "Family": "#FFCDD2",
+  };
+  return colors[category] || "#B39DDB";
+};
+
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const categories = ["All Feed", "Stress", "Anxiety", "Self-Care"];
+  const categories = [
+    "All Feed",
+    "Stress",
+    "Family",
+    "Mental Health",
+    "Study",
+    "Relationship",
+    "Other"
+  ];
 
   // Fetch posts from Firebase in real-time
   useEffect(() => {
@@ -149,8 +172,10 @@ export default function Home() {
               key={category}
               style={[
                 styles.categoryChip,
-                selectedCategory === category &&
-                styles.categoryChipActive,
+                selectedCategory === category && {
+                  backgroundColor: getCategoryColor(category),
+                  borderColor: getCategoryColor(category),
+                },
               ]}
               onPress={() => setSelectedCategory(category)}
             >
@@ -263,10 +288,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#E0E0E0",
-  },
-  categoryChipActive: {
-    backgroundColor: "#B39DDB",
-    borderColor: "#B39DDB",
   },
   categoryText: {
     fontSize: 14,
