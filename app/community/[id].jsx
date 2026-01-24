@@ -169,7 +169,7 @@ export default function CommunityDetail() {
 
     const renderPost = ({ item }) => (
         <View style={styles.postItemList}>
-            <PostCard post={item} hideDescription={true} />
+            <PostCard post={item} />
         </View>
     );
 
