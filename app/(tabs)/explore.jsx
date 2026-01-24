@@ -1,20 +1,73 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import {
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import PostCard from "../../components/PostCard";
+import { db } from "../../config/firebase";
 
 
 export default function Explore() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // Fetch all posts from Firebase
+    useEffect(() => {
+        const postsRef = collection(db, "posts");
+        const q = query(postsRef);
+
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const fetchedPosts = snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        title: data.title,
+                        description: data.description,
+                        category: data.category,
+                        feelPercentage: data.feelPercentage ?? 50,
+                        timestamp: data.createdAt,
+                        reactionCount: data.reactionCount || 0,
+                        isAnonymous: data.isAnonymous,
+                        authorName: data.authorName || "Anonymous",
+                        authorId: data.authorId,
+                    };
+                });
+                setPosts(fetchedPosts);
+                setLoading(false);
+            },
+            (error) => {
+                console.error("Error fetching posts:", error);
+                setLoading(false);
+            }
+        );
+
+        return () => unsubscribe();
+    }, []);
+
+    // Filter posts based on search query
+    const filteredPosts = searchQuery.trim()
+        ? posts.filter((post) => {
+            const query = searchQuery.toLowerCase();
+            return (
+                post.title?.toLowerCase().includes(query) ||
+                post.description?.toLowerCase().includes(query) ||
+                post.category?.toLowerCase().includes(query)
+            );
+        })
+        : [];
 
     const CATEGORIES = [
         {
@@ -99,51 +152,87 @@ export default function Explore() {
 
                 {/* Search Bar */}
                 <View style={styles.searchRow}>
-                    <TouchableOpacity
-                        style={styles.searchContainer}
-                        onPress={handleSearchFocus}
-                        activeOpacity={0.7}
-                    >
+                    <View style={styles.searchContainer}>
                         <Ionicons name="search" size={22} color="#9CA3AF" />
-                        <Text style={styles.searchPlaceholder}>What's on your mind?</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Categories */}
-                <View style={styles.categoriesSection}>
-                    <Text style={styles.sectionTitle}>Categories</Text>
-                    <View style={styles.categoriesGrid}>
-                        {CATEGORIES.map((category) => (
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Search posts, topics, or categories..."
+                            placeholderTextColor="#9CA3AF"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            returnKeyType="search"
+                        />
+                        {searchQuery.length > 0 && (
                             <TouchableOpacity
-                                key={category.id}
-                                style={[
-                                    styles.categoryCard,
-                                    { backgroundColor: category.bgColor }
-                                ]}
-                                onPress={() => handleCategoryPress(category.id)}
-                                activeOpacity={0.8}
+                                onPress={() => setSearchQuery("")}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
-                                <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
-                                    <Ionicons
-                                        name={category.icon}
-                                        size={28}
-                                        color={category.iconColor}
-                                    />
-                                </View>
-                                <Text style={styles.categoryName}>{category.name}</Text>
-                                <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
-
-                                {/* Decorative shapes */}
-                                {category.decorativeShapes && (
-                                    <>
-                                        <View style={[styles.decorativeCircle, styles.decorCircle1]} />
-                                        <View style={[styles.decorativeCircle, styles.decorCircle2]} />
-                                    </>
-                                )}
+                                <Ionicons name="close-circle" size={20} color="#9CA3AF" />
                             </TouchableOpacity>
-                        ))}
+                        )}
                     </View>
                 </View>
+
+                {/* Search Results or Categories */}
+                {searchQuery.trim() ? (
+                    <View style={styles.searchResultsSection}>
+                        <Text style={styles.sectionTitle}>
+                            {filteredPosts.length > 0
+                                ? `${filteredPosts.length} Result${filteredPosts.length !== 1 ? 's' : ''}`
+                                : 'No Results Found'}
+                        </Text>
+                        {filteredPosts.length > 0 ? (
+                            <View style={styles.resultsContainer}>
+                                {filteredPosts.map((post) => (
+                                    <PostCard key={post.id} post={post} />
+                                ))}
+                            </View>
+                        ) : (
+                            <View style={styles.noResultsContainer}>
+                                <Ionicons name="search-outline" size={64} color="#D1D5DB" />
+                                <Text style={styles.noResultsText}>No posts found</Text>
+                                <Text style={styles.noResultsSubtext}>
+                                    Try different keywords or browse categories
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                ) : (
+                    <View style={styles.categoriesSection}>
+                        <Text style={styles.sectionTitle}>Categories</Text>
+                        <View style={styles.categoriesGrid}>
+                            {CATEGORIES.map((category) => (
+                                <TouchableOpacity
+                                    key={category.id}
+                                    style={[
+                                        styles.categoryCard,
+                                        { backgroundColor: category.bgColor }
+                                    ]}
+                                    onPress={() => handleCategoryPress(category.id)}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
+                                        <Ionicons
+                                            name={category.icon}
+                                            size={28}
+                                            color={category.iconColor}
+                                        />
+                                    </View>
+                                    <Text style={styles.categoryName}>{category.name}</Text>
+                                    <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
+
+                                    {/* Decorative shapes */}
+                                    {category.decorativeShapes && (
+                                        <>
+                                            <View style={[styles.decorativeCircle, styles.decorCircle1]} />
+                                            <View style={[styles.decorativeCircle, styles.decorCircle2]} />
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                )}
             </ScrollView>
         </SafeAreaView>
     );
@@ -201,10 +290,32 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    searchPlaceholder: {
+    searchInput: {
         flex: 1,
         fontSize: 16,
-        color: "#9CA3AF"
+        color: "#1F2937",
+        paddingVertical: 0,
+    },
+    resultsContainer: {
+        marginTop: 16,
+    },
+    noResultsContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+        paddingHorizontal: 40,
+    },
+    noResultsText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#6B7280',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    noResultsSubtext: {
+        fontSize: 14,
+        color: '#9CA3AF',
+        textAlign: 'center',
     },
     trendingSection: {
         marginBottom: 32,
@@ -213,6 +324,7 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "700",
         color: "#1F2937",
+        paddingHorizontal: 20,
     },
     categoriesSection: {
         paddingHorizontal: 20,
