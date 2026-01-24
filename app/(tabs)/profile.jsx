@@ -573,8 +573,8 @@ export default function Profile() {
           {/* Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>32</Text>
-              <Text style={styles.statLabel}>HUGS SENT</Text>
+              <Text style={styles.statNumber}>{supportiveHistory.length}</Text>
+              <Text style={styles.statLabel}>LOVE SENT</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{userPosts.length}</Text>
