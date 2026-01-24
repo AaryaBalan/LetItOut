@@ -1,9 +1,19 @@
+import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
+import { useEffect } from "react";
+import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "../context/AuthContext";
 import "../global.css";
 
 export default function RootLayout() {
+    useEffect(() => {
+        if (Platform.OS === "android") {
+            NavigationBar.setVisibilityAsync("hidden");
+            NavigationBar.setBehaviorAsync("overlay-swipe"); // Allows swiping up to show it temporarily
+        }
+    }, []);
+
     return (
         <SafeAreaProvider>
             <AuthProvider>
