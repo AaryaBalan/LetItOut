@@ -4,6 +4,7 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     FlatList,
+    Modal,
     SafeAreaView,
     StatusBar,
     StyleSheet,
@@ -78,6 +79,7 @@ export default function CommunityDetail() {
     const [filteredPosts, setFilteredPosts] = useState([]);
     const [selectedFilter, setSelectedFilter] = useState("latest");
     const [selectedSort, setSelectedSort] = useState("recent");
+    const [showFilterModal, setShowFilterModal] = useState(false);
 
     const categoryData = CATEGORIES.find((cat) => cat.id === id);
 
@@ -195,120 +197,13 @@ export default function CommunityDetail() {
             </View>
 
             <View style={styles.categoryFilters}>
-                <View style={styles.filterChipsRow}>
-                    <TouchableOpacity
-                        style={[
-                            styles.filterChipCategory,
-                            selectedFilter === "latest" &&
-                            styles.filterChipCategoryActive,
-                        ]}
-                        onPress={() => setSelectedFilter("latest")}
-                    >
-                        <Text
-                            style={[
-                                styles.filterChipCategoryText,
-                                selectedFilter === "latest" &&
-                                styles.filterChipCategoryTextActive,
-                            ]}
-                        >
-                            LATEST
-                        </Text>
-                        {selectedFilter === "latest" && (
-                            <Ionicons
-                                name="close"
-                                size={16}
-                                color="#9B8BC9"
-                                style={{ marginLeft: 6 }}
-                            />
-                        )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.filterChipCategory,
-                            selectedFilter === "help" &&
-                            styles.filterChipCategoryActive,
-                        ]}
-                        onPress={() => setSelectedFilter("help")}
-                    >
-                        <Text
-                            style={[
-                                styles.filterChipCategoryText,
-                                selectedFilter === "help" &&
-                                styles.filterChipCategoryTextActive,
-                            ]}
-                        >
-                            HELP NEEDED
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.sortButtonsRow}>
-                    <TouchableOpacity
-                        style={[
-                            styles.sortChip,
-                            selectedSort === "recent" && styles.sortChipActive,
-                        ]}
-                        onPress={() => setSelectedSort("recent")}
-                    >
-                        <Ionicons
-                            name="time-outline"
-                            size={16}
-                            color={selectedSort === "recent" ? "#9B8BC9" : "#6B7280"}
-                        />
-                        <Text
-                            style={[
-                                styles.sortChipText,
-                                selectedSort === "recent" && styles.sortChipTextActive,
-                            ]}
-                        >
-                            Recent
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.sortChip,
-                            selectedSort === "popular" && styles.sortChipActive,
-                        ]}
-                        onPress={() => setSelectedSort("popular")}
-                    >
-                        <Ionicons
-                            name="trending-up-outline"
-                            size={16}
-                            color={selectedSort === "popular" ? "#9B8BC9" : "#6B7280"}
-                        />
-                        <Text
-                            style={[
-                                styles.sortChipText,
-                                selectedSort === "popular" && styles.sortChipTextActive,
-                            ]}
-                        >
-                            Popular
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.sortChip,
-                            selectedSort === "mostCommented" && styles.sortChipActive,
-                        ]}
-                        onPress={() => setSelectedSort("mostCommented")}
-                    >
-                        <Ionicons
-                            name="chatbubbles-outline"
-                            size={16}
-                            color={
-                                selectedSort === "mostCommented" ? "#9B8BC9" : "#6B7280"
-                            }
-                        />
-                        <Text
-                            style={[
-                                styles.sortChipText,
-                                selectedSort === "mostCommented" &&
-                                styles.sortChipTextActive,
-                            ]}
-                        >
-                            Most Commented
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    style={styles.filterButton}
+                    onPress={() => setShowFilterModal(true)}
+                >
+                    <Ionicons name="options-outline" size={22} color="#6B7280" />
+                    <Text style={styles.filterButtonText}>Filters</Text>
+                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -331,6 +226,151 @@ export default function CommunityDetail() {
                     </View>
                 }
             />
+
+            {/* Filter Modal */}
+            <Modal
+                visible={showFilterModal}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowFilterModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Filters & Sort</Text>
+                            <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                                <Ionicons name="close" size={28} color="#374151" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Filter Section */}
+                        <View style={styles.modalSection}>
+                            <Text style={styles.modalSectionTitle}>Filter By</Text>
+                            <View style={styles.modalChipsRow}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalChip,
+                                        selectedFilter === "latest" && styles.modalChipActive,
+                                    ]}
+                                    onPress={() => setSelectedFilter("latest")}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.modalChipText,
+                                            selectedFilter === "latest" && styles.modalChipTextActive,
+                                        ]}
+                                    >
+                                        LATEST
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalChip,
+                                        selectedFilter === "help" && styles.modalChipActive,
+                                    ]}
+                                    onPress={() => setSelectedFilter("help")}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.modalChipText,
+                                            selectedFilter === "help" && styles.modalChipTextActive,
+                                        ]}
+                                    >
+                                        HELP NEEDED
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Sort Section */}
+                        <View style={styles.modalSection}>
+                            <Text style={styles.modalSectionTitle}>Sort By</Text>
+                            <View style={styles.modalOptionsColumn}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalOption,
+                                        selectedSort === "recent" && styles.modalOptionActive,
+                                    ]}
+                                    onPress={() => setSelectedSort("recent")}
+                                >
+                                    <Ionicons
+                                        name="time-outline"
+                                        size={20}
+                                        color={selectedSort === "recent" ? "#9B8BC9" : "#6B7280"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.modalOptionText,
+                                            selectedSort === "recent" && styles.modalOptionTextActive,
+                                        ]}
+                                    >
+                                        Recent
+                                    </Text>
+                                    {selectedSort === "recent" && (
+                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
+                                    )}
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalOption,
+                                        selectedSort === "popular" && styles.modalOptionActive,
+                                    ]}
+                                    onPress={() => setSelectedSort("popular")}
+                                >
+                                    <Ionicons
+                                        name="trending-up-outline"
+                                        size={20}
+                                        color={selectedSort === "popular" ? "#9B8BC9" : "#6B7280"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.modalOptionText,
+                                            selectedSort === "popular" && styles.modalOptionTextActive,
+                                        ]}
+                                    >
+                                        Popular
+                                    </Text>
+                                    {selectedSort === "popular" && (
+                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
+                                    )}
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalOption,
+                                        selectedSort === "mostCommented" && styles.modalOptionActive,
+                                    ]}
+                                    onPress={() => setSelectedSort("mostCommented")}
+                                >
+                                    <Ionicons
+                                        name="chatbubbles-outline"
+                                        size={20}
+                                        color={selectedSort === "mostCommented" ? "#9B8BC9" : "#6B7280"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.modalOptionText,
+                                            selectedSort === "mostCommented" && styles.modalOptionTextActive,
+                                        ]}
+                                    >
+                                        Most Commented
+                                    </Text>
+                                    {selectedSort === "mostCommented" && (
+                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Apply Button */}
+                        <TouchableOpacity
+                            style={styles.applyButton}
+                            onPress={() => setShowFilterModal(false)}
+                        >
+                            <Text style={styles.applyButtonText}>Apply Filters</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -377,53 +417,121 @@ const styles = StyleSheet.create({
     },
     categoryFilters: {
         paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingVertical: 12,
         backgroundColor: "#FFF",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
-        gap: 12,
     },
-    filterChipsRow: { flexDirection: "row", gap: 8 },
-    filterChipCategory: {
+    filterButton: {
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingVertical: 10,
         borderRadius: 20,
         backgroundColor: "#F3F4F6",
+        gap: 8,
+        alignSelf: "flex-start",
     },
-    filterChipCategoryActive: {
+    filterButtonText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6B7280",
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "flex-end",
+    },
+    modalContent: {
+        backgroundColor: "#FFFFFF",
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingTop: 20,
+        paddingBottom: 40,
+        paddingHorizontal: 20,
+        maxHeight: "80%",
+    },
+    modalHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 24,
+    },
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: "700",
+        color: "#1F2937",
+    },
+    modalSection: {
+        marginBottom: 28,
+    },
+    modalSectionTitle: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#374151",
+        marginBottom: 12,
+    },
+    modalChipsRow: {
+        flexDirection: "row",
+        gap: 10,
+        flexWrap: "wrap",
+    },
+    modalChip: {
+        paddingHorizontal: 18,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: "#F3F4F6",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+    },
+    modalChipActive: {
         backgroundColor: "#E8E4F3",
+        borderColor: "#9B8BC9",
     },
-    filterChipCategoryText: {
-        fontSize: 12,
+    modalChipText: {
+        fontSize: 13,
         fontWeight: "700",
         color: "#6B7280",
         letterSpacing: 0.5,
     },
-    filterChipCategoryTextActive: {
+    modalChipTextActive: {
         color: "#9B8BC9",
     },
-    sortButtonsRow: { flexDirection: "row", gap: 8 },
-    sortChip: {
+    modalOptionsColumn: {
+        gap: 8,
+    },
+    modalOption: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 16,
-        backgroundColor: "#F3F4F6",
-        gap: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderRadius: 12,
+        backgroundColor: "#F9FAFB",
+        gap: 12,
     },
-    sortChipActive: {
+    modalOptionActive: {
         backgroundColor: "#E8E4F3",
     },
-    sortChipText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#6B7280",
+    modalOptionText: {
+        fontSize: 15,
+        fontWeight: "500",
+        color: "#374151",
     },
-    sortChipTextActive: {
+    modalOptionTextActive: {
         color: "#9B8BC9",
+        fontWeight: "600",
+    },
+    applyButton: {
+        backgroundColor: "#9B8BC9",
+        paddingVertical: 16,
+        borderRadius: 16,
+        alignItems: "center",
+        marginTop: 12,
+    },
+    applyButtonText: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#FFFFFF",
     },
     postsListContainer: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 },
     postItemList: { marginBottom: 16 },
