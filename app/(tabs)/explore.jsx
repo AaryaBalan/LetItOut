@@ -73,11 +73,6 @@ export default function Explore() {
         },
     ];
 
-    const TRENDING_TAGS = [
-        { id: 1, text: "WorkLifeBalance" },
-        { id: 2, text: "GriefSupport" },
-    ];
-
     const handleCategoryPress = (id) => {
         router.push(`/community/${id}`);
     };
@@ -112,28 +107,6 @@ export default function Explore() {
                         <Ionicons name="search" size={22} color="#9CA3AF" />
                         <Text style={styles.searchPlaceholder}>What's on your mind?</Text>
                     </TouchableOpacity>
-                </View>
-
-                {/* Trending Right Now */}
-                <View style={styles.trendingSection}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Trending Right Now</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.seeAllText}>See all</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.trendingTags}>
-                        {TRENDING_TAGS.map((tag) => (
-                            <TouchableOpacity
-                                key={tag.id}
-                                style={styles.trendingTag}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={styles.trendingHashtag}>#</Text>
-                                <Text style={styles.trendingText}>{tag.text}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
                 </View>
 
                 {/* Categories */}
@@ -236,51 +209,9 @@ const styles = StyleSheet.create({
     trendingSection: {
         marginBottom: 32,
     },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        marginBottom: 16,
-    },
     sectionTitle: {
         fontSize: 22,
         fontWeight: "700",
-        color: "#1F2937",
-    },
-    seeAllText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#5EBEAA",
-    },
-    trendingTags: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        paddingHorizontal: 20,
-        gap: 12,
-    },
-    trendingTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 24,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    trendingHashtag: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#5EBEAA",
-        marginRight: 4,
-    },
-    trendingText: {
-        fontSize: 16,
-        fontWeight: "500",
         color: "#1F2937",
     },
     categoriesSection: {
