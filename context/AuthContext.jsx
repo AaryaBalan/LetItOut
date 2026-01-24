@@ -83,6 +83,8 @@ export const AuthProvider = ({ children }) => {
             email.split("@")[0],
           photoURL: photoURL || null,
           profileCode: email, // Initially set to email
+          loveSent: 0, // Track total reactions and comments sent
+          postCount: 0, // Track total posts created
           createdAt,
           updatedAt: createdAt,
           ...additionalData,

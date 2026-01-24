@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -46,32 +45,32 @@ export default function Profile() {
   );
   const [userProfile, setUserProfile] = useState(null);
 
-  // Update profileCode when user data changes
+  // Listen to user profile changes in real-time
   useEffect(() => {
-    if (user) {
-      setProfileCode(user.profileCode || user.email || "");
-      fetchUserProfile();
-    }
-  }, [user]);
-
-  const fetchUserProfile = async () => {
     if (!user) return;
 
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userRef);
+    setProfileCode(user.profileCode || user.email || "");
 
-      if (userDoc.exists()) {
-        setUserProfile(userDoc.data());
+    // Set up real-time listener for user profile
+    const userRef = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(
+      userRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data());
+        }
+      },
+      (error) => {
+        console.error("Error listening to user profile:", error);
       }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-    }
-  };
+    );
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleProfileUpdate = () => {
-    // Refresh user profile data
-    fetchUserProfile();
+    // Profile updates automatically via real-time listener
+    // This function is kept for compatibility with EditProfileModal
   };
 
   const handleAvatarSelect = async (newSeed) => {
@@ -573,11 +572,11 @@ export default function Profile() {
           {/* Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{supportiveHistory.length}</Text>
+              <Text style={styles.statNumber}>{userProfile?.loveSent || 0}</Text>
               <Text style={styles.statLabel}>LOVE SENT</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{userPosts.length}</Text>
+              <Text style={styles.statNumber}>{userProfile?.postCount || 0}</Text>
               <Text style={styles.statLabel}>STORIES SHARED</Text>
             </View>
           </View>

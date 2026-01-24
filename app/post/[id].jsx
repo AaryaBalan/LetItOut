@@ -365,6 +365,10 @@ export default function PostDetail() {
                 await updateDoc(doc(db, "posts", String(id)), {
                     reactionCount: increment(-1),
                 });
+                // Decrement user's loveSent count
+                await updateDoc(doc(db, "users", user.uid), {
+                    loveSent: increment(-1),
+                });
             } else {
                 // Add reaction
                 await addDoc(collection(db, "reactions"), {
@@ -378,6 +382,10 @@ export default function PostDetail() {
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
                     reactionCount: increment(1),
+                });
+                // Increment user's loveSent count
+                await updateDoc(doc(db, "users", user.uid), {
+                    loveSent: increment(1),
                 });
 
                 // Create notification for post author
@@ -411,6 +419,10 @@ export default function PostDetail() {
                 await updateDoc(doc(db, "posts", String(id)), {
                     reactionCount: increment(-1),
                 });
+                // Decrement user's loveSent count
+                await updateDoc(doc(db, "users", user.uid), {
+                    loveSent: increment(-1),
+                });
             } else {
                 // Add reaction
                 await addDoc(collection(db, "reactions"), {
@@ -424,6 +436,10 @@ export default function PostDetail() {
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
                     reactionCount: increment(1),
+                });
+                // Increment user's loveSent count
+                await updateDoc(doc(db, "users", user.uid), {
+                    loveSent: increment(1),
                 });
 
                 // Create notification for post author
@@ -457,6 +473,10 @@ export default function PostDetail() {
                 await updateDoc(doc(db, "posts", String(id)), {
                     reactionCount: increment(-1),
                 });
+                // Decrement user's loveSent count
+                await updateDoc(doc(db, "users", user.uid), {
+                    loveSent: increment(-1),
+                });
             } else {
                 // Add reaction
                 await addDoc(collection(db, "reactions"), {
@@ -470,6 +490,10 @@ export default function PostDetail() {
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
                     reactionCount: increment(1),
+                });
+                // Increment user's loveSent count
+                await updateDoc(doc(db, "users", user.uid), {
+                    loveSent: increment(1),
                 });
 
                 // Create notification for post author
@@ -518,6 +542,11 @@ export default function PostDetail() {
             // Increment reactionCount (comments count towards total)
             await updateDoc(doc(db, "posts", String(id)), {
                 reactionCount: increment(1),
+            });
+
+            // Increment user's loveSent count
+            await updateDoc(doc(db, "users", user.uid), {
+                loveSent: increment(1),
             });
 
             // Create notification for post author

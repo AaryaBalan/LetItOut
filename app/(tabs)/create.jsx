@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import {
   Alert,
@@ -76,6 +76,13 @@ export default function CreatePost() {
       const docRef = await addDoc(collection(db, "posts"), postData);
 
       console.log("Post created with ID:", docRef.id);
+
+      // Increment postCount for non-anonymous posts
+      if (!isAnonymous && user.uid) {
+        await updateDoc(doc(db, "users", user.uid), {
+          postCount: increment(1),
+        });
+      }
 
       Alert.alert(
         "Success!",
