@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -20,7 +21,7 @@ export default function Explore() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // Fetch all posts from Firebase
     useEffect(() => {

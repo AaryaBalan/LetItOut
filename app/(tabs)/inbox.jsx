@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -297,6 +298,7 @@ export default function Inbox() {
                     <Text style={styles.headerTitle}>Inbox</Text>
                 </View>
                 <View style={styles.emptyContainer}>
+                    <ActivityIndicator size="large" color="#B39DDB" style={{ marginBottom: 16 }} />
                     <Text style={styles.emptyTitle}>Loading...</Text>
                 </View>
             </SafeAreaView>

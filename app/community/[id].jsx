@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     FlatList,
     Modal,
     SafeAreaView,
@@ -81,6 +82,7 @@ export default function CommunityDetail() {
     const [selectedSort, setSelectedSort] = useState("recent");
     const [selectedMood, setSelectedMood] = useState(null);
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const categoryData = CATEGORIES.find((cat) => cat.id === id);
 
@@ -111,6 +113,7 @@ export default function CommunityDetail() {
                 };
             });
             setPosts(fetched);
+            setLoading(false);
         });
 
         return () => unsubscribe();
@@ -240,17 +243,24 @@ export default function CommunityDetail() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.postsListContainer}
                 ListEmptyComponent={
-                    <View style={styles.emptyState}>
-                        <Ionicons
-                            name="search-outline"
-                            size={64}
-                            color="#BDBDBD"
-                        />
-                        <Text style={styles.emptyStateTitle}>No posts found</Text>
-                        <Text style={styles.emptyStateText}>
-                            Be the first to share in this category
-                        </Text>
-                    </View>
+                    loading ? (
+                        <View style={styles.emptyState}>
+                            <ActivityIndicator size="large" color="#B39DDB" />
+                            <Text style={styles.emptyStateTitle}>Loading posts...</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.emptyState}>
+                            <Ionicons
+                                name="search-outline"
+                                size={64}
+                                color="#BDBDBD"
+                            />
+                            <Text style={styles.emptyStateTitle}>No posts found</Text>
+                            <Text style={styles.emptyStateText}>
+                                Be the first to share in this category
+                            </Text>
+                        </View>
+                    )
                 }
             />
 

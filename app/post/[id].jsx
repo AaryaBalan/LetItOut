@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -330,6 +331,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={styles.errorContainer}>
                 <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+                <ActivityIndicator size="large" color="#B39DDB" style={{ marginBottom: 16 }} />
                 <Text style={styles.errorText}>Loading...</Text>
             </SafeAreaView>
         );

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   ScrollView,
@@ -597,6 +598,7 @@ export default function Profile() {
 
           {loadingPosts ? (
             <View style={styles.storyCard}>
+              <ActivityIndicator size="small" color="#B39DDB" style={{ marginBottom: 8 }} />
               <Text style={styles.storyText}>Loading your posts...</Text>
             </View>
           ) : userPosts.length > 0 ? (
@@ -661,6 +663,7 @@ export default function Profile() {
 
           {loadingHistory ? (
             <View style={styles.historyCard}>
+              <ActivityIndicator size="small" color="#B39DDB" style={{ marginBottom: 8 }} />
               <Text style={styles.historyText}>
                 Loading your activity...
               </Text>

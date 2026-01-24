@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   ScrollView,
   StatusBar,
@@ -203,6 +204,7 @@ export default function Home() {
         ListEmptyComponent={
           loading ? (
             <View style={styles.emptyContainer}>
+              <ActivityIndicator size="large" color="#B39DDB" />
               <Text style={styles.emptyText}>Loading posts...</Text>
             </View>
           ) : (
