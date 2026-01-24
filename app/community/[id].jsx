@@ -4,13 +4,13 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     FlatList,
+    SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 
@@ -171,6 +171,7 @@ export default function CommunityDetail() {
             <StatusBar
                 barStyle="light-content"
                 backgroundColor={categoryData.gradientColors[0]}
+                translucent={false}
             />
             <View
                 style={[
@@ -338,14 +339,14 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#FAFAFA" },
     categoryHeader: {
         paddingHorizontal: 20,
-        paddingTop: 12,
+        paddingTop: 48,
         paddingBottom: 24,
         alignItems: "center",
     },
     backButton: {
         position: "absolute",
         left: 16,
-        top: 12,
+        top: 48,
         zIndex: 10,
         width: 40,
         height: 40,

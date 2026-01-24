@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 
+
 export default function Explore() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
@@ -338,7 +339,7 @@ const styles = StyleSheet.create({
         color: "#9B8BC9",
         letterSpacing: 0.5,
     },
-    postsGridContainer: { paddingHorizontal: 20, paddingBottom: 24 },
+    postsGridContainer: { paddingHorizontal: 20, paddingBottom: 20 },
     categoryHeader: {
         paddingTop: 16,
         paddingBottom: 32,
