@@ -632,8 +632,8 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#FFFFFF",
     },
-    postsListContainer: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 },
-    postItemList: { marginBottom: 16 },
+    postsListContainer: { paddingTop: 0, paddingBottom: 100 },
+    postItemList: { marginBottom: 0 },
     emptyState: {
         alignItems: "center",
         justifyContent: "center",

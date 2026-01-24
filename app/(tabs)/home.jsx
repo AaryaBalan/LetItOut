@@ -269,8 +269,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   feedContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 0,
     paddingBottom: 20,
   },
   emptyContainer: {
