@@ -127,6 +127,15 @@ export default function Explore() {
 
     const CATEGORIES = [
         {
+            id: "All",
+            name: "ALL TOPICS",
+            icon: "grid",
+            subtitle: "Browse All Stories",
+            iconColor: "#78909C",
+            bgColor: "#ECEFF1",
+            decorativeShapes: true,
+        },
+        {
             id: "Stress",
             name: "STRESS",
             icon: "leaf",

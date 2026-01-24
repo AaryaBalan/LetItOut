@@ -18,6 +18,15 @@ import { db } from "../../config/firebase";
 
 const CATEGORIES = [
     {
+        id: "All",
+        name: "ALL TOPICS",
+        icon: "grid",
+        iconColor: "#78909C",
+        bgColor: "#ECEFF1",
+        gradientColors: ["#B0BEC5", "#78909C"],
+        quote: "We are all in this together. You are never alone.",
+    },
+    {
         id: "Family",
         name: "FAMILY",
         icon: "people",
@@ -81,6 +90,7 @@ export default function CommunityDetail() {
     const [selectedFilter, setSelectedFilter] = useState("latest");
     const [selectedSort, setSelectedSort] = useState("recent");
     const [selectedMood, setSelectedMood] = useState(null);
+    const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -120,7 +130,15 @@ export default function CommunityDetail() {
     }, []);
 
     useEffect(() => {
-        let filtered = posts.filter((p) => p.category === id);
+        // Filter by category (show all if id is 'All')
+        let filtered = id === "All"
+            ? posts
+            : posts.filter((p) => p.category === id);
+
+        // ENFORCE ANONYMOUS ONLY if toggle is on
+        if (showAnonymousOnly) {
+            filtered = filtered.filter(p => p.isAnonymous);
+        }
 
         // Filter by mood if selected
         if (selectedMood === "depression") {
@@ -151,7 +169,7 @@ export default function CommunityDetail() {
         // Default: recent (by createdAt desc - already from Firebase)
 
         setFilteredPosts(filtered);
-    }, [posts, id, selectedFilter, selectedSort, selectedMood]);
+    }, [posts, id, selectedFilter, selectedSort, selectedMood, showAnonymousOnly]);
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return "Just now";
@@ -221,13 +239,14 @@ export default function CommunityDetail() {
                     <Text style={styles.filterButtonText}>Filters</Text>
                 </TouchableOpacity>
 
-                {(selectedFilter !== "latest" || selectedSort !== "recent" || selectedMood !== null) && (
+                {(selectedFilter !== "latest" || selectedSort !== "recent" || selectedMood !== null || showAnonymousOnly) && (
                     <TouchableOpacity
                         style={styles.clearFilterButton}
                         onPress={() => {
                             setSelectedFilter("latest");
                             setSelectedSort("recent");
                             setSelectedMood(null);
+                            setShowAnonymousOnly(false);
                         }}
                     >
                         <Ionicons name="close-circle" size={20} color="#9B8BC9" />
@@ -389,6 +408,37 @@ export default function CommunityDetail() {
                                         Most Commented
                                     </Text>
                                     {selectedSort === "mostCommented" && (
+                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Content Type Section */}
+                        <View style={styles.modalSection}>
+                            <Text style={styles.modalSectionTitle}>Content Type</Text>
+                            <View style={styles.modalOptionsColumn}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.modalOption,
+                                        showAnonymousOnly && styles.modalOptionActive,
+                                    ]}
+                                    onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
+                                >
+                                    <Ionicons
+                                        name="eye-off-outline"
+                                        size={20}
+                                        color={showAnonymousOnly ? "#9B8BC9" : "#6B7280"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.modalOptionText,
+                                            showAnonymousOnly && styles.modalOptionTextActive,
+                                        ]}
+                                    >
+                                        Anonymous Stories Only
+                                    </Text>
+                                    {showAnonymousOnly && (
                                         <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
                                     )}
                                 </TouchableOpacity>
