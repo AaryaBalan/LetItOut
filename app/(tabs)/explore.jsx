@@ -16,9 +16,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Explore() {
     const router = useRouter();
+    const { user: currentUser } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [posts, setPosts] = useState([]);
     const [users, setUsers] = useState([]);
@@ -386,14 +388,26 @@ export default function Explore() {
                                             key={user.id}
                                             style={styles.personItem}
                                             activeOpacity={0.7}
+                                            onPress={() => {
+                                                if (currentUser && user.id === currentUser.uid) {
+                                                    router.push("/profile");
+                                                } else {
+                                                    router.push(`/user/${user.id}`);
+                                                }
+                                            }}
                                         >
                                             <View style={styles.personLeft}>
                                                 <Avatar seed={user.profileCode} size={44} />
                                                 <View style={styles.personInfo}>
-                                                    <Text style={styles.personName} numberOfLines={1}>{user.displayName}</Text>
-                                                    <View style={[styles.roleBagde, { backgroundColor: `${roleColor}15` }]}>
-                                                        <Text style={[styles.roleText, { color: roleColor }]}>{role}</Text>
+                                                    <View style={styles.nameRoleContainer}>
+                                                        <Text style={styles.personName} numberOfLines={1}>{user.displayName}</Text>
+                                                        <View style={[styles.roleBagde, { backgroundColor: `${roleColor}15` }]}>
+                                                            <Text style={[styles.roleText, { color: roleColor }]}>{role}</Text>
+                                                        </View>
                                                     </View>
+                                                    <Text style={styles.personBio} numberOfLines={2}>
+                                                        {user.bio || "No bio yet"}
+                                                    </Text>
                                                 </View>
                                             </View>
 
@@ -637,18 +651,29 @@ const styles = StyleSheet.create({
     personInfo: {
         flex: 1,
         justifyContent: 'center',
+        marginRight: 8,
+    },
+    nameRoleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        marginBottom: 2,
+        gap: 6,
     },
     personName: {
         fontSize: 15,
         fontWeight: "700",
         color: "#1F2937",
-        marginBottom: 4,
+    },
+    personBio: {
+        fontSize: 12,
+        color: "#9CA3AF",
+        lineHeight: 16,
     },
     roleBagde: {
-        alignSelf: 'flex-start',
-        paddingHorizontal: 8,
+        paddingHorizontal: 6,
         paddingVertical: 2,
-        borderRadius: 6,
+        borderRadius: 4,
     },
     roleText: {
         fontSize: 10,
