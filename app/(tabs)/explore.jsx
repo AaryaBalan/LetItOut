@@ -13,15 +13,18 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
-
 
 export default function Explore() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [posts, setPosts] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("posts"); // "posts" or "people"
+    const [peopleSort, setPeopleSort] = useState("stories"); // "stories" or "love"
 
     // Fetch all posts from Firebase
     useEffect(() => {
@@ -58,6 +61,36 @@ export default function Explore() {
         return () => unsubscribe();
     }, []);
 
+    // Fetch all users from Firebase
+    useEffect(() => {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef);
+
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const fetchedUsers = snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        displayName: data.displayName || "Anonymous",
+                        email: data.email,
+                        profileCode: data.profileCode || data.email,
+                        bio: data.bio || "",
+                        postCount: data.postCount || 0,
+                        loveSent: data.loveSent || 0,
+                    };
+                });
+                setUsers(fetchedUsers);
+            },
+            (error) => {
+                console.error("Error fetching users:", error);
+            }
+        );
+
+        return () => unsubscribe();
+    }, []);
+
     // Filter posts based on search query
     const filteredPosts = searchQuery.trim()
         ? posts.filter((post) => {
@@ -69,6 +102,26 @@ export default function Explore() {
             );
         })
         : [];
+
+    // Filter users based on search query
+    const filteredUsers = searchQuery.trim()
+        ? users.filter((user) => {
+            const query = searchQuery.toLowerCase();
+            return (
+                user.displayName?.toLowerCase().includes(query) ||
+                user.bio?.toLowerCase().includes(query)
+            );
+        })
+        : users;
+
+    // Sort users based on selected criteria
+    const sortedUsers = [...filteredUsers].sort((a, b) => {
+        if (peopleSort === "stories") {
+            return b.postCount - a.postCount;
+        } else {
+            return b.loveSent - a.loveSent;
+        }
+    });
 
     const CATEGORIES = [
         {
@@ -131,33 +184,85 @@ export default function Explore() {
         router.push(`/community/${id}`);
     };
 
-    const handleSearchFocus = () => {
-        // Navigate to search page or show search results
+    const getUserRole = (user) => {
+        if (user.postCount >= 100) return "ALLY";
+        if (user.loveSent >= 500) return "LISTENER";
+        if (user.postCount >= 50) return "SUPPORTER";
+        if (user.loveSent >= 200) return "GUIDE";
+        if (user.loveSent >= 100) return "VOICE";
+        if (user.postCount >= 20) return "HEALER";
+        return "MEMBER";
+    };
+
+    const getRoleColor = (role) => {
+        const colors = {
+            "ALLY": "#B39DDB",
+            "LISTENER": "#FF8A65",
+            "SUPPORTER": "#81C784",
+            "GUIDE": "#4DD0E1",
+            "VOICE": "#F48FB1",
+            "HEALER": "#AED581",
+            "MEMBER": "#BDBDBD",
+        };
+        return colors[role] || "#BDBDBD";
     };
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" translucent={false} />
 
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Explore</Text>
+                <TouchableOpacity style={styles.iconButton}>
+                    <Ionicons name="notifications-outline" size={24} color="#1F2937" />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.tabWrapper}>
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity
+                        style={[
+                            styles.tabButton,
+                            activeTab === "posts" && styles.tabButtonActive
+                        ]}
+                        onPress={() => setActiveTab("posts")}
+                    >
+                        <Text style={[
+                            styles.tabButtonText,
+                            activeTab === "posts" && styles.tabButtonTextActive
+                        ]}>
+                            Posts
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[
+                            styles.tabButton,
+                            activeTab === "people" && styles.tabButtonActive
+                        ]}
+                        onPress={() => setActiveTab("people")}
+                    >
+                        <Text style={[
+                            styles.tabButtonText,
+                            activeTab === "people" && styles.tabButtonTextActive
+                        ]}>
+                            People
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
+                stickyHeaderIndices={[0]}
             >
-                {/* Header */}
-                <View style={styles.exploreHeader}>
-                    <Text style={styles.headerTitle}>Explore</Text>
-                    <TouchableOpacity style={styles.notificationButton}>
-                        <Ionicons name="notifications-outline" size={26} color="#374151" />
-                    </TouchableOpacity>
-                </View>
-
                 {/* Search Bar */}
-                <View style={styles.searchRow}>
+                <View style={styles.searchSection}>
                     <View style={styles.searchContainer}>
-                        <Ionicons name="search" size={22} color="#9CA3AF" />
+                        <Ionicons name="search-outline" size={20} color="#9CA3AF" />
                         <TextInput
                             style={styles.searchInput}
-                            placeholder="Search posts, topics, or categories..."
+                            placeholder={activeTab === "posts" ? "Search topics..." : "Find people..."}
                             placeholderTextColor="#9CA3AF"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -168,71 +273,153 @@ export default function Explore() {
                                 onPress={() => setSearchQuery("")}
                                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
-                                <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
                             </TouchableOpacity>
                         )}
                     </View>
                 </View>
 
-                {/* Search Results or Categories */}
-                {searchQuery.trim() ? (
-                    <View style={styles.searchResultsSection}>
-                        <Text style={styles.sectionTitle}>
-                            {filteredPosts.length > 0
-                                ? `${filteredPosts.length} Result${filteredPosts.length !== 1 ? 's' : ''}`
-                                : 'No Results Found'}
-                        </Text>
-                        {filteredPosts.length > 0 ? (
-                            <View style={styles.resultsContainer}>
-                                {filteredPosts.map((post) => (
-                                    <PostCard key={post.id} post={post} />
-                                ))}
+                {/* Content based on active tab */}
+                {activeTab === "posts" ? (
+                    <>
+                        {searchQuery.trim() ? (
+                            <View style={styles.resultsSection}>
+                                <Text style={styles.sectionLabel}>
+                                    {filteredPosts.length > 0
+                                        ? `Found ${filteredPosts.length} post${filteredPosts.length !== 1 ? 's' : ''}`
+                                        : 'No posts found'}
+                                </Text>
+                                <View style={styles.postsList}>
+                                    {filteredPosts.map((post) => (
+                                        <PostCard key={post.id} post={post} />
+                                    ))}
+                                </View>
                             </View>
                         ) : (
-                            <View style={styles.noResultsContainer}>
-                                <Ionicons name="search-outline" size={64} color="#D1D5DB" />
-                                <Text style={styles.noResultsText}>No posts found</Text>
-                                <Text style={styles.noResultsSubtext}>
-                                    Try different keywords or browse categories
-                                </Text>
+                            <View style={styles.categoriesSection}>
+                                <Text style={styles.sectionHeaderTitle}>categories</Text>
+                                <View style={styles.categoriesGrid}>
+                                    {CATEGORIES.map((category) => (
+                                        <TouchableOpacity
+                                            key={category.id}
+                                            style={[
+                                                styles.categoryCard,
+                                                { backgroundColor: category.bgColor }
+                                            ]}
+                                            onPress={() => handleCategoryPress(category.id)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
+                                                <Ionicons
+                                                    name={category.icon}
+                                                    size={28}
+                                                    color={category.iconColor}
+                                                />
+                                            </View>
+                                            <Text style={styles.categoryName}>{category.name}</Text>
+                                            <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
+
+                                            {/* Decorative shapes */}
+                                            {category.decorativeShapes && (
+                                                <>
+                                                    <View style={[styles.decorativeCircle, styles.decorCircle1]} />
+                                                    <View style={[styles.decorativeCircle, styles.decorCircle2]} />
+                                                </>
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
                             </View>
                         )}
-                    </View>
+                    </>
                 ) : (
-                    <View style={styles.categoriesSection}>
-                        <Text style={styles.sectionTitle}>Categories</Text>
-                        <View style={styles.categoriesGrid}>
-                            {CATEGORIES.map((category) => (
-                                <TouchableOpacity
-                                    key={category.id}
-                                    style={[
-                                        styles.categoryCard,
-                                        { backgroundColor: category.bgColor }
-                                    ]}
-                                    onPress={() => handleCategoryPress(category.id)}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
-                                        <Ionicons
-                                            name={category.icon}
-                                            size={28}
-                                            color={category.iconColor}
-                                        />
-                                    </View>
-                                    <Text style={styles.categoryName}>{category.name}</Text>
-                                    <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
+                    <>
+                        {/* People Sort Toggle */}
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.peopleSortContainer}
+                        >
+                            <TouchableOpacity
+                                style={[
+                                    styles.pillButton,
+                                    peopleSort === "stories" && styles.pillButtonActive
+                                ]}
+                                onPress={() => setPeopleSort("stories")}
+                            >
+                                <Text style={[
+                                    styles.pillButtonText,
+                                    peopleSort === "stories" && styles.pillButtonTextActive
+                                ]}>
+                                    Most Stories
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.pillButton,
+                                    peopleSort === "love" && styles.pillButtonActive
+                                ]}
+                                onPress={() => setPeopleSort("love")}
+                            >
+                                <Text style={[
+                                    styles.pillButtonText,
+                                    peopleSort === "love" && styles.pillButtonTextActive
+                                ]}>
+                                    Most Love Sent
+                                </Text>
+                            </TouchableOpacity>
+                        </ScrollView>
 
-                                    {/* Decorative shapes */}
-                                    {category.decorativeShapes && (
-                                        <>
-                                            <View style={[styles.decorativeCircle, styles.decorCircle1]} />
-                                            <View style={[styles.decorativeCircle, styles.decorCircle2]} />
-                                        </>
-                                    )}
-                                </TouchableOpacity>
-                            ))}
+                        {/* People List */}
+                        <View style={styles.peopleListContainer}>
+                            {loading ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="small" color="#E57373" />
+                                </View>
+                            ) : sortedUsers.length > 0 ? (
+                                sortedUsers.map((user) => {
+                                    const role = getUserRole(user);
+                                    const roleColor = getRoleColor(role);
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={user.id}
+                                            style={styles.personItem}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View style={styles.personLeft}>
+                                                <Avatar seed={user.profileCode} size={44} />
+                                                <View style={styles.personInfo}>
+                                                    <Text style={styles.personName} numberOfLines={1}>{user.displayName}</Text>
+                                                    <View style={[styles.roleBagde, { backgroundColor: `${roleColor}15` }]}>
+                                                        <Text style={[styles.roleText, { color: roleColor }]}>{role}</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+
+                                            <View style={styles.statContainer}>
+                                                <Text style={styles.statNumber}>
+                                                    {peopleSort === "stories"
+                                                        ? user.postCount
+                                                        : user.loveSent > 1000
+                                                            ? `${(user.loveSent / 1000).toFixed(1)}k`
+                                                            : user.loveSent}
+                                                </Text>
+                                                <Text style={styles.statLabel}>
+                                                    {peopleSort === "stories" ? "Stories" : "Loves"}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })
+                            ) : (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="people-outline" size={48} color="#E0E0E0" />
+                                    <Text style={styles.emptyStateText}>No users found matching your search</Text>
+                                </View>
+                            )}
                         </View>
-                    </View>
+                    </>
                 )}
             </ScrollView>
         </SafeAreaView>
@@ -242,90 +429,103 @@ export default function Explore() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8F8F8"
+        backgroundColor: "#FFFFFF",
     },
-    scrollContent: {
-        paddingBottom: 100,
-    },
-    exploreHeader: {
+    header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 20
+        paddingVertical: 12,
+        backgroundColor: "#FFFFFF",
     },
     headerTitle: {
-        fontSize: 36,
-        fontWeight: "700",
-        color: "#1F2937"
+        fontSize: 28,
+        fontWeight: "800",
+        color: "#111827",
+        letterSpacing: -0.5,
     },
-    notificationButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: "#FFFFFF",
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
+    iconButton: {
+        padding: 8,
+        backgroundColor: "#F3F4F6",
+        borderRadius: 20,
     },
-    searchRow: {
+    tabWrapper: {
         paddingHorizontal: 20,
-        marginBottom: 32,
+        paddingVertical: 8,
+        backgroundColor: "#FFFFFF",
+        zIndex: 10,
+    },
+    tabContainer: {
+        flexDirection: "row",
+        backgroundColor: "#F9FAFB",
+        padding: 4,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#F3F4F6",
+    },
+    tabButton: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: "center",
+        borderRadius: 12,
+    },
+    tabButtonActive: {
+        backgroundColor: "#E57373",
+        borderColor: "#E57373",
+        shadowColor: "#E57373",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    tabButtonText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6B7280",
+    },
+    tabButtonTextActive: {
+        color: "#FFFFFF",
+    },
+    scrollContent: {
+        paddingBottom: 80,
+    },
+    searchSection: {
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+        paddingTop: 4,
+        backgroundColor: "#FFFFFF",
     },
     searchContainer: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderRadius: 30,
-        gap: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        backgroundColor: "#F9FAFB",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
     },
     searchInput: {
         flex: 1,
-        fontSize: 16,
+        marginLeft: 10,
+        fontSize: 15,
         color: "#1F2937",
-        paddingVertical: 0,
+        padding: 0,
     },
-    resultsContainer: {
-        marginTop: 16,
+    sectionLabel: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#6B7280",
+        marginLeft: 20,
+        marginBottom: 12,
+        marginTop: 8,
     },
-    noResultsContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 60,
-        paddingHorizontal: 40,
-    },
-    noResultsText: {
+    sectionHeaderTitle: {
         fontSize: 18,
-        fontWeight: '600',
-        color: '#6B7280',
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    noResultsSubtext: {
-        fontSize: 14,
-        color: '#9CA3AF',
-        textAlign: 'center',
-    },
-    trendingSection: {
-        marginBottom: 32,
-    },
-    sectionTitle: {
-        fontSize: 22,
         fontWeight: "700",
-        color: "#1F2937",
-        paddingHorizontal: 20,
+        color: "#111827",
+        marginBottom: 16,
     },
     categoriesSection: {
         paddingHorizontal: 20,
@@ -388,4 +588,106 @@ const styles = StyleSheet.create({
         bottom: 40,
         right: 60,
     },
+    // People Tab Styles
+    peopleSortContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 8,
+        flexDirection: 'row',
+        gap: 8,
+    },
+    pillButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: "#F3F4F6",
+        borderWidth: 1,
+        borderColor: "transparent",
+    },
+    pillButtonActive: {
+        backgroundColor: "#FFCDD2", // Family card bg
+        borderColor: "#E57373",
+    },
+    pillButtonText: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#6B7280",
+    },
+    pillButtonTextActive: {
+        color: "#E57373",
+    },
+    peopleListContainer: {
+        marginTop: 8,
+    },
+    personItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        backgroundColor: "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: "#F3F4F6",
+    },
+    personLeft: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+        gap: 12,
+    },
+    personInfo: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    personName: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#1F2937",
+        marginBottom: 4,
+    },
+    roleBagde: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
+    },
+    roleText: {
+        fontSize: 10,
+        fontWeight: "700",
+        letterSpacing: 0.5,
+    },
+    statContainer: {
+        alignItems: 'flex-end',
+        minWidth: 60,
+    },
+    statNumber: {
+        fontSize: 16,
+        fontWeight: "800",
+        color: "#1F2937",
+        letterSpacing: -0.5,
+    },
+    statLabel: {
+        fontSize: 11,
+        fontWeight: "500",
+        color: "#9CA3AF",
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 40,
+        gap: 12,
+    },
+    emptyStateText: {
+        color: "#9CA3AF",
+        fontSize: 14,
+    },
+    loadingContainer: {
+        paddingVertical: 40,
+        alignItems: "center",
+    },
+    resultsSection: {
+        marginTop: 8,
+    },
+    postsList: {
+        borderTopWidth: 1,
+        borderTopColor: "#F3F4F6",
+    }
 });
