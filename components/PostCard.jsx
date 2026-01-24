@@ -3,6 +3,7 @@ import { Link } from "expo-router";
 import {
     collection,
     doc,
+    getDoc,
     onSnapshot,
     query,
     where
@@ -39,8 +40,10 @@ export default function PostCard({ post, hideDescription = false }) {
     const [hugCount, setHugCount] = useState(0);
     const [meTooCount, setMeTooCount] = useState(0);
     const [commentCount, setCommentCount] = useState(0);
+    const [comments, setComments] = useState([]);
     const [reactionCount, setReactionCount] = useState(post.reactionCount || 0);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
+    const [commentorProfiles, setCommentorProfiles] = useState({});
 
     // Fetch author profile code with real-time updates
     useEffect(() => {
@@ -105,8 +108,34 @@ export default function PostCard({ post, hideDescription = false }) {
         const commentsRef = collection(db, "comments");
         const q = query(commentsRef, where("postId", "==", String(post.id)));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
             setCommentCount(snapshot.size);
+
+            // Get up to 2 most recent comments
+            const fetchedComments = snapshot.docs
+                .map((doc) => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .slice(0, 2);
+            setComments(fetchedComments);
+
+            // Fetch profile codes for commentors
+            const profiles = {};
+            for (const comment of fetchedComments) {
+                if (comment.commentorId) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", comment.commentorId));
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            profiles[comment.commentorId] = userData.profileCode || userData.email || null;
+                        }
+                    } catch (error) {
+                        console.error("Error fetching commentor profile:", error);
+                    }
+                }
+            }
+            setCommentorProfiles(profiles);
         });
 
         return () => unsubscribe();
@@ -146,7 +175,7 @@ export default function PostCard({ post, hideDescription = false }) {
                         </View>
                     ) : (
                         <View style={styles.avatarWrapper}>
-                            <Avatar seed={authorProfileCode} size={32} />
+                            <Avatar seed={authorProfileCode} size={40} />
                         </View>
                     )}
                     <Text style={styles.authorName}>
@@ -162,6 +191,29 @@ export default function PostCard({ post, hideDescription = false }) {
                     <Text style={styles.preview} numberOfLines={3}>
                         {post.description}
                     </Text>
+                )}
+
+                {/* Comments Preview */}
+                {comments.length > 0 && (
+                    <View style={styles.commentsPreview}>
+                        {comments.map((comment) => (
+                            <View key={comment.id} style={styles.commentItem}>
+                                <Avatar
+                                    seed={commentorProfiles[comment.commentorId] || "anonymous"}
+                                    size={35}
+                                    style={styles.commentAvatar}
+                                />
+                                <View style={styles.commentTextContainer}>
+                                    <Text style={styles.commentUsername}>
+                                        {comment.commentorName || "Anonymous"}
+                                    </Text>
+                                    <Text style={styles.commentText} numberOfLines={2}>
+                                        {comment.text || comment.comment}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
                 )}
 
                 <View style={styles.footer}>
@@ -264,6 +316,35 @@ const styles = StyleSheet.create({
         color: "#757575",
         lineHeight: 18,
         marginBottom: 14,
+    },
+    commentsPreview: {
+        marginBottom: 12,
+        gap: 8,
+    },
+    commentItem: {
+        backgroundColor: "#F5F5F5",
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 8,
+        flexDirection: "row",
+        gap: 10,
+    },
+    commentAvatar: {
+        marginTop: 2,
+    },
+    commentTextContainer: {
+        flex: 1,
+        gap: 2,
+    },
+    commentUsername: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#212121",
+    },
+    commentText: {
+        fontSize: 12,
+        color: "#616161",
+        lineHeight: 16,
     },
     footer: {
         flexDirection: "row",

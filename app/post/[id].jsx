@@ -682,7 +682,7 @@ export default function PostDetail() {
                                 </View>
                             ) : (
                                 <View style={styles.avatarWrapper}>
-                                    <Avatar seed={authorProfileCode} size={36} />
+                                    <Avatar seed={authorProfileCode} size={40} />
                                 </View>
                             )}
                             <Text style={styles.authorName}>
@@ -807,7 +807,7 @@ export default function PostDetail() {
                                         <View style={styles.commentCard}>
                                             <View style={styles.commentHeaderSection}>
                                                 {comment.commentorId && commentorProfiles[comment.commentorId] ? (
-                                                    <Avatar seed={commentorProfiles[comment.commentorId]} size={32} />
+                                                    <Avatar seed={commentorProfiles[comment.commentorId]} size={35} />
                                                 ) : (
                                                     <View style={styles.commentAvatarPlaceholder}>
                                                         <Ionicons name="person" size={16} color="#9575cd" />
