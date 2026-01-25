@@ -142,3 +142,51 @@ export const createCommentNotification = async (
         console.error("Error creating comment notification:", error);
     }
 };
+
+/**
+ * Create a notification when someone sends a friend request
+ */
+export const createFriendRequestNotification = async (
+    recipientId,
+    senderId,
+    senderName
+) => {
+    try {
+        await addDoc(collection(db, "notifications"), {
+            type: "friend_request",
+            fromUserId: senderId,
+            fromUserName: senderName || "Anonymous",
+            toUserId: recipientId,
+            read: false,
+            createdAt: new Date().toISOString(),
+            timestamp: serverTimestamp(),
+        });
+        console.log("Friend request notification created");
+    } catch (error) {
+        console.error("Error creating friend request notification:", error);
+    }
+};
+
+/**
+ * Create a notification when a friend request is accepted
+ */
+export const createFriendRequestAcceptedNotification = async (
+    recipientId, // The person who sent the request (User A)
+    accepterId,  // The person who accepted (User B)
+    accepterName
+) => {
+    try {
+        await addDoc(collection(db, "notifications"), {
+            type: "friend_request_accepted",
+            fromUserId: accepterId,
+            fromUserName: accepterName || "Anonymous",
+            toUserId: recipientId,
+            read: false,
+            createdAt: new Date().toISOString(),
+            timestamp: serverTimestamp(),
+        });
+        console.log("Friend request accepted notification created");
+    } catch (error) {
+        console.error("Error creating friend request accepted notification:", error);
+    }
+};

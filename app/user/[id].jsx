@@ -4,18 +4,19 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query,
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
-    SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { createFriendRequestNotification } from "../../utils/notifications";
 
 export default function UserProfile() {
     const { id } = useLocalSearchParams();
@@ -24,7 +25,7 @@ export default function UserProfile() {
     const [userProfile, setUserProfile] = useState(null);
     const [userPosts, setUserPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isFollowing, setIsFollowing] = useState(false);
+    const [followStatus, setFollowStatus] = useState(null); // null (not following), 0 (requested), 1 (following), -1 (rejected)
     const [followLoading, setFollowLoading] = useState(false);
 
     // Format timestamp to "2h ago" style
@@ -112,7 +113,13 @@ export default function UserProfile() {
                     where("followingId", "==", id)
                 );
                 const snapshot = await getDocs(q);
-                setIsFollowing(!snapshot.empty);
+                if (!snapshot.empty) {
+                    const data = snapshot.docs[0].data();
+                    // If 'status' is missing, assume it's an old record and treat as 'following' (1)
+                    setFollowStatus(data.status !== undefined ? data.status : 1);
+                } else {
+                    setFollowStatus(null);
+                }
             } catch (error) {
                 console.error("Error checking follow status:", error);
             }
@@ -126,8 +133,8 @@ export default function UserProfile() {
         setFollowLoading(true);
 
         try {
-            if (isFollowing) {
-                // Unfollow
+            if (followStatus === 1) {
+                // Unfollow (delete relationship)
                 const q = query(
                     collection(db, "friends"),
                     where("followerId", "==", currentUser.uid),
@@ -136,26 +143,35 @@ export default function UserProfile() {
                 const snapshot = await getDocs(q);
                 const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
                 await Promise.all(deletePromises);
-                setIsFollowing(false);
+                setFollowStatus(null);
+            } else if (followStatus === 0) {
+                // Cancel Request (delete relationship)
+                const q = query(
+                    collection(db, "friends"),
+                    where("followerId", "==", currentUser.uid),
+                    where("followingId", "==", id)
+                );
+                const snapshot = await getDocs(q);
+                const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+                setFollowStatus(null);
             } else {
-                // Follow
+                // Follow (create request with status 0)
                 await addDoc(collection(db, "friends"), {
                     followerId: currentUser.uid,
                     followingId: id,
+                    status: 0, // 0: Requested, 1: Accepted
                     createdAt: serverTimestamp(),
                 });
 
-                // Send Notification
-                await addDoc(collection(db, "notifications"), {
-                    type: "follow",
-                    senderId: currentUser.uid,
-                    recipientId: id,
-                    message: "started following you",
-                    read: false,
-                    createdAt: new Date().toISOString(), // Using ISO string for simpler client-side consistency or serverTimestamp
-                });
+                // Send Friend Request Notification instead of generic follow notification
+                await createFriendRequestNotification(
+                    id,
+                    currentUser.uid,
+                    currentUser.displayName
+                );
 
-                setIsFollowing(true);
+                setFollowStatus(0);
             }
         } catch (error) {
             console.error("Error toggling follow:", error);
@@ -190,7 +206,7 @@ export default function UserProfile() {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.container}>
+            <SafeAreaView style={styles.container} edges={["top"]}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#FF8A65" />
                 </View>
@@ -200,7 +216,7 @@ export default function UserProfile() {
 
     if (!userProfile) {
         return (
-            <SafeAreaView style={styles.container}>
+            <SafeAreaView style={styles.container} edges={["top"]}>
                 <View style={[styles.header, { justifyContent: 'flex-start' }]}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#1F2937" />
@@ -218,7 +234,7 @@ export default function UserProfile() {
     const roleColor = getRoleColor(role);
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={["top"]}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
             {/* Header */}
@@ -253,19 +269,19 @@ export default function UserProfile() {
                         <TouchableOpacity
                             style={[
                                 styles.followButton,
-                                isFollowing && styles.followingButton
+                                (followStatus === 1 || followStatus === 0) && styles.followingButton
                             ]}
                             onPress={handleToggleFollow}
                             disabled={followLoading}
                         >
                             {followLoading ? (
-                                <ActivityIndicator size="small" color={isFollowing ? "#6B7280" : "#FFF"} />
+                                <ActivityIndicator size="small" color={followStatus === 1 ? "#6B7280" : "#FFF"} />
                             ) : (
                                 <Text style={[
                                     styles.followButtonText,
-                                    isFollowing && styles.followingButtonText
+                                    (followStatus === 1 || followStatus === 0) && styles.followingButtonText
                                 ]}>
-                                    {isFollowing ? "Following" : "Follow"}
+                                    {followStatus === 1 ? "Following" : followStatus === 0 ? "Requested" : "Follow"}
                                 </Text>
                             )}
                         </TouchableOpacity>

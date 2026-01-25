@@ -4,6 +4,7 @@ import {
     collection,
     doc,
     getDoc,
+    getDocs,
     onSnapshot,
     orderBy,
     query,
@@ -25,6 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { createFriendRequestAcceptedNotification } from "../../utils/notifications";
 
 export default function Inbox() {
     const { user } = useAuth();
@@ -143,6 +145,18 @@ export default function Inbox() {
                     color: "#4DD0E1",
                     bgColor: "#E0F7FA",
                 };
+            case "friend_request":
+                return {
+                    name: "person-add",
+                    color: "#4DD0E1",
+                    bgColor: "#E0F7FA",
+                };
+            case "friend_request_accepted":
+                return {
+                    name: "checkmark-circle",
+                    color: "#66BB6A",
+                    bgColor: "#E8F5E9",
+                };
             default:
                 return {
                     name: "notifications",
@@ -170,6 +184,10 @@ export default function Inbox() {
                 return { text: `Replied to your story: "${preview}"`, emoji: "" };
             case "follow":
                 return { text: "Started following you", emoji: "👋" };
+            case "friend_request":
+                return { text: "Sent you a friend request", emoji: "👋" };
+            case "friend_request_accepted":
+                return { text: "Accepted your friend request", emoji: "✅" };
             default:
                 return { text: "New notification", emoji: "" };
         }
@@ -219,7 +237,7 @@ export default function Inbox() {
                 });
             }
             // Navigate based on type
-            if (notification.type === 'follow') {
+            if (notification.type === 'follow' || notification.type === 'friend_request' || notification.type === 'friend_request_accepted') {
                 router.push(`/user/${notification.fromUserId || notification.senderId}`);
             } else {
                 router.push(`/post/${notification.postId}`);
@@ -228,6 +246,69 @@ export default function Inbox() {
             console.error("Error handling notification:", error);
         }
     };
+
+    const handleAccept = async (notification) => {
+        try {
+            // 1. Update friend status to 1 (Accepted)
+            const q = query(
+                collection(db, "friends"),
+                where("followerId", "==", notification.fromUserId),
+                where("followingId", "==", user.uid)
+            );
+            const snapshot = await getDocs(query(collection(db, "friends"), where("followerId", "==", notification.fromUserId), where("followingId", "==", user.uid)));
+
+            if (!snapshot.empty) {
+                const friendDoc = snapshot.docs[0];
+                await updateDoc(friendDoc.ref, { status: 1 });
+            } else {
+                console.log("Friend request doc not found");
+                return;
+            }
+
+            // 2. Mark notification as read (and maybe add 'accepted' flag)
+            await updateDoc(doc(db, "notifications", notification.id), {
+                read: true,
+                status: 'accepted'
+            });
+
+            // 3. Send acceptance notification back to sender
+            await createFriendRequestAcceptedNotification(
+                notification.fromUserId,
+                user.uid,
+                user.displayName
+            );
+
+        } catch (error) {
+            console.error("Error accepting friend request:", error);
+        }
+    };
+
+    const handleReject = async (notification) => {
+        try {
+            // 1. Update friend status to -1 (Rejected)
+            const q = query(
+                collection(db, "friends"),
+                where("followerId", "==", notification.fromUserId),
+                where("followingId", "==", user.uid)
+            );
+            const snapshot = await getDocs(query(collection(db, "friends"), where("followerId", "==", notification.fromUserId), where("followingId", "==", user.uid)));
+
+            if (!snapshot.empty) {
+                const friendDoc = snapshot.docs[0];
+                await updateDoc(friendDoc.ref, { status: -1 });
+            }
+
+            // 2. Mark notification as read/rejected
+            await updateDoc(doc(db, "notifications", notification.id), {
+                read: true,
+                status: 'rejected'
+            });
+
+        } catch (error) {
+            console.error("Error rejecting friend request:", error);
+        }
+    };
+
 
     // Refresh notifications
     const onRefresh = () => {
@@ -280,6 +361,30 @@ export default function Inbox() {
                             {!item.read && <View style={styles.unreadDot} />}
                         </View>
                     </View>
+
+                    {/* Friend Request Actions */}
+                    {item.type === 'friend_request' && !item.status && (
+                        <View style={styles.actionButtons}>
+                            <TouchableOpacity
+                                style={[styles.actionButton, styles.acceptButton]}
+                                onPress={() => handleAccept(item)}
+                            >
+                                <Text style={styles.acceptButtonText}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.actionButton, styles.rejectButton]}
+                                onPress={() => handleReject(item)}
+                            >
+                                <Text style={styles.rejectButtonText}>Reject</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                    {(item.status === 'accepted') && (
+                        <Text style={styles.statusText}>Accepted</Text>
+                    )}
+                    {(item.status === 'rejected') && (
+                        <Text style={styles.statusText}>Rejected</Text>
+                    )}
                 </View>
             </TouchableOpacity>
         );
@@ -562,5 +667,41 @@ const styles = StyleSheet.create({
         color: "#9E9E9E",
         textAlign: "center",
         lineHeight: 22,
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        marginTop: 12,
+        gap: 12,
+    },
+    actionButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        minWidth: 80,
+        alignItems: 'center',
+    },
+    acceptButton: {
+        backgroundColor: '#4DD0E1',
+    },
+    rejectButton: {
+        backgroundColor: '#F5F5F5',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+    },
+    acceptButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 13,
+    },
+    rejectButtonText: {
+        color: '#757575',
+        fontWeight: '600',
+        fontSize: 13,
+    },
+    statusText: {
+        fontSize: 12,
+        color: '#9E9E9E',
+        marginTop: 8,
+        fontStyle: 'italic',
     },
 });
