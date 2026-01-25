@@ -1,8 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 
 export default function TabsLayout() {
+    const { user } = useAuth();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (!user) return;
+
+        const q = query(
+            collection(db, "notifications"),
+            where("toUserId", "==", user.uid),
+            where("read", "==", false)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setUnreadCount(snapshot.size);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+
     return (
         <Tabs
             screenOptions={{
@@ -66,11 +89,20 @@ export default function TabsLayout() {
                 options={{
                     title: "Inbox",
                     tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons
-                            name={focused ? "chatbubbles" : "chatbubbles-outline"}
-                            size={26}
-                            color={color}
-                        />
+                        <View>
+                            <Ionicons
+                                name={focused ? "chatbubbles" : "chatbubbles-outline"}
+                                size={26}
+                                color={color}
+                            />
+                            {unreadCount > 0 && (
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? "9+" : unreadCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                     ),
                 }}
             />
@@ -105,5 +137,24 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 6,
+    },
+    badge: {
+        position: "absolute",
+        top: -4,
+        right: -8,
+        backgroundColor: "#FF5252",
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 4,
+        borderWidth: 1.5,
+        borderColor: "#FFFFFF",
+    },
+    badgeText: {
+        color: "#FFFFFF",
+        fontSize: 10,
+        fontWeight: "bold",
     },
 });
