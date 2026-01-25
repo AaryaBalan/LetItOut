@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -967,63 +968,11 @@ export default function Profile() {
                       <Avatar seed={friend.profileCode || friend.email} size={50} />
                       <View style={styles.friendInfo}>
                         <Text style={styles.friendName}>{friend.displayName}</Text>
+                        <Text style={styles.friendBio} numberOfLines={1}>
+                          {friend.bio || "No bio available"}
+                        </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color="#BDBDBD" />
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <View style={styles.emptyState}>
-                    <Text style={styles.emptyStateText}>
-                      {friendsListType === 'following' ? "You aren't following anyone yet." : "No followers yet."}
-                    </Text>
-                  </View>
-                )}
-                <View style={{ height: 40 }} />
-              </ScrollView>
-            )}
-          </View>
-        </View>
-      </Modal>
-
-      {/* Friends List Modal */}
-      <Modal
-        visible={showFriendsModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowFriendsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent75}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {friendsListType === 'following' ? 'Following' : 'Followers'}
-              </Text>
-              <TouchableOpacity onPress={() => setShowFriendsModal(false)}>
-                <Ionicons name="close" size={28} color="#212121" />
-              </TouchableOpacity>
-            </View>
-
-            {isLoadingFriends ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#B39DDB" />
-              </View>
-            ) : (
-              <ScrollView style={styles.modalScrollView}>
-                {friendsList.length > 0 ? (
-                  friendsList.map(friend => (
-                    <TouchableOpacity
-                      key={friend.id}
-                      style={styles.friendItem}
-                      onPress={() => {
-                        setShowFriendsModal(false);
-                        router.push(`/user/${friend.id}`);
-                      }}
-                    >
-                      <Avatar seed={friend.profileCode || friend.email} size={50} />
-                      <View style={styles.friendInfo}>
-                        <Text style={styles.friendName}>{friend.displayName}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#BDBDBD" />
+                      <Ionicons name="chevron-forward" size={20} color="#E0E0E0" />
                     </TouchableOpacity>
                   ))
                 ) : (
@@ -1412,7 +1361,7 @@ const styles = StyleSheet.create({
   },
   modalContent75: {
     height: "75%",
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: "hidden",
@@ -1420,12 +1369,9 @@ const styles = StyleSheet.create({
   friendItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#F5F5F5",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F5F5F5",
   },
   friendInfo: {
     flex: 1,
@@ -1435,6 +1381,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#212121",
+    marginBottom: 4,
+  },
+  friendBio: {
+    fontSize: 13,
+    color: "#9E9E9E",
   },
   emptyState: {
     padding: 40,
