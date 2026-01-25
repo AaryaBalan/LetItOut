@@ -60,7 +60,7 @@ export default function Inbox() {
                 // Fetch profile codes for all unique users
                 const userIds = [
                     ...new Set(
-                        fetchedNotifications.map((n) => n.fromUserId).filter(Boolean),
+                        fetchedNotifications.map((n) => n.fromUserId || n.senderId).filter(Boolean),
                     ),
                 ];
                 const profileCodes = {};
@@ -137,6 +137,12 @@ export default function Inbox() {
                     color: "#FF8A65",
                     bgColor: "#FFE8E0",
                 };
+            case "follow":
+                return {
+                    name: "person-add",
+                    color: "#4DD0E1",
+                    bgColor: "#E0F7FA",
+                };
             default:
                 return {
                     name: "notifications",
@@ -162,6 +168,8 @@ export default function Inbox() {
                         ? notification.commentText.substring(0, 40) + "..."
                         : notification.commentText;
                 return { text: `Replied to your story: "${preview}"`, emoji: "" };
+            case "follow":
+                return { text: "Started following you", emoji: "👋" };
             default:
                 return { text: "New notification", emoji: "" };
         }
@@ -210,8 +218,12 @@ export default function Inbox() {
                     read: true,
                 });
             }
-            // Navigate to post
-            router.push(`/post/${notification.postId}`);
+            // Navigate based on type
+            if (notification.type === 'follow') {
+                router.push(`/user/${notification.fromUserId || notification.senderId}`);
+            } else {
+                router.push(`/post/${notification.postId}`);
+            }
         } catch (error) {
             console.error("Error handling notification:", error);
         }
@@ -226,7 +238,8 @@ export default function Inbox() {
     const renderNotification = ({ item }) => {
         const icon = getNotificationIcon(item.type);
         const message = getNotificationMessage(item);
-        const profileCode = userProfileCodes[item.fromUserId];
+        const senderId = item.fromUserId || item.senderId;
+        const profileCode = userProfileCodes[senderId];
 
         return (
             <TouchableOpacity

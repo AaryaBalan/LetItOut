@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -15,13 +15,17 @@ import {
 import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UserProfile() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { user: currentUser } = useAuth();
     const [userProfile, setUserProfile] = useState(null);
     const [userPosts, setUserPosts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
 
     // Format timestamp to "2h ago" style
     const formatTimeAgo = (timestamp) => {
@@ -93,7 +97,72 @@ export default function UserProfile() {
         };
 
         fetchUserAndPosts();
+        fetchUserAndPosts();
     }, [id]);
+
+    // Check if current user is following this user
+    useEffect(() => {
+        if (!currentUser || !id) return;
+
+        const checkFollowStatus = async () => {
+            try {
+                const q = query(
+                    collection(db, "friends"),
+                    where("followerId", "==", currentUser.uid),
+                    where("followingId", "==", id)
+                );
+                const snapshot = await getDocs(q);
+                setIsFollowing(!snapshot.empty);
+            } catch (error) {
+                console.error("Error checking follow status:", error);
+            }
+        };
+
+        checkFollowStatus();
+    }, [currentUser, id]);
+
+    const handleToggleFollow = async () => {
+        if (!currentUser) return;
+        setFollowLoading(true);
+
+        try {
+            if (isFollowing) {
+                // Unfollow
+                const q = query(
+                    collection(db, "friends"),
+                    where("followerId", "==", currentUser.uid),
+                    where("followingId", "==", id)
+                );
+                const snapshot = await getDocs(q);
+                const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+                setIsFollowing(false);
+            } else {
+                // Follow
+                await addDoc(collection(db, "friends"), {
+                    followerId: currentUser.uid,
+                    followingId: id,
+                    createdAt: serverTimestamp(),
+                });
+
+                // Send Notification
+                await addDoc(collection(db, "notifications"), {
+                    type: "follow",
+                    senderId: currentUser.uid,
+                    recipientId: id,
+                    message: "started following you",
+                    read: false,
+                    createdAt: new Date().toISOString(), // Using ISO string for simpler client-side consistency or serverTimestamp
+                });
+
+                setIsFollowing(true);
+            }
+        } catch (error) {
+            console.error("Error toggling follow:", error);
+        } finally {
+            setFollowLoading(false);
+        }
+    };
 
     const getUserRole = (user) => {
         if (!user) return "MEMBER";
@@ -178,6 +247,29 @@ export default function UserProfile() {
                     {userProfile.bio ? (
                         <Text style={styles.bioText}>{userProfile.bio}</Text>
                     ) : null}
+
+                    {/* Follow Button */}
+                    {currentUser && currentUser.uid !== id && (
+                        <TouchableOpacity
+                            style={[
+                                styles.followButton,
+                                isFollowing && styles.followingButton
+                            ]}
+                            onPress={handleToggleFollow}
+                            disabled={followLoading}
+                        >
+                            {followLoading ? (
+                                <ActivityIndicator size="small" color={isFollowing ? "#6B7280" : "#FFF"} />
+                            ) : (
+                                <Text style={[
+                                    styles.followButtonText,
+                                    isFollowing && styles.followingButtonText
+                                ]}>
+                                    {isFollowing ? "Following" : "Follow"}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    )}
 
                     {/* Stats */}
                     <View style={styles.statsRow}>
@@ -291,6 +383,35 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         lineHeight: 22,
         maxWidth: '80%',
+    },
+    followButton: {
+        backgroundColor: "#1F2937",
+        paddingVertical: 10,
+        paddingHorizontal: 32,
+        borderRadius: 24,
+        marginBottom: 24,
+        minWidth: 120,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    followingButton: {
+        backgroundColor: "#F3F4F6",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        shadowOpacity: 0,
+        elevation: 0,
+    },
+    followButtonText: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#FFFFFF",
+    },
+    followingButtonText: {
+        color: "#374151",
     },
     statsRow: {
         flexDirection: "row",

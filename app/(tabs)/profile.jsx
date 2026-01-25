@@ -44,6 +44,12 @@ export default function Profile() {
     user?.profileCode || user?.email || "",
   );
   const [userProfile, setUserProfile] = useState(null);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [friendsListType, setFriendsListType] = useState('following');
+  const [friendsList, setFriendsList] = useState([]);
+  const [isLoadingFriends, setIsLoadingFriends] = useState(false);
 
   // Listen to user profile changes in real-time
   useEffect(() => {
@@ -71,6 +77,51 @@ export default function Profile() {
   const handleProfileUpdate = () => {
     // Profile updates automatically via real-time listener
     // This function is kept for compatibility with EditProfileModal
+  };
+
+
+  // Fetch Follow Counts
+  useEffect(() => {
+    if (!user) return;
+    const friendsRef = collection(db, "friends");
+    const followingQ = query(friendsRef, where("followerId", "==", user.uid));
+    const followersQ = query(friendsRef, where("followingId", "==", user.uid));
+
+    const unsubFollowing = onSnapshot(followingQ, (snap) => setFollowingCount(snap.size));
+    const unsubFollowers = onSnapshot(followersQ, (snap) => setFollowersCount(snap.size));
+
+    return () => { unsubFollowing(); unsubFollowers(); };
+  }, [user]);
+
+  const handleOpenFriends = async (type) => {
+    setFriendsListType(type);
+    setShowFriendsModal(true);
+    setIsLoadingFriends(true);
+    try {
+      const q = query(
+        collection(db, "friends"),
+        where(type === 'following' ? "followerId" : "followingId", "==", user.uid)
+      );
+      const snap = await getDocs(q);
+      const userIds = snap.docs.map(doc => type === 'following' ? doc.data().followingId : doc.data().followerId);
+
+      if (userIds.length > 0) {
+        // Fetch users. For simplicity, fetching all users in parallel. 
+        // In prod, chunking or an 'in' query is better.
+        const userPromises = userIds.map(uid => getDoc(doc(db, "users", uid)));
+        const userSnaps = await Promise.all(userPromises);
+        const usersData = userSnaps
+          .filter(snap => snap.exists())
+          .map(snap => ({ id: snap.id, ...snap.data() }));
+        setFriendsList(usersData);
+      } else {
+        setFriendsList([]);
+      }
+    } catch (e) {
+      console.error("Error fetching friends", e);
+    } finally {
+      setIsLoadingFriends(false);
+    }
   };
 
   const handleAvatarSelect = async (newSeed) => {
@@ -577,8 +628,16 @@ export default function Profile() {
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{userProfile?.postCount || 0}</Text>
-              <Text style={styles.statLabel}>STORIES SHARED</Text>
+              <Text style={styles.statLabel}>STORIES</Text>
             </View>
+            <TouchableOpacity style={styles.statBox} onPress={() => handleOpenFriends('followers')}>
+              <Text style={styles.statNumber}>{followersCount}</Text>
+              <Text style={styles.statLabel}>FOLLOWERS</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.statBox} onPress={() => handleOpenFriends('following')}>
+              <Text style={styles.statNumber}>{followingCount}</Text>
+              <Text style={styles.statLabel}>FOLLOWING</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -864,13 +923,122 @@ export default function Profile() {
         currentSeed={profileCode}
       />
 
-      {/* Edit Profile Modal */}
       <EditProfileModal
         visible={showEditModal}
         onClose={() => setShowEditModal(false)}
         user={user}
         onUpdate={handleProfileUpdate}
       />
+
+      {/* Friends List Modal */}
+      <Modal
+        visible={showFriendsModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFriendsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent75}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {friendsListType === 'following' ? 'Following' : 'Followers'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowFriendsModal(false)}>
+                <Ionicons name="close" size={28} color="#212121" />
+              </TouchableOpacity>
+            </View>
+
+            {isLoadingFriends ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#B39DDB" />
+              </View>
+            ) : (
+              <ScrollView style={styles.modalScrollView}>
+                {friendsList.length > 0 ? (
+                  friendsList.map(friend => (
+                    <TouchableOpacity
+                      key={friend.id}
+                      style={styles.friendItem}
+                      onPress={() => {
+                        setShowFriendsModal(false);
+                        router.push(`/user/${friend.id}`);
+                      }}
+                    >
+                      <Avatar seed={friend.profileCode || friend.email} size={50} />
+                      <View style={styles.friendInfo}>
+                        <Text style={styles.friendName}>{friend.displayName}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#BDBDBD" />
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>
+                      {friendsListType === 'following' ? "You aren't following anyone yet." : "No followers yet."}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Friends List Modal */}
+      <Modal
+        visible={showFriendsModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFriendsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent75}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {friendsListType === 'following' ? 'Following' : 'Followers'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowFriendsModal(false)}>
+                <Ionicons name="close" size={28} color="#212121" />
+              </TouchableOpacity>
+            </View>
+
+            {isLoadingFriends ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#B39DDB" />
+              </View>
+            ) : (
+              <ScrollView style={styles.modalScrollView}>
+                {friendsList.length > 0 ? (
+                  friendsList.map(friend => (
+                    <TouchableOpacity
+                      key={friend.id}
+                      style={styles.friendItem}
+                      onPress={() => {
+                        setShowFriendsModal(false);
+                        router.push(`/user/${friend.id}`);
+                      }}
+                    >
+                      <Avatar seed={friend.profileCode || friend.email} size={50} />
+                      <View style={styles.friendInfo}>
+                        <Text style={styles.friendName}>{friend.displayName}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#BDBDBD" />
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>
+                      {friendsListType === 'following' ? "You aren't following anyone yet." : "No followers yet."}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -996,14 +1164,15 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     width: "100%",
     gap: 12,
   },
   statBox: {
-    flex: 1,
+    width: "48%",
     backgroundColor: "#F9F9F9",
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     alignItems: "center",
   },
   statNumber: {
@@ -1248,4 +1417,32 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     overflow: "hidden",
   },
+  friendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#FFF",
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#F5F5F5",
+  },
+  friendInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  friendName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#212121",
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyStateText: {
+    color: "#9E9E9E",
+    fontSize: 14,
+  },
+
 });

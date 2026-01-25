@@ -52,6 +52,8 @@ export const AuthProvider = ({ children }) => {
         if (userDoc.exists()) {
           setUser({ ...user, ...userDoc.data() });
         } else {
+          // If user exists in Auth but not in Firestore (e.g. DB deleted), create it
+          await createUserDocument(user);
           setUser(user);
         }
       } else {
