@@ -28,7 +28,7 @@ export default function CreatePost() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [helpNeeded, setHelpNeeded] = useState(false);
   const [moodLevel, setMoodLevel] = useState(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,7 +100,7 @@ export default function CreatePost() {
       setTitle("");
       setDescription("");
       setCategory("");
-      setIsAnonymous(true);
+      setIsAnonymous(false);
       setHelpNeeded(false);
       setMoodLevel(50);
     } catch (error) {
