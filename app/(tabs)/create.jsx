@@ -294,7 +294,11 @@ export default function CreatePost() {
               ]}
               disabled={isSubmitting}
             >
-              <Ionicons name="send" size={20} color="#FFFFFF" />
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="send" size={20} color="#FFFFFF" />
+              )}
               <Text style={styles.submitButtonText}>
                 {isSubmitting ? "Sharing..." : "Share Thought"}
               </Text>

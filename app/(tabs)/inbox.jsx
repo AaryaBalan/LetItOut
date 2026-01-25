@@ -247,7 +247,11 @@ export default function Inbox() {
         }
     };
 
+    const [processingState, setProcessingState] = useState({ id: null, action: null });
+
     const handleAccept = async (notification) => {
+        if (processingState.id) return;
+        setProcessingState({ id: notification.id, action: 'accept' });
         try {
             // 1. Update friend status to 1 (Accepted)
             const q = query(
@@ -255,13 +259,16 @@ export default function Inbox() {
                 where("followerId", "==", notification.fromUserId),
                 where("followingId", "==", user.uid)
             );
-            const snapshot = await getDocs(query(collection(db, "friends"), where("followerId", "==", notification.fromUserId), where("followingId", "==", user.uid)));
+            const snapshot = await getDocs(q);
 
             if (!snapshot.empty) {
                 const friendDoc = snapshot.docs[0];
                 await updateDoc(friendDoc.ref, { status: 1 });
             } else {
                 console.log("Friend request doc not found");
+                // Even if not found in friends, we might want to mark notif as handled?
+                // For now, return to unlock UI
+                setProcessingState({ id: null, action: null });
                 return;
             }
 
@@ -280,10 +287,14 @@ export default function Inbox() {
 
         } catch (error) {
             console.error("Error accepting friend request:", error);
+        } finally {
+            setProcessingState({ id: null, action: null });
         }
     };
 
     const handleReject = async (notification) => {
+        if (processingState.id) return;
+        setProcessingState({ id: notification.id, action: 'reject' });
         try {
             // 1. Update friend status to -1 (Rejected)
             const q = query(
@@ -291,7 +302,7 @@ export default function Inbox() {
                 where("followerId", "==", notification.fromUserId),
                 where("followingId", "==", user.uid)
             );
-            const snapshot = await getDocs(query(collection(db, "friends"), where("followerId", "==", notification.fromUserId), where("followingId", "==", user.uid)));
+            const snapshot = await getDocs(q);
 
             if (!snapshot.empty) {
                 const friendDoc = snapshot.docs[0];
@@ -306,6 +317,8 @@ export default function Inbox() {
 
         } catch (error) {
             console.error("Error rejecting friend request:", error);
+        } finally {
+            setProcessingState({ id: null, action: null });
         }
     };
 
@@ -322,11 +335,14 @@ export default function Inbox() {
         const senderId = item.fromUserId || item.senderId;
         const profileCode = userProfileCodes[senderId];
 
+        const isProcessing = processingState.id === item.id;
+
         return (
             <TouchableOpacity
                 style={styles.notificationCard}
-                onPress={() => handleNotificationPress(item)}
+                onPress={() => !isProcessing && handleNotificationPress(item)}
                 activeOpacity={0.7}
+                disabled={isProcessing}
             >
                 <View style={styles.avatarWithIcon}>
                     {profileCode ? (
@@ -368,14 +384,24 @@ export default function Inbox() {
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.acceptButton]}
                                 onPress={() => handleAccept(item)}
+                                disabled={isProcessing}
                             >
-                                <Text style={styles.acceptButtonText}>Accept</Text>
+                                {isProcessing && processingState.action === 'accept' ? (
+                                    <ActivityIndicator size="small" color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.acceptButtonText}>Accept</Text>
+                                )}
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.rejectButton]}
                                 onPress={() => handleReject(item)}
+                                disabled={isProcessing}
                             >
-                                <Text style={styles.rejectButtonText}>Reject</Text>
+                                {isProcessing && processingState.action === 'reject' ? (
+                                    <ActivityIndicator size="small" color="#757575" />
+                                ) : (
+                                    <Text style={styles.rejectButtonText}>Reject</Text>
+                                )}
                             </TouchableOpacity>
                         </View>
                     )}
