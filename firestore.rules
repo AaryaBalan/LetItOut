@@ -60,6 +60,18 @@ service cloud.firestore {
       allow update: if request.auth != null && resource.data.followingId == request.auth.uid;
     }
 
+    // Chats collection
+    match /chats/{chatId} {
+      allow read: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
+      allow create: if request.auth != null; // Users create chat doc on first message
+      allow update: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
+      
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+      }
+    }
+
     // Notifications collection
     match /notifications/{notificationId} {
       // Users can read a single notification if it's theirs

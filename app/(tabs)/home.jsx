@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { useRouter } from "expo-router";
+import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -15,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 import { posts as dummyPosts } from "../../data/dummyData";
 
 const getCategoryColor = (category) => {
@@ -33,10 +35,13 @@ const getCategoryColor = (category) => {
 };
 
 export default function Home() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const categories = [
     "All Feed",
@@ -86,6 +91,25 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
+  // Fetch Unread Count
+  useEffect(() => {
+    if (!user) return;
+
+    const chatsRef = collection(db, "chats");
+    const q = query(chatsRef, where("participants", "array-contains", user.uid));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let totalUnread = 0;
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        totalUnread += (data[`unreadCount_${user.uid}`] || 0);
+      });
+      setUnreadCount(totalUnread);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   // Helper function to calculate time ago
   const getTimeAgo = (timestamp) => {
     const now = new Date();
@@ -126,8 +150,31 @@ export default function Home() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton}>
-          <Ionicons name="menu" size={28} color="#212121" />
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push("/chat")}
+        >
+          <View>
+            <Ionicons name="chatbubbles-outline" size={28} color="#212121" />
+            {unreadCount > 0 && (
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                right: -4,
+                backgroundColor: '#EF5350',
+                borderRadius: 10,
+                minWidth: 18,
+                height: 18,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingHorizontal: 2,
+              }}>
+                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
         <Text style={styles.logo}>LetItOut</Text>
         <TouchableOpacity style={styles.notificationButton}>
