@@ -46,6 +46,7 @@ export default function ChatScreen() {
 
     // Emoji & Keyboard State
     const [showEmojiBoard, setShowEmojiBoard] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     // Reply State
     const [replyingTo, setReplyingTo] = useState(null);
@@ -101,12 +102,26 @@ export default function ChatScreen() {
     }, [chatId, user]);
 
     // Handle Keyboard events
+    // Handle Keyboard events with height tracking
     useEffect(() => {
-        const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-            setShowEmojiBoard(false);
-        });
+        const showSubscription = Keyboard.addListener(
+            Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+            (e) => {
+                setShowEmojiBoard(false);
+                setKeyboardHeight(e.endCoordinates.height);
+            }
+        );
+
+        const hideSubscription = Keyboard.addListener(
+            Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+            () => {
+                setKeyboardHeight(0);
+            }
+        );
+
         return () => {
             showSubscription.remove();
+            hideSubscription.remove();
         };
     }, []);
 
@@ -326,82 +341,84 @@ export default function ChatScreen() {
                 </TouchableOpacity>
             </View>
 
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : "padding"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-            >
-                <View style={{ flex: 1 }}>
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderItem}
-                        contentContainerStyle={styles.messagesList}
-                        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                        ListEmptyComponent={
-                            !loading && (
-                                <View style={styles.emptyContainer}>
-                                    <Text style={styles.emptyText}>Start a conversation!</Text>
-                                </View>
-                            )
-                        }
-                    />
-                </View>
-
-                {/* Reply Banner */}
-                {replyingTo && (
-                    <View style={styles.replyBanner}>
-                        <View style={styles.replyBannerLine} />
-                        <View style={styles.replyBannerContent}>
-                            <Text style={styles.replyBannerSender}>Replying to {replyingTo.senderName}</Text>
-                            <Text numberOfLines={1} style={styles.replyBannerText}>{replyingTo.text}</Text>
-                        </View>
-                        <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                            <Ionicons name="close" size={20} color="#757575" />
-                        </TouchableOpacity>
-                    </View>
-                )}
-
-                <View style={styles.inputWrapper}>
-                    <TouchableOpacity style={styles.emojiButton} onPress={toggleEmojiBoard}>
-                        <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={28} color="#9E9E9E" />
-                    </TouchableOpacity>
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Type a message..."
-                            placeholderTextColor="#9E9E9E"
-                            value={inputText}
-                            onChangeText={setInputText}
-                            multiline
-                            onFocus={() => setShowEmojiBoard(false)}
+            <View style={{ flex: 1, paddingBottom: Platform.OS === "android" ? keyboardHeight : 0 }}>
+                <KeyboardAvoidingView
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+                >
+                    <View style={{ flex: 1 }}>
+                        <FlatList
+                            ref={flatListRef}
+                            data={messages}
+                            keyExtractor={(item) => item.id}
+                            renderItem={renderItem}
+                            contentContainerStyle={styles.messagesList}
+                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                            onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                            ListEmptyComponent={
+                                !loading && (
+                                    <View style={styles.emptyContainer}>
+                                        <Text style={styles.emptyText}>Start a conversation!</Text>
+                                    </View>
+                                )
+                            }
                         />
-                        <TouchableOpacity
-                            style={styles.sendButton}
-                            onPress={sendMessage}
-                            disabled={!inputText.trim() || sending}
-                        >
-                            {sending ? (
-                                <ActivityIndicator size="small" color="#FFFFFF" />
-                            ) : (
-                                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-                            )}
-                        </TouchableOpacity>
                     </View>
-                </View>
 
-                {/* Emoji Keyboard */}
-                {showEmojiBoard && (
-                    <EmojiPicker
-                        onEmojiSelected={handleEmojiSelected}
-                        open={showEmojiBoard}
-                        onClose={() => setShowEmojiBoard(false)}
-                    />
-                )}
-            </KeyboardAvoidingView>
+                    {/* Reply Banner */}
+                    {replyingTo && (
+                        <View style={styles.replyBanner}>
+                            <View style={styles.replyBannerLine} />
+                            <View style={styles.replyBannerContent}>
+                                <Text style={styles.replyBannerSender}>Replying to {replyingTo.senderName}</Text>
+                                <Text numberOfLines={1} style={styles.replyBannerText}>{replyingTo.text}</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                                <Ionicons name="close" size={20} color="#757575" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    <View style={styles.inputWrapper}>
+                        <TouchableOpacity style={styles.emojiButton} onPress={toggleEmojiBoard}>
+                            <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={28} color="#9E9E9E" />
+                        </TouchableOpacity>
+
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Type a message..."
+                                placeholderTextColor="#9E9E9E"
+                                value={inputText}
+                                onChangeText={setInputText}
+                                multiline
+                                onFocus={() => setShowEmojiBoard(false)}
+                            />
+                            <TouchableOpacity
+                                style={styles.sendButton}
+                                onPress={sendMessage}
+                                disabled={!inputText.trim() || sending}
+                            >
+                                {sending ? (
+                                    <ActivityIndicator size="small" color="#FFFFFF" />
+                                ) : (
+                                    <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Emoji Keyboard */}
+                    {showEmojiBoard && (
+                        <EmojiPicker
+                            onEmojiSelected={handleEmojiSelected}
+                            open={showEmojiBoard}
+                            onClose={() => setShowEmojiBoard(false)}
+                        />
+                    )}
+                </KeyboardAvoidingView>
+            </View>
         </SafeAreaView>
     );
 }
