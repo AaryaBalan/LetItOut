@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -25,7 +26,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -80,6 +81,7 @@ export default function PostDetail() {
     const [userCommentSupports, setUserCommentSupports] = useState({}); // Store user's support status per comment
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
     const [commentorProfiles, setCommentorProfiles] = useState({}); // Store profile codes for commentors
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     // Fetch post from Firebase or dummy data
     useEffect(() => {
@@ -311,6 +313,28 @@ export default function PostDetail() {
 
         return () => unsubscribe();
     }, [id, comments, user]);
+
+    // Handle Keyboard events with height tracking
+    useEffect(() => {
+        const showSubscription = Keyboard.addListener(
+            Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+            (e) => {
+                setKeyboardHeight(e.endCoordinates.height);
+            }
+        );
+
+        const hideSubscription = Keyboard.addListener(
+            Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+            () => {
+                setKeyboardHeight(0);
+            }
+        );
+
+        return () => {
+            showSubscription.remove();
+            hideSubscription.remove();
+        };
+    }, []);
 
     // Helper function to calculate time ago
     const getTimeAgo = (timestamp) => {
@@ -675,254 +699,256 @@ export default function PostDetail() {
                 )}
             </View>
 
-            <KeyboardAvoidingView
-                style={styles.flex1}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-            >
-                <ScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+            <View style={[styles.flex1, { paddingBottom: Platform.OS === "android" ? keyboardHeight : 0 }]}>
+                <KeyboardAvoidingView
+                    style={styles.flex1}
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
                 >
-                    {/* Post Card */}
-                    <View style={styles.postCard}>
-                        <View style={styles.postHeader}>
-                            <View
-                                style={[
-                                    styles.categoryBadge,
-                                    { backgroundColor: getCategoryColor(post.category) },
-                                ]}
-                            >
-                                <Text style={styles.categoryText}>
-                                    {getCategoryLabel(post.category)}
-                                </Text>
-                            </View>
-                            <Text style={styles.timestamp}>{post.timestamp}</Text>
-                        </View>
-
-                        {/* Author Section */}
-                        <View style={styles.authorSection}>
-                            {post.isAnonymous ||
-                                !post.authorName ||
-                                post.authorName === "Anonymous" ||
-                                !authorProfileCode ? (
-                                <View style={styles.avatarContainer}>
-                                    <Ionicons name="person" size={18} color="#9575cd" />
+                    <ScrollView
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {/* Post Card */}
+                        <View style={styles.postCard}>
+                            <View style={styles.postHeader}>
+                                <View
+                                    style={[
+                                        styles.categoryBadge,
+                                        { backgroundColor: getCategoryColor(post.category) },
+                                    ]}
+                                >
+                                    <Text style={styles.categoryText}>
+                                        {getCategoryLabel(post.category)}
+                                    </Text>
                                 </View>
-                            ) : (
-                                <View style={styles.avatarWrapper}>
-                                    <Avatar seed={authorProfileCode} size={40} />
+                                <Text style={styles.timestamp}>{post.timestamp}</Text>
+                            </View>
+
+                            {/* Author Section */}
+                            <View style={styles.authorSection}>
+                                {post.isAnonymous ||
+                                    !post.authorName ||
+                                    post.authorName === "Anonymous" ||
+                                    !authorProfileCode ? (
+                                    <View style={styles.avatarContainer}>
+                                        <Ionicons name="person" size={18} color="#9575cd" />
+                                    </View>
+                                ) : (
+                                    <View style={styles.avatarWrapper}>
+                                        <Avatar seed={authorProfileCode} size={40} />
+                                    </View>
+                                )}
+                                <Text style={styles.authorName}>
+                                    {post.isAnonymous || !post.authorName
+                                        ? "Anonymous"
+                                        : post.authorName}
+                                </Text>
+                            </View>
+
+                            <Text style={styles.postTitle}>{post.title}</Text>
+                            <Text style={styles.postDescription}>{post.description}</Text>
+
+                            {/* Hugs Sent */}
+                            <View style={styles.hugsSentContainer}>
+                                <View style={styles.hugIcon}>
+                                    <Ionicons name="heart" size={16} color="#E57373" />
                                 </View>
-                            )}
-                            <Text style={styles.authorName}>
-                                {post.isAnonymous || !post.authorName
-                                    ? "Anonymous"
-                                    : post.authorName}
-                            </Text>
-                        </View>
-
-                        <Text style={styles.postTitle}>{post.title}</Text>
-                        <Text style={styles.postDescription}>{post.description}</Text>
-
-                        {/* Hugs Sent */}
-                        <View style={styles.hugsSentContainer}>
-                            <View style={styles.hugIcon}>
-                                <Ionicons name="heart" size={16} color="#E57373" />
-                            </View>
-                            <View style={styles.hugIcon}>
-                                <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                            </View>
-                            <View style={styles.hugIcon}>
-                                <Ionicons name="happy" size={16} color="#66BB6A" />
-                            </View>
-                            <Text style={styles.hugsSentText}>
-                                {likeCount + hugCount + meTooCount} reactions
-                            </Text>
-                        </View>
-
-                        {/* Action Buttons */}
-                        <View style={styles.actionButtons}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.actionButton,
-                                    likeActive && styles.actionButtonActive,
-                                ]}
-                                onPress={handleLike}
-                            >
-                                <Ionicons
-                                    name="heart"
-                                    size={18}
-                                    color={likeActive ? "#E57373" : "#9575cd"}
-                                />
-                                <Text
-                                    style={[
-                                        styles.actionButtonText,
-                                        likeActive && styles.actionButtonTextActive,
-                                    ]}
-                                >
-                                    Like {likeCount > 0 && `(${likeCount})`}
+                                <View style={styles.hugIcon}>
+                                    <Ionicons name="hand-left" size={16} color="#FFB74D" />
+                                </View>
+                                <View style={styles.hugIcon}>
+                                    <Ionicons name="happy" size={16} color="#66BB6A" />
+                                </View>
+                                <Text style={styles.hugsSentText}>
+                                    {likeCount + hugCount + meTooCount} reactions
                                 </Text>
-                            </TouchableOpacity>
+                            </View>
 
-                            <TouchableOpacity
-                                style={[
-                                    styles.actionButton,
-                                    hugActive && styles.actionButtonActive,
-                                ]}
-                                onPress={handleHug}
-                            >
-                                <Ionicons
-                                    name="hand-left"
-                                    size={18}
-                                    color={hugActive ? "#FFB74D" : "#9575cd"}
-                                />
-                                <Text
+                            {/* Action Buttons */}
+                            <View style={styles.actionButtons}>
+                                <TouchableOpacity
                                     style={[
-                                        styles.actionButtonText,
-                                        hugActive && styles.actionButtonTextActive,
+                                        styles.actionButton,
+                                        likeActive && styles.actionButtonActive,
                                     ]}
+                                    onPress={handleLike}
                                 >
-                                    Send Hug {hugCount > 0 && `(${hugCount})`}
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.actionButton,
-                                    meTooActive && styles.actionButtonActive,
-                                ]}
-                                onPress={handleMeToo}
-                            >
-                                <Ionicons
-                                    name="happy"
-                                    size={18}
-                                    color={meTooActive ? "#66BB6A" : "#9575cd"}
-                                />
-                                <Text
-                                    style={[
-                                        styles.actionButtonText,
-                                        meTooActive && styles.actionButtonTextActive,
-                                    ]}
-                                >
-                                    Me too {meTooCount > 0 && `(${meTooCount})`}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Supportive Replies Section */}
-                    <View style={styles.repliesSection}>
-                        <View style={styles.repliesHeader}>
-                            <Text style={styles.repliesTitle}>Supportive Replies</Text>
-                            <Text style={styles.repliesCountText}>
-                                {comments.length} REPLIES
-                            </Text>
-                        </View>
-
-                        {/* Comments List */}
-                        {console.log(
-                            "Rendering comments, count:",
-                            comments.length,
-                            "Data:",
-                            JSON.stringify(comments),
-                        )}
-                        {comments.length > 0 ? (
-                            <View style={styles.commentsContainer}>
-                                {comments.map((comment, index) => (
-                                    <View
-                                        key={comment.id || index}
-                                        style={styles.commentItem}
+                                    <Ionicons
+                                        name="heart"
+                                        size={18}
+                                        color={likeActive ? "#E57373" : "#9575cd"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.actionButtonText,
+                                            likeActive && styles.actionButtonTextActive,
+                                        ]}
                                     >
-                                        <View style={styles.commentCard}>
-                                            <View style={styles.commentHeaderSection}>
-                                                {comment.commentorId && commentorProfiles[comment.commentorId] ? (
-                                                    <Avatar seed={commentorProfiles[comment.commentorId]} size={35} />
-                                                ) : (
-                                                    <View style={styles.commentAvatarPlaceholder}>
-                                                        <Ionicons name="person" size={16} color="#9575cd" />
-                                                    </View>
-                                                )}
-                                                <View style={styles.commentHeaderContent}>
-                                                    <View style={styles.commentHeader}>
-                                                        <Text style={styles.commentUsername}>
-                                                            {comment.username || `KindSoul_${index + 1}`}
-                                                        </Text>
-                                                        <Text style={styles.commentTimestamp}>
-                                                            {comment.timestamp}
-                                                        </Text>
-                                                    </View>
+                                        Like {likeCount > 0 && `(${likeCount})`}
+                                    </Text>
+                                </TouchableOpacity>
 
-                                                    <Text style={styles.commentText}>
-                                                        {comment.text}
-                                                    </Text>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.actionButton,
+                                        hugActive && styles.actionButtonActive,
+                                    ]}
+                                    onPress={handleHug}
+                                >
+                                    <Ionicons
+                                        name="hand-left"
+                                        size={18}
+                                        color={hugActive ? "#FFB74D" : "#9575cd"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.actionButtonText,
+                                            hugActive && styles.actionButtonTextActive,
+                                        ]}
+                                    >
+                                        Send Hug {hugCount > 0 && `(${hugCount})`}
+                                    </Text>
+                                </TouchableOpacity>
 
-                                                    <View style={styles.commentActions}>
-                                                        <TouchableOpacity
-                                                            style={styles.supportButton}
-                                                            onPress={() => handleCommentSupport(comment.id)}
-                                                        >
-                                                            <Ionicons
-                                                                name={userCommentSupports[comment.id] ? "heart" : "heart-outline"}
-                                                                size={16}
-                                                                color="#66BB6A"
-                                                            />
-                                                            <Text style={styles.supportText}>
-                                                                {commentSupports[comment.id] || 0} SUPPORT
+                                <TouchableOpacity
+                                    style={[
+                                        styles.actionButton,
+                                        meTooActive && styles.actionButtonActive,
+                                    ]}
+                                    onPress={handleMeToo}
+                                >
+                                    <Ionicons
+                                        name="happy"
+                                        size={18}
+                                        color={meTooActive ? "#66BB6A" : "#9575cd"}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.actionButtonText,
+                                            meTooActive && styles.actionButtonTextActive,
+                                        ]}
+                                    >
+                                        Me too {meTooCount > 0 && `(${meTooCount})`}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Supportive Replies Section */}
+                        <View style={styles.repliesSection}>
+                            <View style={styles.repliesHeader}>
+                                <Text style={styles.repliesTitle}>Supportive Replies</Text>
+                                <Text style={styles.repliesCountText}>
+                                    {comments.length} REPLIES
+                                </Text>
+                            </View>
+
+                            {/* Comments List */}
+                            {console.log(
+                                "Rendering comments, count:",
+                                comments.length,
+                                "Data:",
+                                JSON.stringify(comments),
+                            )}
+                            {comments.length > 0 ? (
+                                <View style={styles.commentsContainer}>
+                                    {comments.map((comment, index) => (
+                                        <View
+                                            key={comment.id || index}
+                                            style={styles.commentItem}
+                                        >
+                                            <View style={styles.commentCard}>
+                                                <View style={styles.commentHeaderSection}>
+                                                    {comment.commentorId && commentorProfiles[comment.commentorId] ? (
+                                                        <Avatar seed={commentorProfiles[comment.commentorId]} size={35} />
+                                                    ) : (
+                                                        <View style={styles.commentAvatarPlaceholder}>
+                                                            <Ionicons name="person" size={16} color="#9575cd" />
+                                                        </View>
+                                                    )}
+                                                    <View style={styles.commentHeaderContent}>
+                                                        <View style={styles.commentHeader}>
+                                                            <Text style={styles.commentUsername}>
+                                                                {comment.username || `KindSoul_${index + 1}`}
                                                             </Text>
-                                                        </TouchableOpacity>
+                                                            <Text style={styles.commentTimestamp}>
+                                                                {comment.timestamp}
+                                                            </Text>
+                                                        </View>
+
+                                                        <Text style={styles.commentText}>
+                                                            {comment.text}
+                                                        </Text>
+
+                                                        <View style={styles.commentActions}>
+                                                            <TouchableOpacity
+                                                                style={styles.supportButton}
+                                                                onPress={() => handleCommentSupport(comment.id)}
+                                                            >
+                                                                <Ionicons
+                                                                    name={userCommentSupports[comment.id] ? "heart" : "heart-outline"}
+                                                                    size={16}
+                                                                    color="#66BB6A"
+                                                                />
+                                                                <Text style={styles.supportText}>
+                                                                    {commentSupports[comment.id] || 0} SUPPORT
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </View>
                                                     </View>
                                                 </View>
                                             </View>
                                         </View>
-                                    </View>
-                                ))}
-                            </View>
-                        ) : (
-                            <View style={styles.noCommentsContainer}>
-                                <Text style={styles.noCommentsText}>
-                                    No comments yet. Be the first to share support!
-                                </Text>
-                            </View>
-                        )}
-                    </View>
+                                    ))}
+                                </View>
+                            ) : (
+                                <View style={styles.noCommentsContainer}>
+                                    <Text style={styles.noCommentsText}>
+                                        No comments yet. Be the first to share support!
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
 
-                    {/* Report Button */}
-                    <TouchableOpacity
-                        onPress={handleReport}
-                        style={styles.reportButton}
-                    >
-                        <Ionicons name="flag-outline" size={16} color="#9E9E9E" />
-                        <Text style={styles.reportText}>REPORT CONTENT</Text>
-                    </TouchableOpacity>
-                </ScrollView>
+                        {/* Report Button */}
+                        <TouchableOpacity
+                            onPress={handleReport}
+                            style={styles.reportButton}
+                        >
+                            <Ionicons name="flag-outline" size={16} color="#9E9E9E" />
+                            <Text style={styles.reportText}>REPORT CONTENT</Text>
+                        </TouchableOpacity>
+                    </ScrollView>
 
-                {/* Bottom Input */}
-                <View style={styles.bottomInput}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Type a message of support..."
-                        placeholderTextColor="#BDBDBD"
-                        value={newComment}
-                        onChangeText={setNewComment}
-                    />
-                    <TouchableOpacity style={styles.emojiButton}>
-                        <Ionicons name="happy-outline" size={24} color="#9E9E9E" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.sendButton}
-                        onPress={handleAddComment}
-                        disabled={!newComment.trim()}
-                    >
-                        <Ionicons
-                            name="send"
-                            size={20}
-                            color={newComment.trim() ? "#FFFFFF" : "#BDBDBD"}
+                    {/* Bottom Input */}
+                    <View style={styles.bottomInput}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Type a message of support..."
+                            placeholderTextColor="#BDBDBD"
+                            value={newComment}
+                            onChangeText={setNewComment}
                         />
-                    </TouchableOpacity>
-                </View>
-            </KeyboardAvoidingView>
+                        <TouchableOpacity style={styles.emojiButton}>
+                            <Ionicons name="happy-outline" size={24} color="#9E9E9E" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.sendButton}
+                            onPress={handleAddComment}
+                            disabled={!newComment.trim()}
+                        >
+                            <Ionicons
+                                name="send"
+                                size={20}
+                                color={newComment.trim() ? "#FFFFFF" : "#BDBDBD"}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
+            </View>
         </SafeAreaView>
     );
 }
