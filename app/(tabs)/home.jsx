@@ -6,12 +6,11 @@ import {
   ActivityIndicator,
   FlatList,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
@@ -174,7 +173,7 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
 
       {/* Header */}
       <View style={styles.header}>

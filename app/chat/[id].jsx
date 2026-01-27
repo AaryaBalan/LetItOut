@@ -532,8 +532,31 @@ export default function ChatScreen() {
                             onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
                             ListEmptyComponent={
                                 !loading && (
-                                    <View style={styles.emptyContainer}>
-                                        <Text style={styles.emptyText}>Start a conversation!</Text>
+                                    <View style={styles.emptyChatContainer}>
+                                        <View style={styles.emptyChatAvatarContainer}>
+                                            {recipient && recipient.profileCode ?
+                                                <Avatar seed={recipient.profileCode} size={80} /> :
+                                                <View style={[styles.defaultHeaderAvatar, { width: 80, height: 80, borderRadius: 40 }]}>
+                                                    <Ionicons name="person" size={40} color="#9575cd" />
+                                                </View>
+                                            }
+                                            <View style={styles.onlineBadge} />
+                                        </View>
+                                        <Text style={styles.emptyChatTitle}>
+                                            Say hello to {recipient ? recipient.name.split(' ')[0] : "them"}!
+                                        </Text>
+                                        <Text style={styles.emptyChatSubtitle}>
+                                            Start the conversation with a friendly wave 👋
+                                        </Text>
+                                        <TouchableOpacity
+                                            style={styles.waveButton}
+                                            onPress={() => {
+                                                setInputText("👋");
+                                                sendMessage();
+                                            }}
+                                        >
+                                            <Text style={styles.waveButtonText}>👋 Wave</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 )
                             }
@@ -864,5 +887,53 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
         color: "#757575",
+    },
+    // Empty Chat UI Styles
+    emptyChatContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 40,
+        marginTop: 60,
+    },
+    emptyChatAvatarContainer: {
+        marginBottom: 24,
+        position: "relative",
+    },
+    onlineBadge: {
+        position: "absolute",
+        bottom: 4,
+        right: 4,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: "#4CAF50",
+        borderWidth: 2,
+        borderColor: "#FFFFFF",
+    },
+    emptyChatTitle: {
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#212121",
+        marginBottom: 8,
+        textAlign: "center",
+    },
+    emptyChatSubtitle: {
+        fontSize: 14,
+        color: "#757575",
+        textAlign: "center",
+        marginBottom: 32,
+        lineHeight: 20,
+    },
+    waveButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        backgroundColor: "#EFE8FF",
+        borderRadius: 24,
+    },
+    waveButtonText: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#9575cd",
     },
 });
