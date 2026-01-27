@@ -1,16 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import {
+    addDoc,
     collection,
     doc,
     getDoc,
+    getDocs,
+    increment,
     onSnapshot,
     query,
+    serverTimestamp,
+    setDoc,
     where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
 import Avatar from "./Avatar";
 
 const getCategoryColor = (category) => {
@@ -36,6 +42,8 @@ const getCategoryLabel = (category) => {
 };
 
 export default function PostCard({ post, hideDescription = false }) {
+    const { user } = useAuth();
+    const router = useRouter();
     const [likeCount, setLikeCount] = useState(0);
     const [hugCount, setHugCount] = useState(0);
     const [meTooCount, setMeTooCount] = useState(0);
@@ -44,6 +52,9 @@ export default function PostCard({ post, hideDescription = false }) {
     const [reactionCount, setReactionCount] = useState(post.reactionCount || 0);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
     const [commentorProfiles, setCommentorProfiles] = useState({});
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [friends, setFriends] = useState([]);
+    const [sharing, setSharing] = useState(false);
 
     // Fetch author profile code with real-time updates
     useEffect(() => {
@@ -147,6 +158,109 @@ export default function PostCard({ post, hideDescription = false }) {
         setReactionCount(total);
     }, [likeCount, hugCount, meTooCount, commentCount]);
 
+    // Fetch friends list
+    useEffect(() => {
+        if (!user || !showShareModal) return;
+
+        const fetchFriendsList = async () => {
+            try {
+                // Get people following the current user (Accepted)
+                const followersQuery = query(
+                    collection(db, "friends"),
+                    where("followingId", "==", user.uid),
+                    where("status", "==", 1)
+                );
+
+                // Get people the current user is following (Accepted)
+                const followingQuery = query(
+                    collection(db, "friends"),
+                    where("followerId", "==", user.uid),
+                    where("status", "==", 1)
+                );
+
+                const [followersSnap, followingSnap] = await Promise.all([
+                    getDocs(followersQuery),
+                    getDocs(followingQuery)
+                ]);
+
+                // Collect unique User IDs
+                const friendIds = new Set();
+                followersSnap.forEach(doc => friendIds.add(doc.data().followerId));
+                followingSnap.forEach(doc => friendIds.add(doc.data().followingId));
+
+                const ids = Array.from(friendIds);
+
+                // Fetch user profiles
+                const friendsList = [];
+                for (const friendId of ids) {
+                    if (friendId === user.uid) continue;
+
+                    const userDoc = await getDoc(doc(db, "users", friendId));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        friendsList.push({
+                            id: friendId,
+                            name: userData.displayName || "Anonymous",
+                            profileCode: userData.profileCode || userData.email || null,
+                        });
+                    }
+                }
+
+                setFriends(friendsList);
+            } catch (error) {
+                console.error("Error fetching friends:", error);
+            }
+        };
+
+        fetchFriendsList();
+    }, [user, showShareModal]);
+
+    const handleShare = async (friendId) => {
+        if (!user || sharing) return;
+
+        setSharing(true);
+        try {
+            const chatId = [user.uid, friendId].sort().join("_");
+            const chatRef = doc(db, "chats", chatId);
+
+            const shareText = `Check out this post: "${post.title}"\n\n${post.description.substring(0, 100)}${post.description.length > 100 ? '...' : ''}\n\nTap to view: letitout://post/${post.id}`;
+
+            await setDoc(chatRef, {
+                participants: [user.uid, friendId],
+                lastMessage: shareText,
+                lastMessageTimestamp: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                [`unreadCount_${friendId}`]: increment(1),
+            }, { merge: true });
+
+            await addDoc(collection(db, "chats", chatId, "messages"), {
+                text: shareText,
+                senderId: user.uid,
+                senderName: user.displayName || "Anonymous",
+                createdAt: serverTimestamp(),
+                type: "shared_post",
+                sharedPost: {
+                    id: post.id || "",
+                    title: post.title || "Untitled Post",
+                    description: post.description || "",
+                    category: post.category || "General",
+                    timestamp: post.timestamp || "",
+                    authorName: post.authorName || "Anonymous",
+                    isAnonymous: post.isAnonymous ?? true,
+                    authorId: post.authorId || "",
+                }
+            });
+
+            Alert.alert("Success", "Post shared successfully!");
+            setShowShareModal(false);
+        } catch (error) {
+            console.error("Error sharing post:", error);
+            Alert.alert("Error", "Failed to share post");
+        } finally {
+            setSharing(false);
+        }
+    };
+
     return (
         <Link href={`/post/${post.id}`} asChild>
             <TouchableOpacity style={styles.card}>
@@ -242,7 +356,69 @@ export default function PostCard({ post, hideDescription = false }) {
                         />
                         <Text style={styles.commentCount}>{commentCount}</Text>
                     </View>
+
+                    <TouchableOpacity
+                        style={styles.shareButton}
+                        onPress={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowShareModal(true);
+                        }}
+                    >
+                        <Ionicons name="paper-plane-outline" size={18} color="#9F8BFF" />
+                    </TouchableOpacity>
                 </View>
+
+                {/* Share Modal */}
+                <Modal
+                    visible={showShareModal}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setShowShareModal(false)}
+                >
+                    <Pressable
+                        style={styles.modalOverlay}
+                        onPress={() => setShowShareModal(false)}
+                    >
+                        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>Share with Friends</Text>
+                                <TouchableOpacity onPress={() => setShowShareModal(false)}>
+                                    <Ionicons name="close" size={24} color="#757575" />
+                                </TouchableOpacity>
+                            </View>
+
+                            {friends.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="people-outline" size={48} color="#BDBDBD" />
+                                    <Text style={styles.emptyText}>No friends to share with</Text>
+                                </View>
+                            ) : (
+                                <FlatList
+                                    data={friends}
+                                    keyExtractor={(item) => item.id}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={styles.friendItem}
+                                            onPress={() => handleShare(item.id)}
+                                            disabled={sharing}
+                                        >
+                                            {item.profileCode ? (
+                                                <Avatar seed={item.profileCode} size={40} />
+                                            ) : (
+                                                <View style={styles.defaultAvatar}>
+                                                    <Ionicons name="person" size={20} color="#9575cd" />
+                                                </View>
+                                            )}
+                                            <Text style={styles.friendName}>{item.name}</Text>
+                                            <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            )}
+                        </Pressable>
+                    </Pressable>
+                </Modal>
             </TouchableOpacity>
         </Link>
     );
@@ -251,8 +427,7 @@ export default function PostCard({ post, hideDescription = false }) {
 const styles = StyleSheet.create({
     card: {
         backgroundColor: "#FFFFFF",
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        padding: 20,
         borderBottomWidth: 1,
         borderBottomColor: "#F0F0F0",
     },
@@ -380,5 +555,65 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
         color: "#757575",
+    },
+    shareButton: {
+        padding: 4,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        width: '85%',
+        maxHeight: '70%',
+        overflow: 'hidden',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#212121',
+    },
+    emptyState: {
+        padding: 40,
+        alignItems: 'center',
+        gap: 12,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#9E9E9E',
+    },
+    friendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F5F5F5',
+    },
+    defaultAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#EFE8FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    friendName: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#212121',
     },
 });

@@ -11,6 +11,7 @@ import {
     query,
     serverTimestamp,
     setDoc,
+    where,
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -31,6 +32,136 @@ import EmojiPicker from "rn-emoji-keyboard";
 import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+
+// Helper functions for category colors
+const getCategoryColor = (category) => {
+    const colors = {
+        Study: "#FFE082",
+        "Mental Health": "#B39DDB",
+        Mindfulness: "#FFE082",
+        Stress: "#FFAB91",
+        Anxiety: "#B39DDB",
+        Relationship: "#F48FB1",
+        Family: "#80CBC4",
+    };
+    return colors[category] || "#E0E0E0";
+};
+
+// SharedPostCard component with live data
+function SharedPostCard({ postData }) {
+    const router = useRouter();
+    const [likeCount, setLikeCount] = useState(0);
+    const [hugCount, setHugCount] = useState(0);
+    const [meTooCount, setMeTooCount] = useState(0);
+    const [commentCount, setCommentCount] = useState(0);
+
+    // Fetch reaction counts from Firebase in real-time
+    useEffect(() => {
+        if (!postData.id) return;
+
+        const reactionsRef = collection(db, "reactions");
+        const q = query(reactionsRef, where("postId", "==", String(postData.id)));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const counts = { like: 0, hug: 0, metoo: 0 };
+
+            snapshot.docs.forEach((doc) => {
+                const data = doc.data();
+                const type = data.type;
+
+                if (type === "like") counts.like++;
+                else if (type === "hug") counts.hug++;
+                else if (type === "metoo") counts.metoo++;
+            });
+
+            setLikeCount(counts.like);
+            setHugCount(counts.hug);
+            setMeTooCount(counts.metoo);
+        }, (error) => {
+            console.error("Error fetching reactions:", error);
+        });
+
+        return () => unsubscribe();
+    }, [postData.id]);
+
+    // Fetch comment count from Firebase in real-time
+    useEffect(() => {
+        if (!postData.id) return;
+
+        const commentsRef = collection(db, "comments");
+        const q = query(commentsRef, where("postId", "==", String(postData.id)));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setCommentCount(snapshot.size);
+        }, (error) => {
+            console.error("Error fetching comments:", error);
+        });
+
+        return () => unsubscribe();
+    }, [postData.id]);
+
+    return (
+        <TouchableOpacity
+            style={styles.sharedPostCard}
+            onPress={() => router.push(`/post/${postData.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel={`View post: ${postData.title}`}
+        >
+            {/* Category Badge and Timestamp */}
+            <View style={styles.postCardHeader}>
+                <View style={[
+                    styles.postCategoryBadge,
+                    { backgroundColor: getCategoryColor(postData.category) }
+                ]}>
+                    <Text style={styles.postCategoryText}>
+                        {postData.category?.toUpperCase() || "GENERAL"}
+                    </Text>
+                </View>
+                <Text style={styles.postTimestamp}>{postData.timestamp}</Text>
+            </View>
+
+            {/* Author Section */}
+            <View style={styles.postAuthorSection}>
+                <View style={styles.postAvatarContainer}>
+                    <Ionicons name="person" size={16} color="#9575cd" />
+                </View>
+                <Text style={styles.postAuthorName}>
+                    {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
+                </Text>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.postTitle}>{postData.title}</Text>
+
+            {/* Description */}
+            <Text style={styles.postPreview} numberOfLines={3}>
+                {postData.description}
+            </Text>
+
+            {/* Footer with reactions */}
+            <View style={styles.postFooter}>
+                <View style={styles.postReactions}>
+                    <View style={styles.postReactionButton}>
+                        <Ionicons name="heart" size={16} color="#E57373" />
+                        <Text style={styles.postReactionCount}>{likeCount}</Text>
+                    </View>
+                    <View style={styles.postReactionButton}>
+                        <Ionicons name="hand-left" size={16} color="#FFB74D" />
+                        <Text style={styles.postReactionCount}>{hugCount}</Text>
+                    </View>
+                    <View style={styles.postReactionButton}>
+                        <Ionicons name="happy" size={16} color="#66BB6A" />
+                        <Text style={styles.postReactionCount}>{meTooCount}</Text>
+                    </View>
+                </View>
+                <View style={styles.postCommentSection}>
+                    <Ionicons name="chatbubble-outline" size={15} color="#9E9E9E" />
+                    <Text style={styles.postCommentCount}>{commentCount}</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+}
 
 export default function ChatScreen() {
     const { id } = useLocalSearchParams();
@@ -271,7 +402,8 @@ export default function ChatScreen() {
                     >
                         <View style={[
                             styles.bubble,
-                            isMe ? styles.myBubble : styles.theirBubble
+                            isMe ? styles.myBubble : styles.theirBubble,
+                            item.type === "shared_post" && styles.sharedPostBubbleContainer
                         ]}>
                             {item.replyToText && (
                                 <View style={[
@@ -289,12 +421,18 @@ export default function ChatScreen() {
                                 </View>
                             )}
 
-                            <Text style={[
-                                styles.messageText,
-                                isMe ? styles.myMessageText : styles.theirMessageText
-                            ]}>
-                                {item.text}
-                            </Text>
+                            {item.type === "shared_post" && item.sharedPost && (
+                                <SharedPostCard postData={item.sharedPost} />
+                            )}
+
+                            {item.type !== "shared_post" && (
+                                <Text style={[
+                                    styles.messageText,
+                                    isMe ? styles.myMessageText : styles.theirMessageText
+                                ]}>
+                                    {item.text}
+                                </Text>
+                            )}
                         </View>
                         <Text style={[
                             styles.timestamp,
@@ -431,21 +569,27 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         backgroundColor: "#FFFFFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#F5F5F5",
+        // Soft shadow instead of border
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 2,
+        zIndex: 10,
     },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    backButton: { marginRight: 8 },
-    headerAvatar: { marginRight: 10 },
+    backButton: { marginRight: 8, padding: 4 },
+    headerAvatar: { marginRight: 12 },
     defaultHeaderAvatar: {
-        width: 40, height: 40, borderRadius: 20, backgroundColor: "#EFE8FF", justifyContent: "center", alignItems: "center",
+        width: 42, height: 42, borderRadius: 21, backgroundColor: "#F3E5F5", justifyContent: "center", alignItems: "center",
+        borderWidth: 1, borderColor: "#FFFFFF"
     },
     headerContent: { flex: 1, justifyContent: 'center' },
-    headerTitle: { fontSize: 16, fontWeight: "700", color: "#212121" },
-    headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#9F8BFF", marginTop: 1 },
+    headerTitle: { fontSize: 17, fontWeight: "700", color: "#212121", letterSpacing: -0.5 },
+    headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#9F8BFF", marginTop: 2, letterSpacing: 0.5 },
     moreButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
 
     messagesList: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
@@ -481,11 +625,28 @@ const styles = StyleSheet.create({
         padding: 8,
     },
 
-    bubble: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18 },
-    myBubble: { backgroundColor: "#9F8BFF", borderBottomRightRadius: 4 },
+    bubble: {
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 24,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    myBubble: {
+        backgroundColor: "#9F8BFF",
+        borderBottomRightRadius: 4,
+    },
     theirBubble: {
         backgroundColor: "#FFAB91",
         borderBottomLeftRadius: 4,
+    },
+    sharedPostBubbleContainer: {
+        paddingVertical: 2,
+        paddingHorizontal: 2,
+        borderRadius: 18,
     },
 
     messageText: { fontSize: 15, lineHeight: 20 },
@@ -496,11 +657,29 @@ const styles = StyleSheet.create({
     myTimestamp: { textAlign: 'right' },
     theirTimestamp: { textAlign: 'left' },
 
-    inputWrapper: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#FFFFFF' },
-    emojiButton: { marginRight: 12 },
-    inputContainer: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#F5F5F5", borderRadius: 28, paddingHorizontal: 6, paddingVertical: 6 },
-    input: { flex: 1, paddingHorizontal: 12, paddingVertical: 8, fontSize: 15, maxHeight: 100, color: "#212121", marginLeft: 8 },
-    sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFAB91", justifyContent: "center", alignItems: "center" },
+    inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        backgroundColor: '#FFFFFF',
+        borderTopWidth: 1,
+        borderTopColor: '#F0F0F0',
+    },
+    emojiButton: { marginRight: 8, padding: 4 },
+    inputContainer: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#F5F5F5",
+        borderRadius: 24,
+        paddingHorizontal: 4,
+        paddingVertical: 4,
+        borderWidth: 1,
+        borderColor: "#EEEEEE",
+    },
+    input: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100, color: "#212121" },
+    sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#9F8BFF", justifyContent: "center", alignItems: "center", shadowColor: "#9F8BFF", shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 },
 
     replyBanner: {
         flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', paddingHorizontal: 16, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#E0E0E0'
@@ -548,5 +727,100 @@ const styles = StyleSheet.create({
     },
     theirReplyText: {
         color: '#5A5A5A',
+    },
+    sharedPostCard: {
+        backgroundColor: "#FFFFFF",
+        padding: 20,
+        borderRadius: 16,
+        marginBottom: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 2,
+        minWidth: 260,
+        width: '100%',
+    },
+    postCardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    postCategoryBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    postCategoryText: {
+        fontSize: 9,
+        fontWeight: "700",
+        color: "#212121",
+        letterSpacing: 0.3,
+    },
+    postTimestamp: {
+        fontSize: 11,
+        color: "#BDBDBD",
+    },
+    postAuthorSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    postAvatarContainer: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: "#EFE8FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 8,
+    },
+    postAuthorName: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#9575cd",
+    },
+    postTitle: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#212121",
+        marginBottom: 6,
+        lineHeight: 20,
+    },
+    postPreview: {
+        fontSize: 13,
+        color: "#757575",
+        lineHeight: 18,
+        marginBottom: 14,
+    },
+    postFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    postReactions: {
+        flexDirection: "row",
+        gap: 16,
+    },
+    postReactionButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    postReactionCount: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#757575",
+    },
+    postCommentSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    postCommentCount: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#757575",
     },
 });
