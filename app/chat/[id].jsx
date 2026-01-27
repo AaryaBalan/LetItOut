@@ -255,17 +255,7 @@ export default function ChatScreen() {
                     styles.messageRowContainer,
                     isMe ? styles.myMessageRowContainer : styles.theirMessageRowContainer
                 ]}>
-                    {/* Reply Icon for 'Them' on the Right (or Left? Design requested 'next to it').
-                        Standard: 
-                        Me (Right aligned): Icon on Left of bubble.
-                        Them (Left aligned): Icon on Right of bubble.
-                    */}
-                    {!isMe && isSelected && (
-                        <TouchableOpacity style={styles.replyButton} onPress={() => handleReply(item)}>
-                            <Ionicons name="return-up-back" size={24} color="#757575" />
-                        </TouchableOpacity>
-                    )}
-
+                    {/* Reply button on LEFT for MY messages (right-aligned) */}
                     {isMe && isSelected && (
                         <TouchableOpacity style={styles.replyButton} onPress={() => handleReply(item)}>
                             <Ionicons name="return-up-back" size={24} color="#757575" />
@@ -313,6 +303,13 @@ export default function ChatScreen() {
                             {formatTime(item.createdAt)}
                         </Text>
                     </Pressable>
+
+                    {/* Reply button on RIGHT for THEIR messages (left-aligned) */}
+                    {!isMe && isSelected && (
+                        <TouchableOpacity style={styles.replyButton} onPress={() => handleReply(item)}>
+                            <Ionicons name="return-up-back" size={24} color="#757575" />
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         );
@@ -451,16 +448,18 @@ const styles = StyleSheet.create({
     headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#9F8BFF", marginTop: 1 },
     moreButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
 
-    messagesList: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20 },
-    dateHeaderContainer: { alignItems: 'center', marginBottom: 16, marginTop: 8 },
-    dateHeaderBadge: { backgroundColor: '#F5F5F5', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 10 },
-    dateHeaderText: { fontSize: 11, fontWeight: "600", color: "#9E9E9E", textTransform: 'uppercase' },
+    messagesList: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
+    dateHeaderContainer: { alignItems: 'center', marginBottom: 10, marginTop: 6 },
+    dateHeaderBadge: { backgroundColor: '#F5F5F5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    dateHeaderText: { fontSize: 10, fontWeight: "600", color: "#9E9E9E", textTransform: 'uppercase' },
 
     messageRowContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 4,
     },
+    messageRow: { marginBottom: 4, maxWidth: '80%' },
+    myMessageRow: { alignSelf: 'flex-end', alignItems: 'flex-end' },
     myMessageRowContainer: {
         justifyContent: 'flex-end',
     },
@@ -482,18 +481,18 @@ const styles = StyleSheet.create({
         padding: 8,
     },
 
-    bubble: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 20 },
+    bubble: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18 },
     myBubble: { backgroundColor: "#9F8BFF", borderBottomRightRadius: 4 },
     theirBubble: {
-        backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#F0F0F0", borderBottomLeftRadius: 4,
-        shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1,
+        backgroundColor: "#FFAB91",
+        borderBottomLeftRadius: 4,
     },
 
-    messageText: { fontSize: 15, lineHeight: 22 },
+    messageText: { fontSize: 15, lineHeight: 20 },
     myMessageText: { color: "#FFFFFF" },
     theirMessageText: { color: "#212121" },
 
-    timestamp: { fontSize: 11, color: "#9E9E9E", marginTop: 4 },
+    timestamp: { fontSize: 10, color: "#9E9E9E", marginTop: 2 },
     myTimestamp: { textAlign: 'right' },
     theirTimestamp: { textAlign: 'left' },
 
@@ -512,14 +511,42 @@ const styles = StyleSheet.create({
     replyBannerText: { fontSize: 12, color: '#757575' },
 
     replyPreview: {
-        marginBottom: 6, padding: 8, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.05)', borderLeftWidth: 3,
+        marginBottom: 6,
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: 'rgba(0,0,0,0.08)',
+        borderLeftWidth: 3,
     },
-    myReplyPreview: { backgroundColor: 'rgba(255,255,255,0.2)', borderLeftColor: '#FFFFFF' },
-    theirReplyPreview: { backgroundColor: '#F5F5F5', borderLeftColor: '#9F8BFF' },
-    replySender: { fontSize: 11, fontWeight: '700', marginBottom: 2 },
-    myReplySender: { color: '#FFFFFF' },
-    theirReplySender: { color: '#9F8BFF' },
-    replyText: { fontSize: 11 },
-    myReplyText: { color: 'rgba(255,255,255,0.8)' },
-    theirReplyText: { color: '#757575' },
+    myReplyPreview: {
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        borderLeftColor: '#FFFFFF',
+    },
+    theirReplyPreview: {
+        backgroundColor: '#FFD7C4',
+        borderLeftColor: '#FF8A65',
+    },
+    replySender: {
+        fontSize: 11,
+        fontWeight: '700',
+        marginBottom: 3,
+        letterSpacing: 0.3,
+    },
+    myReplySender: {
+        color: '#FFFFFF',
+        opacity: 0.95,
+    },
+    theirReplySender: {
+        color: '#7C5FD9',
+    },
+    replyText: {
+        fontSize: 12,
+        lineHeight: 16,
+        fontStyle: 'italic',
+    },
+    myReplyText: {
+        color: 'rgba(255,255,255,0.85)',
+    },
+    theirReplyText: {
+        color: '#5A5A5A',
+    },
 });
