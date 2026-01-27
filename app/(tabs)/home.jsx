@@ -91,6 +91,34 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
+  // Fetch Unread Notifications Count
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, "notifications"),
+      where("toUserId", "==", user.uid),
+      where("read", "==", false),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const allowedTypes = ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted"];
+      const filteredCount = snapshot.docs.filter(doc => allowedTypes.includes(doc.data().type)).length;
+      setUnreadCount(filteredCount);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Fetch Unread Chats Count for Chat icon badge (optional, but good for UX)
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+
+    // Simple listener for chat unreads if we had a way (requires iterating all chats or a user field)
+    // For now, leaving chat badge fetch out to keep it simple or we can re-use the logic from Tab Layout if we moved it
+  }, [user]);
+
   // Fetch Unread Count
   useEffect(() => {
     if (!user) return;
@@ -150,39 +178,37 @@ export default function Home() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push("/chat")}
-        >
-          <View>
-            <Ionicons name="chatbubbles-outline" size={28} color="#212121" />
-            {unreadCount > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: -4,
-                right: -4,
-                backgroundColor: '#EF5350',
-                borderRadius: 10,
-                minWidth: 18,
-                height: 18,
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingHorizontal: 2,
-              }}>
-                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+
         <Text style={styles.logo}>LetItOut</Text>
-        <TouchableOpacity style={styles.notificationButton}>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => router.push("/notifications")}
+        >
           <Ionicons
             name="notifications-outline"
             size={26}
             color="#212121"
           />
+          {unreadCount > 0 && (
+            <View style={{
+              position: 'absolute',
+              top: -2,
+              right: -2,
+              backgroundColor: '#FF5252',
+              borderRadius: 9, // half of width/height
+              minWidth: 18,
+              height: 18,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 2,
+              borderWidth: 1.5,
+              borderColor: '#FFFFFF',
+            }}>
+              <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 

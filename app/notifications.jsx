@@ -23,12 +23,12 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Avatar from "../../components/Avatar";
-import { db } from "../../config/firebase";
-import { useAuth } from "../../context/AuthContext";
-import { createFriendRequestAcceptedNotification } from "../../utils/notifications";
+import Avatar from "../components/Avatar";
+import { db } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
+import { createFriendRequestAcceptedNotification } from "../utils/notifications";
 
-export default function Inbox() {
+export default function Notifications() {
     const { user } = useAuth();
     const router = useRouter();
     const [notifications, setNotifications] = useState([]);
@@ -53,10 +53,14 @@ export default function Inbox() {
         const unsubscribe = onSnapshot(
             q,
             async (snapshot) => {
-                const fetchedNotifications = snapshot.docs.map((docSnap) => ({
-                    id: docSnap.id,
-                    ...docSnap.data(),
-                }));
+                const fetchedNotifications = snapshot.docs
+                    .map((docSnap) => ({
+                        id: docSnap.id,
+                        ...docSnap.data(),
+                    }))
+                    .filter((n) =>
+                        ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted"].includes(n.type)
+                    );
                 setNotifications(fetchedNotifications);
 
                 // Fetch profile codes for all unique users
@@ -421,7 +425,11 @@ export default function Inbox() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Inbox</Text>
+                    <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
                     <Ionicons name="log-in-outline" size={64} color="#BDBDBD" />
@@ -439,7 +447,11 @@ export default function Inbox() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Inbox</Text>
+                    <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
                     <ActivityIndicator size="large" color="#B39DDB" style={{ marginBottom: 16 }} />
@@ -454,6 +466,9 @@ export default function Inbox() {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Notifications</Text>
                     <TouchableOpacity style={styles.settingsButton}>
                         <Ionicons name="settings-outline" size={24} color="#2D2D2D" />
@@ -490,6 +505,9 @@ export default function Inbox() {
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="chevron-back" size={28} color="#212121" />
+                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Notifications</Text>
                 <TouchableOpacity style={styles.settingsButton}>
                     <Ionicons name="settings-outline" size={24} color="#2D2D2D" />
@@ -723,5 +741,8 @@ const styles = StyleSheet.create({
         color: '#9E9E9E',
         marginTop: 8,
         fontStyle: 'italic',
+    },
+    backButton: {
+        padding: 4,
     },
 });

@@ -8,19 +8,23 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function TabsLayout() {
     const { user } = useAuth();
-    const [unreadCount, setUnreadCount] = useState(0);
+    const [unreadChatCount, setUnreadChatCount] = useState(0);
 
+    // Fetch total unread chats count
     useEffect(() => {
         if (!user) return;
 
-        const q = query(
-            collection(db, "notifications"),
-            where("toUserId", "==", user.uid),
-            where("read", "==", false)
-        );
+        const chatsRef = collection(db, "chats");
+        const q = query(chatsRef, where("participants", "array-contains", user.uid));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            setUnreadCount(snapshot.size);
+            let totalUnread = 0;
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const count = data[`unreadCount_${user.uid}`] || 0;
+                totalUnread += count;
+            });
+            setUnreadChatCount(totalUnread);
         });
 
         return () => unsubscribe();
@@ -85,9 +89,9 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
-                name="inbox"
+                name="chat"
                 options={{
-                    title: "Inbox",
+                    title: "Chat",
                     tabBarIcon: ({ color, size, focused }) => (
                         <View>
                             <Ionicons
@@ -95,10 +99,10 @@ export default function TabsLayout() {
                                 size={26}
                                 color={color}
                             />
-                            {unreadCount > 0 && (
+                            {unreadChatCount > 0 && (
                                 <View style={styles.badge}>
                                     <Text style={styles.badgeText}>
-                                        {unreadCount > 9 ? "9+" : unreadCount}
+                                        {unreadChatCount > 9 ? "9+" : unreadChatCount}
                                     </Text>
                                 </View>
                             )}

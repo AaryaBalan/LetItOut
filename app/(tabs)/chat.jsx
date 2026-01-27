@@ -17,7 +17,7 @@ import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 
-export default function FriendsList() {
+export default function ChatTab() {
     const { user } = useAuth();
     const router = useRouter();
     const [friends, setFriends] = useState([]);
@@ -29,18 +29,6 @@ export default function FriendsList() {
     // Fetch Chats Metadata Real-time
     useEffect(() => {
         if (!user) return;
-
-        // Listen to chats where I am a participant
-        // Note: 'array-contains' is often used but here we check 'participants' array. 
-        // Firestore limitation: cannot do 'array-contains' and other filters easily sometimes.
-        // For now, let's try querying chats list. Ideally strict security rules allow reading only own chats.
-        // Since our rule has: allow read: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
-        // We can query commonly used fields or just listen to all chars ID if stored in user profile (advanced),
-        // OR we can't easily query ALL chats without a compound index if doing complex ordering.
-        // Simpler approach: On client side, we know chat IDs are [uid1, uid2].sort().join('_').
-        // But we don't know who we have chatted with unless we list friends.
-        // SO: We will fetch friends first, then derive chat IDs and listen to them OR
-        // Better: Query `collection(db, 'chats')` where `participants` array-contains `user.uid`.
 
         const chatsRef = collection(db, "chats");
         const q = query(chatsRef, where("participants", "array-contains", user.uid));
@@ -208,13 +196,9 @@ export default function FriendsList() {
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            {/* Header */}
+            {/* Header - No back button for Tab */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={28} color="#212121" />
-                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Messages</Text>
-                <View style={{ width: 28 }} />
             </View>
 
             {/* Search */}
@@ -322,9 +306,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     nameRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
         marginBottom: 2,
     },
     name: {
