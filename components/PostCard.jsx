@@ -275,7 +275,6 @@ export default function PostCard({ post, hideDescription = false }) {
                             {getCategoryLabel(post.category)}
                         </Text>
                     </View>
-                    <Text style={styles.timestamp}>{post.timestamp}</Text>
                 </View>
 
                 {/* Author Section */}
@@ -292,11 +291,14 @@ export default function PostCard({ post, hideDescription = false }) {
                             <Avatar seed={authorProfileCode} size={40} />
                         </View>
                     )}
-                    <Text style={styles.authorName}>
-                        {post.isAnonymous || !post.authorName
-                            ? "Anonymous"
-                            : post.authorName}
-                    </Text>
+                    <View>
+                        <Text style={styles.authorName}>
+                            {post.isAnonymous || !post.authorName
+                                ? "Anonymous"
+                                : post.authorName}
+                        </Text>
+                        <Text style={styles.timestamp}>{post.timestamp}</Text>
+                    </View>
                 </View>
 
                 <Text style={styles.title}>{post.title}</Text>
@@ -348,25 +350,28 @@ export default function PostCard({ post, hideDescription = false }) {
                         </View>
                     </View>
 
-                    <View style={styles.commentSection}>
-                        <Ionicons
-                            name="chatbubble-outline"
-                            size={15}
-                            color="#9E9E9E"
-                        />
-                        <Text style={styles.commentCount}>{commentCount}</Text>
-                    </View>
+                    <View style={styles.rightFooter}>
+                        <TouchableOpacity
+                            style={styles.shareButton}
+                            onPress={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowShareModal(true);
+                            }}
+                        >
+                            <Ionicons name="paper-plane-outline" size={20} color="#9F8BFF" />
+                            <Text style={styles.sendText}>Send</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.shareButton}
-                        onPress={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setShowShareModal(true);
-                        }}
-                    >
-                        <Ionicons name="paper-plane-outline" size={18} color="#9F8BFF" />
-                    </TouchableOpacity>
+                        <View style={styles.commentSection}>
+                            <Ionicons
+                                name="chatbubble-outline"
+                                size={18}
+                                color="#9E9E9E"
+                            />
+                            <Text style={styles.commentCount}>{commentCount}</Text>
+                        </View>
+                    </View>
                 </View>
 
                 {/* Share Modal */}
@@ -558,6 +563,14 @@ const styles = StyleSheet.create({
     },
     shareButton: {
         padding: 4,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    sendText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#9F8BFF",
     },
     modalOverlay: {
         flex: 1,
@@ -615,5 +628,10 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
         color: '#212121',
+    },
+    rightFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
 });

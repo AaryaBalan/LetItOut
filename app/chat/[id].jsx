@@ -107,7 +107,7 @@ function SharedPostCard({ postData }) {
             accessibilityRole="button"
             accessibilityLabel={`View post: ${postData.title}`}
         >
-            {/* Category Badge and Timestamp */}
+            {/* Category Badge */}
             <View style={styles.postCardHeader}>
                 <View style={[
                     styles.postCategoryBadge,
@@ -117,7 +117,6 @@ function SharedPostCard({ postData }) {
                         {postData.category?.toUpperCase() || "GENERAL"}
                     </Text>
                 </View>
-                <Text style={styles.postTimestamp}>{postData.timestamp}</Text>
             </View>
 
             {/* Author Section */}
@@ -125,9 +124,12 @@ function SharedPostCard({ postData }) {
                 <View style={styles.postAvatarContainer}>
                     <Ionicons name="person" size={16} color="#9575cd" />
                 </View>
-                <Text style={styles.postAuthorName}>
-                    {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
-                </Text>
+                <View>
+                    <Text style={styles.postAuthorName}>
+                        {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
+                    </Text>
+                    <Text style={styles.postTimestamp}>{postData.timestamp}</Text>
+                </View>
             </View>
 
             {/* Title */}
@@ -155,7 +157,7 @@ function SharedPostCard({ postData }) {
                     </View>
                 </View>
                 <View style={styles.postCommentSection}>
-                    <Ionicons name="chatbubble-outline" size={15} color="#9E9E9E" />
+                    <Ionicons name="chatbubble-outline" size={18} color="#9E9E9E" />
                     <Text style={styles.postCommentCount}>{commentCount}</Text>
                 </View>
             </View>
