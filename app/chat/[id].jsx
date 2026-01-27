@@ -100,6 +100,37 @@ function SharedPostCard({ postData }) {
         return () => unsubscribe();
     }, [postData.id]);
 
+    // Fetch author profile code
+    const [authorProfileCode, setAuthorProfileCode] = useState(null);
+
+    useEffect(() => {
+        if (!postData.authorId || postData.isAnonymous) {
+            setAuthorProfileCode(null);
+            return;
+        }
+
+        const userRef = doc(db, "users", postData.authorId);
+        const unsubscribe = onSnapshot(
+            userRef,
+            (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userData = docSnapshot.data();
+                    setAuthorProfileCode(
+                        userData.profileCode || userData.email || null,
+                    );
+                } else {
+                    setAuthorProfileCode(null);
+                }
+            },
+            (error) => {
+                console.error("Error fetching author profile:", error);
+                setAuthorProfileCode(null);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [postData.authorId, postData.isAnonymous]);
+
     return (
         <TouchableOpacity
             style={styles.sharedPostCard}
@@ -121,9 +152,15 @@ function SharedPostCard({ postData }) {
 
             {/* Author Section */}
             <View style={styles.postAuthorSection}>
-                <View style={styles.postAvatarContainer}>
-                    <Ionicons name="person" size={16} color="#9575cd" />
-                </View>
+                {postData.isAnonymous || !postData.authorName || postData.authorName === "Anonymous" || !authorProfileCode ? (
+                    <View style={styles.postAvatarContainer}>
+                        <Ionicons name="person" size={16} color="#9575cd" />
+                    </View>
+                ) : (
+                    <View style={styles.postAvatarWrapper}>
+                        <Avatar seed={authorProfileCode} size={32} />
+                    </View>
+                )}
                 <View>
                     <Text style={styles.postAuthorName}>
                         {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
@@ -776,6 +813,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#EFE8FF",
         justifyContent: "center",
         alignItems: "center",
+        marginRight: 8,
+    },
+    postAvatarWrapper: {
         marginRight: 8,
     },
     postAuthorName: {
