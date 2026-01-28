@@ -3,7 +3,8 @@ import { useRouter } from "expo-router";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
+    Dimensions,
+    Platform,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -13,10 +14,11 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+
+const { width } = Dimensions.get('window');
 
 export default function Explore() {
     const router = useRouter();
@@ -26,702 +28,766 @@ export default function Explore() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("posts"); // "posts" or "people"
-    const [peopleSort, setPeopleSort] = useState("stories"); // "stories" or "love"
 
-    // Fetch all posts from Firebase
+    // Fetch posts
     useEffect(() => {
         const postsRef = collection(db, "posts");
         const q = query(postsRef);
-
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const fetchedPosts = snapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        title: data.title,
-                        description: data.description,
-                        category: data.category,
-                        feelPercentage: data.feelPercentage ?? 50,
-                        timestamp: data.createdAt,
-                        reactionCount: data.reactionCount || 0,
-                        isAnonymous: data.isAnonymous,
-                        authorName: data.authorName || "Anonymous",
-                        authorId: data.authorId,
-                    };
-                });
-                setPosts(fetchedPosts);
-                setLoading(false);
-            },
-            (error) => {
-                console.error("Error fetching posts:", error);
-                setLoading(false);
-            }
-        );
-
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedPosts = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+                reactionCount: doc.data().reactionCount || 0,
+                commentCount: doc.data().commentCount || 0,
+            }));
+            setPosts(fetchedPosts);
+            setLoading(false);
+        });
         return () => unsubscribe();
     }, []);
 
-    // Fetch all users from Firebase
+    // Fetch users
     useEffect(() => {
         const usersRef = collection(db, "users");
         const q = query(usersRef);
-
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const fetchedUsers = snapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        displayName: data.displayName || "Anonymous",
-                        email: data.email,
-                        profileCode: data.profileCode || data.email,
-                        bio: data.bio || "",
-                        postCount: data.postCount || 0,
-                        loveSent: data.loveSent || 0,
-                    };
-                });
-                setUsers(fetchedUsers);
-            },
-            (error) => {
-                console.error("Error fetching users:", error);
-            }
-        );
-
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedUsers = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+                loveSent: doc.data().loveSent || 0,
+            }));
+            setUsers(fetchedUsers);
+        });
         return () => unsubscribe();
     }, []);
 
-    // Filter posts based on search query
+    // Top 10 Logic
+    const top10Posts = [...posts]
+        .sort((a, b) => (b.reactionCount + b.commentCount) - (a.reactionCount + a.commentCount))
+        .slice(0, 10);
+
+    // Filter Logic
     const filteredPosts = searchQuery.trim()
-        ? posts.filter((post) => {
-            const query = searchQuery.toLowerCase();
-            return (
-                post.title?.toLowerCase().includes(query) ||
-                post.description?.toLowerCase().includes(query) ||
-                post.category?.toLowerCase().includes(query)
-            );
-        })
+        ? posts.filter(p => p.title?.toLowerCase().includes(searchQuery.toLowerCase()) || p.description?.toLowerCase().includes(searchQuery.toLowerCase()))
         : [];
-
-    // Filter users based on search query
-    const filteredUsers = searchQuery.trim()
-        ? users.filter((user) => {
-            const query = searchQuery.toLowerCase();
-            return (
-                user.displayName?.toLowerCase().includes(query) ||
-                user.bio?.toLowerCase().includes(query)
-            );
-        })
-        : users;
-
-    // Sort users based on selected criteria
-    const sortedUsers = [...filteredUsers].sort((a, b) => {
-        if (peopleSort === "stories") {
-            return b.postCount - a.postCount;
-        } else {
-            return b.loveSent - a.loveSent;
-        }
-    });
-
-    const CATEGORIES = [
-        {
-            id: "All",
-            name: "ALL TOPICS",
-            icon: "grid",
-            subtitle: "Browse All Stories",
-            iconColor: "#78909C",
-            bgColor: "#ECEFF1",
-            decorativeShapes: true,
-        },
-        {
-            id: "Stress",
-            name: "STRESS",
-            icon: "leaf",
-            subtitle: "Finding Peace",
-            iconColor: "#7C6BA8",
-            bgColor: "#B39DDB",
-            decorativeShapes: true,
-        },
-        {
-            id: "Family",
-            name: "FAMILY",
-            icon: "heart",
-            subtitle: "Navigating Relationships",
-            iconColor: "#E57373",
-            bgColor: "#FFCDD2",
-            decorativeShapes: true,
-        },
-        {
-            id: "Mental Health",
-            name: "MENTAL HEALTH",
-            icon: "fitness",
-            subtitle: "Daily Wellbeing",
-            iconColor: "#C8A656",
-            bgColor: "#FFE082",
-            decorativeShapes: true,
-        },
-        {
-            id: "Study",
-            name: "STUDY",
-            icon: "briefcase",
-            subtitle: "Career & Purpose",
-            iconColor: "#5FA49C",
-            bgColor: "#B2DFDB",
-            decorativeShapes: true,
-        },
-        {
-            id: "Relationship",
-            name: "RELATIONSHIP",
-            icon: "people",
-            subtitle: "Love & Connection",
-            iconColor: "#F48FB1",
-            bgColor: "#FFE8EE",
-            decorativeShapes: true,
-        },
-        {
-            id: "Other",
-            name: "OTHER",
-            icon: "ellipsis-horizontal",
-            subtitle: "Share Your Story",
-            iconColor: "#90A4AE",
-            bgColor: "#ECEFF1",
-            decorativeShapes: true,
-        },
-    ];
 
     const handleCategoryPress = (id) => {
         router.push(`/community/${id}`);
     };
 
-    const getUserRole = (user) => {
-        if (user.postCount >= 100) return "ALLY";
-        if (user.loveSent >= 500) return "LISTENER";
-        if (user.postCount >= 50) return "SUPPORTER";
-        if (user.loveSent >= 200) return "GUIDE";
-        if (user.loveSent >= 100) return "VOICE";
-        if (user.postCount >= 20) return "HEALER";
-        return "MEMBER";
-    };
-
-    const getRoleColor = (role) => {
-        const colors = {
-            "ALLY": "#B39DDB",
-            "LISTENER": "#FF8A65",
-            "SUPPORTER": "#81C784",
-            "GUIDE": "#4DD0E1",
-            "VOICE": "#F48FB1",
-            "HEALER": "#AED581",
-            "MEMBER": "#BDBDBD",
-        };
-        return colors[role] || "#BDBDBD";
-    };
-
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" translucent={false} />
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
+            {/* Header - Home Style */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Explore</Text>
                 <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons name="notifications-outline" size={24} color="#1F2937" />
+                    <Ionicons name="menu-outline" size={24} color="#212121" />
+                </TouchableOpacity>
+
+                <View style={styles.logoContainer}>
+                    <Text style={styles.logo}>Explore</Text>
+                </View>
+
+                <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => router.push("/notifications")}
+                >
+                    <Ionicons name="notifications-outline" size={24} color="#212121" />
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.tabWrapper}>
-                <View style={styles.tabContainer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === "posts" && styles.tabButtonActive
-                        ]}
-                        onPress={() => setActiveTab("posts")}
-                    >
-                        <Text style={[
-                            styles.tabButtonText,
-                            activeTab === "posts" && styles.tabButtonTextActive
-                        ]}>
-                            Posts
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === "people" && styles.tabButtonActive
-                        ]}
-                        onPress={() => setActiveTab("people")}
-                    >
-                        <Text style={[
-                            styles.tabButtonText,
-                            activeTab === "people" && styles.tabButtonTextActive
-                        ]}>
-                            People
-                        </Text>
-                    </TouchableOpacity>
+            {/* Search Bar - Home Style */}
+            <View style={styles.searchSection}>
+                <View style={styles.searchBar}>
+                    <Ionicons name="search-outline" size={20} color="#9CA3AF" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search posts, topics..."
+                        placeholderTextColor="#9CA3AF"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
                 </View>
             </View>
 
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContent}
-                stickyHeaderIndices={[0]}
-            >
-                {/* Search Bar */}
-                <View style={styles.searchSection}>
-                    <View style={styles.searchContainer}>
-                        <Ionicons name="search-outline" size={20} color="#9CA3AF" />
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder={activeTab === "posts" ? "Search topics..." : "Find people..."}
-                            placeholderTextColor="#9CA3AF"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            returnKeyType="search"
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity
-                                onPress={() => setSearchQuery("")}
-                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            >
-                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-                            </TouchableOpacity>
-                        )}
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+
+                {searchQuery.trim() ? (
+                    // Search Results
+                    <View style={styles.resultsSection}>
+                        {filteredPosts.map(post => <PostCard key={post.id} post={post} />)}
                     </View>
-                </View>
-
-                {/* Content based on active tab */}
-                {activeTab === "posts" ? (
-                    <>
-                        {searchQuery.trim() ? (
-                            <View style={styles.resultsSection}>
-                                <Text style={styles.sectionLabel}>
-                                    {filteredPosts.length > 0
-                                        ? `Found ${filteredPosts.length} post${filteredPosts.length !== 1 ? 's' : ''}`
-                                        : 'No posts found'}
-                                </Text>
-                                <View style={styles.postsList}>
-                                    {filteredPosts.map((post) => (
-                                        <PostCard key={post.id} post={post} />
-                                    ))}
-                                </View>
-                            </View>
-                        ) : (
-                            <View style={styles.categoriesSection}>
-                                <Text style={styles.sectionHeaderTitle}>categories</Text>
-                                <View style={styles.categoriesGrid}>
-                                    {CATEGORIES.map((category) => (
-                                        <TouchableOpacity
-                                            key={category.id}
-                                            style={[
-                                                styles.categoryCard,
-                                                { backgroundColor: category.bgColor }
-                                            ]}
-                                            onPress={() => handleCategoryPress(category.id)}
-                                            activeOpacity={0.8}
-                                        >
-                                            <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
-                                                <Ionicons
-                                                    name={category.icon}
-                                                    size={28}
-                                                    color={category.iconColor}
-                                                />
-                                            </View>
-                                            <Text style={styles.categoryName}>{category.name}</Text>
-                                            <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
-
-                                            {/* Decorative shapes */}
-                                            {category.decorativeShapes && (
-                                                <>
-                                                    <View style={[styles.decorativeCircle, styles.decorCircle1]} />
-                                                    <View style={[styles.decorativeCircle, styles.decorCircle2]} />
-                                                </>
-                                            )}
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-                    </>
                 ) : (
                     <>
-                        {/* People Sort Toggle */}
+                        {/* Discovery - Bento Grid */}
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>DISCOVERY</Text>
+                        </View>
+
+                        <View style={styles.bentoGrid}>
+                            {/* Feed Card - Wide */}
+                            <TouchableOpacity
+                                style={[styles.bentoCard, styles.cardFeed]}
+                                onPress={() => router.push("/(tabs)/home")}
+                            >
+                                <View style={styles.cardContentHorizontal}>
+                                    <View>
+                                        <Text style={styles.bentoTitleBig}>Your Feed</Text>
+                                        <Text style={styles.bentoSubtitleDark}>LATEST UPDATES</Text>
+                                    </View>
+                                    <View style={[styles.iconCircle, { backgroundColor: '#FFFFFF' }]}>
+                                        <Ionicons name="newspaper" size={24} color="#5C6BC0" />
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* Row 1: Mental Health & Stress */}
+                            <View style={styles.bentoRow}>
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardHealing]}
+                                    onPress={() => handleCategoryPress("Mental Health")}
+                                >
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="fitness" size={24} color="#C8A656" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.bentoTitleSerif}>Mental Health</Text>
+                                        <Text style={styles.bentoSubtitle}>DAILY WELLBEING</Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardAnxiety]}
+                                    onPress={() => handleCategoryPress("Stress")}
+                                >
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="leaf" size={24} color="#7C6BA8" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.bentoTitleSerif}>Stress</Text>
+                                        <Text style={styles.bentoSubtitle}>FINDING PEACE</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Row 2: Relationship (Wide) */}
+                            <TouchableOpacity
+                                style={[styles.bentoCard, styles.cardRelationships]}
+                                onPress={() => handleCategoryPress("Relationship")}
+                            >
+                                <View style={styles.cardContentHorizontal}>
+                                    <View>
+                                        <Text style={styles.bentoTitleBig}>Relationship</Text>
+                                        <Text style={styles.bentoSubtitleDark}>LOVE & CONNECTION</Text>
+                                    </View>
+                                    <Ionicons name="heart" size={48} color="rgba(244, 143, 177, 0.5)" />
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* Row 3: Family & Study */}
+                            <View style={styles.bentoRow}>
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardFamily]}
+                                    onPress={() => handleCategoryPress("Family")}
+                                >
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="home" size={24} color="#E57373" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.bentoTitleSerif}>Family</Text>
+                                        <Text style={styles.bentoSubtitle}>HOME SUPPORT</Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardStudy]}
+                                    onPress={() => handleCategoryPress("Study")}
+                                >
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="school" size={24} color="#5FA49C" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.bentoTitleSerif}>Study</Text>
+                                        <Text style={styles.bentoSubtitle}>CAREER & GROWTH</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Row 4: Other & All Topics */}
+                            <View style={styles.bentoRow}>
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardOther]}
+                                    onPress={() => handleCategoryPress("Other")}
+                                >
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="ellipsis-horizontal" size={24} color="#90A4AE" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.bentoTitleSerif}>Other</Text>
+                                        <Text style={styles.bentoSubtitleDark}>SHARE YOUR STORY</Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardAll]}
+                                    onPress={() => handleCategoryPress("All")}
+                                >
+                                    <View style={[styles.iconCircle, { backgroundColor: '#37474F' }]}>
+                                        <Ionicons name="grid" size={24} color="#FFFFFF" />
+                                    </View>
+                                    <View>
+                                        <Text style={[styles.bentoTitleSerif, { color: '#FFFFFF' }]}>All Topics</Text>
+                                        <Text style={[styles.bentoSubtitle, { color: '#B0BEC5' }]}>BROWSE ALL</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Top 10 Stories */}
+                        <View style={[styles.sectionHeader, { marginTop: 32 }]}>
+                            <Text style={styles.sectionTitle}>TOP 10 TODAY</Text>
+                        </View>
+
                         <ScrollView
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.peopleSortContainer}
+                            contentContainerStyle={styles.top10List}
                         >
-                            <TouchableOpacity
-                                style={[
-                                    styles.pillButton,
-                                    peopleSort === "stories" && styles.pillButtonActive
-                                ]}
-                                onPress={() => setPeopleSort("stories")}
-                            >
-                                <Text style={[
-                                    styles.pillButtonText,
-                                    peopleSort === "stories" && styles.pillButtonTextActive
-                                ]}>
-                                    Most Stories
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[
-                                    styles.pillButton,
-                                    peopleSort === "love" && styles.pillButtonActive
-                                ]}
-                                onPress={() => setPeopleSort("love")}
-                            >
-                                <Text style={[
-                                    styles.pillButtonText,
-                                    peopleSort === "love" && styles.pillButtonTextActive
-                                ]}>
-                                    Most Love Sent
-                                </Text>
-                            </TouchableOpacity>
+                            {top10Posts.map((post, index) => (
+                                <TouchableOpacity
+                                    key={post.id}
+                                    style={styles.top10Card}
+                                    onPress={() => router.push(`/post/${post.id}`)}
+                                >
+                                    <View style={styles.top10Content}>
+                                        {/* Rank Badge - Top Right */}
+                                        <View style={styles.rankBadge}>
+                                            <Text style={styles.rankBadgeText}>#{index + 1}</Text>
+                                        </View>
+
+                                        {/* Category Badge */}
+                                        <View style={[styles.categoryPill, { backgroundColor: '#F3E5F5' }]}>
+                                            <Text style={styles.categoryPillText}>{post.category}</Text>
+                                        </View>
+
+                                        {/* Author Info */}
+                                        <View style={styles.top10Author}>
+                                            <View style={styles.top10Avatar}>
+                                                <Ionicons name="person" size={12} color="#9575cd" />
+                                            </View>
+                                            <Text style={styles.top10AuthorName} numberOfLines={1}>
+                                                {post.authorName || "Anonymous"}
+                                            </Text>
+                                        </View>
+
+                                        {/* Title */}
+                                        <Text style={styles.top10Title} numberOfLines={2}>{post.title}</Text>
+
+                                        {/* Description */}
+                                        <Text style={styles.top10Description} numberOfLines={2}>
+                                            {post.description}
+                                        </Text>
+
+                                        {/* Reactions Footer */}
+                                        <View style={styles.top10Reactions}>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="heart" size={12} color="#E57373" />
+                                                <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.4)}</Text>
+                                            </View>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="hand-left" size={12} color="#FFB74D" />
+                                                <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
+                                            </View>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="happy" size={12} color="#66BB6A" />
+                                                <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
+                                            </View>
+                                            <View style={styles.top10CommentSection}>
+                                                <Ionicons name="chatbubble-outline" size={12} color="#9E9E9E" />
+                                                <Text style={styles.top10ReactionText}>{post.commentCount || 0}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
                         </ScrollView>
 
-                        {/* People List */}
-                        <View style={styles.peopleListContainer}>
-                            {loading ? (
-                                <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="small" color="#E57373" />
-                                </View>
-                            ) : sortedUsers.length > 0 ? (
-                                sortedUsers.map((user) => {
-                                    const role = getUserRole(user);
-                                    const roleColor = getRoleColor(role);
+                        {/* Stories of the Day */}
+                        <View style={[styles.sectionHeader, { marginTop: 32 }]}>
+                            <Text style={styles.sectionTitle}>STORIES OF THE DAY</Text>
+                            <Text style={styles.swipeHint}>Swipe to read</Text>
+                        </View>
 
-                                    return (
-                                        <TouchableOpacity
-                                            key={user.id}
-                                            style={styles.personItem}
-                                            activeOpacity={0.7}
-                                            onPress={() => {
-                                                if (currentUser && user.id === currentUser.uid) {
-                                                    router.push("/profile");
-                                                } else {
-                                                    router.push(`/user/${user.id}`);
-                                                }
-                                            }}
-                                        >
-                                            <View style={styles.personLeft}>
-                                                <Avatar seed={user.profileCode} size={44} />
-                                                <View style={styles.personInfo}>
-                                                    <View style={styles.nameRoleContainer}>
-                                                        <Text style={styles.personName} numberOfLines={1}>{user.displayName}</Text>
-                                                        <View style={[styles.roleBagde, { backgroundColor: `${roleColor}15` }]}>
-                                                            <Text style={[styles.roleText, { color: roleColor }]}>{role}</Text>
-                                                        </View>
-                                                    </View>
-                                                    <Text style={styles.personBio} numberOfLines={2}>
-                                                        {user.bio || "No bio yet"}
-                                                    </Text>
-                                                </View>
-                                            </View>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            pagingEnabled
+                            decelerationRate="fast"
+                            snapToInterval={width * 0.85 + 16}
+                            contentContainerStyle={styles.storiesList}
+                        >
+                            {/* Static Featured Quote */}
+                            <View style={styles.storyCard}>
+                                <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
+                                <Text style={styles.storyQuote}>
+                                    "There is a crack in everything. That's how the light gets in."
+                                </Text>
+                                <View style={styles.divider} />
+                                <Text style={styles.storyTag}>ON RESILIENCE</Text>
+                            </View>
 
-                                            <View style={styles.statContainer}>
-                                                <Text style={styles.statNumber}>
-                                                    {peopleSort === "stories"
-                                                        ? user.postCount
-                                                        : user.loveSent > 1000
-                                                            ? `${(user.loveSent / 1000).toFixed(1)}k`
-                                                            : user.loveSent}
-                                                </Text>
-                                                <Text style={styles.statLabel}>
-                                                    {peopleSort === "stories" ? "Stories" : "Loves"}
-                                                </Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    );
-                                })
-                            ) : (
-                                <View style={styles.emptyState}>
-                                    <Ionicons name="people-outline" size={48} color="#E0E0E0" />
-                                    <Text style={styles.emptyStateText}>No users found matching your search</Text>
-                                </View>
-                            )}
+                            {/* Dynamic Stories from Posts */}
+                            {posts.slice(0, 5).map(post => (
+                                <TouchableOpacity
+                                    key={post.id}
+                                    style={styles.storyCard}
+                                    onPress={() => router.push(`/post/${post.id}`)}
+                                >
+                                    <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
+                                    <Text style={styles.storyQuote} numberOfLines={4}>
+                                        "{post.description}"
+                                    </Text>
+                                    {post.authorName && (
+                                        <Text style={styles.storyAuthor}>- {post.authorName}</Text>
+                                    )}
+                                    <View style={styles.divider} />
+                                    <Text style={styles.storyTag}>ON {post.category.toUpperCase()}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+
+                        {/* Editorial Pick */}
+                        <View style={styles.editorialSection}>
+                            <Text style={styles.curatedTitle}>CURATED FOR YOU</Text>
+                            <Text style={styles.editorialLabel}>EDITORIAL PICK</Text>
+
+                            <Text style={styles.articleTitle}>
+                                How to find quiet in a world that never stops talking.
+                            </Text>
+
+                            <Text style={styles.articleSnippet}>
+                                In an age of constant connectivity, the most radical act is disconnection. Here is how we reclaim our inner silence.
+                            </Text>
+
+                            <TouchableOpacity style={styles.readMoreButton}>
+                                <View style={styles.readMoreLine} />
+                                <Text style={styles.readMoreText}>READ ARTICLE</Text>
+                                <View style={styles.readMoreLine} />
+                            </TouchableOpacity>
                         </View>
                     </>
-                )}
-            </ScrollView>
-        </SafeAreaView>
+                )
+                }
+            </ScrollView >
+        </SafeAreaView >
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#FAFAFA",
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: "#FFFFFF",
+    },
+    iconButton: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    logo: {
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#212121",
+        letterSpacing: 0.5,
+    },
+    searchSection: {
+        paddingHorizontal: 20,
         paddingVertical: 12,
         backgroundColor: "#FFFFFF",
     },
-    headerTitle: {
-        fontSize: 28,
-        fontWeight: "800",
-        color: "#111827",
-        letterSpacing: -0.5,
-    },
-    iconButton: {
-        padding: 8,
-        backgroundColor: "#F3F4F6",
-        borderRadius: 20,
-    },
-    tabWrapper: {
-        paddingHorizontal: 20,
-        paddingVertical: 8,
-        backgroundColor: "#FFFFFF",
-        zIndex: 10,
-    },
-    tabContainer: {
+    searchBar: {
         flexDirection: "row",
-        backgroundColor: "#F9FAFB",
-        padding: 4,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "#F3F4F6",
-    },
-    tabButton: {
-        flex: 1,
-        paddingVertical: 8,
         alignItems: "center",
-        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 30,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        gap: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
+        borderWidth: 1,
+        borderColor: "#FAFAFA",
     },
-    tabButtonActive: {
-        backgroundColor: "#E57373",
-        borderColor: "#E57373",
-        shadowColor: "#E57373",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    tabButtonText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#6B7280",
-    },
-    tabButtonTextActive: {
-        color: "#FFFFFF",
+    searchInput: {
+        flex: 1,
+        fontSize: 15,
+        color: "#212121",
+        fontWeight: "500",
     },
     scrollContent: {
         paddingBottom: 80,
     },
-    searchSection: {
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-        paddingTop: 4,
-        backgroundColor: "#FFFFFF",
-    },
-    searchContainer: {
+    sectionHeader: {
         flexDirection: "row",
+        justifyContent: "space-between",
         alignItems: "center",
-        backgroundColor: "#F9FAFB",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 15,
-        color: "#1F2937",
-        padding: 0,
-    },
-    sectionLabel: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#6B7280",
-        marginLeft: 20,
-        marginBottom: 12,
-        marginTop: 8,
-    },
-    sectionHeaderTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#111827",
+        paddingHorizontal: 24,
         marginBottom: 16,
     },
-    categoriesSection: {
-        paddingHorizontal: 20,
+    sectionTitle: {
+        fontSize: 11,
+        fontWeight: "800",
+        color: "#9CA3AF",
+        letterSpacing: 1.5,
     },
-    categoriesGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginTop: 16,
+    swipeHint: {
+        fontSize: 11,
+        fontStyle: "italic",
+        color: "#D1D5DB",
     },
-    categoryCard: {
-        width: '48%',
-        aspectRatio: 0.85,
+
+    // Bento Grid
+    bentoGrid: {
+        paddingHorizontal: 24,
+        gap: 16,
+    },
+    bentoRow: {
+        flexDirection: "row",
+        gap: 16,
+    },
+    // Bento Grid
+    bentoGrid: {
+        paddingHorizontal: 24,
+        gap: 16,
+    },
+    bentoRow: {
+        flexDirection: "row",
+        gap: 16,
+    },
+    bentoCard: {
         borderRadius: 24,
         padding: 20,
-        justifyContent: 'space-between',
-        overflow: 'hidden',
+        justifyContent: "space-between",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 4,
-        marginBottom: 16,
     },
-    categoryIconContainer: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
+    iconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "rgba(255,255,255,0.6)",
+        justifyContent: "center",
+        alignItems: "center",
         marginBottom: 12,
     },
-    categoryName: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#6B7280",
-        letterSpacing: 1,
+    cardContentHorizontal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+    cardFeed: {
+        height: 100,
+        backgroundColor: "#E8EAF6", // Indigo 50
+        justifyContent: "center",
+    },
+    cardHealing: {
+        flex: 1,
+        height: 170,
+        backgroundColor: "#FFE082", // Mental Health
+    },
+    cardAnxiety: {
+        flex: 1,
+        height: 170,
+        backgroundColor: "#B39DDB", // Stress
+    },
+    cardRelationships: {
+        height: 120,
+        backgroundColor: "#FFE8EE", // Relationships
+        justifyContent: "center",
+        paddingHorizontal: 32,
+    },
+    cardFamily: {
+        flex: 1,
+        height: 170,
+        backgroundColor: "#FFCDD2", // Family
+    },
+    cardStudy: {
+        flex: 1,
+        height: 170,
+        backgroundColor: "#B2DFDB", // Study
+    },
+    cardOther: {
+        flex: 1,
+        height: 170,
+        backgroundColor: "#ECEFF1", // Other
+    },
+    cardAll: {
+        flex: 1,
+        height: 170,
+        backgroundColor: "#263238", // All Topics
+    },
+    bentoTitleSerif: {
+        fontSize: 18,
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        color: "#4A4A4A",
         marginBottom: 4,
     },
-    categorySubtitle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#1F2937",
-        lineHeight: 26,
+    bentoTitleBig: {
+        fontSize: 26,
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        color: "#263238",
+        marginBottom: 4,
     },
-    decorativeCircle: {
-        position: 'absolute',
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        borderRadius: 1000,
-    },
-    decorCircle1: {
-        width: 80,
-        height: 80,
-        bottom: -20,
-        right: -10,
-    },
-    decorCircle2: {
-        width: 50,
-        height: 50,
-        bottom: 40,
-        right: 60,
-    },
-    // People Tab Styles
-    peopleSortContainer: {
-        paddingHorizontal: 20,
-        marginBottom: 8,
-        flexDirection: 'row',
-        gap: 8,
-    },
-    pillButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: "#F3F4F6",
-        borderWidth: 1,
-        borderColor: "transparent",
-    },
-    pillButtonActive: {
-        backgroundColor: "#FFCDD2", // Family card bg
-        borderColor: "#E57373",
-    },
-    pillButtonText: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#6B7280",
-    },
-    pillButtonTextActive: {
-        color: "#E57373",
-    },
-    peopleListContainer: {
-        marginTop: 8,
-    },
-    personItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        backgroundColor: "#FFFFFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#F3F4F6",
-    },
-    personLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-        flex: 1,
-        gap: 12,
-    },
-    personInfo: {
-        flex: 1,
-        justifyContent: 'center',
-        marginRight: 8,
-    },
-    nameRoleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        marginBottom: 2,
-        gap: 6,
-    },
-    personName: {
-        fontSize: 15,
-        fontWeight: "700",
-        color: "#1F2937",
-    },
-    personBio: {
-        fontSize: 12,
-        color: "#9CA3AF",
-        lineHeight: 16,
-    },
-    roleBagde: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    roleText: {
+    bentoSubtitle: {
         fontSize: 10,
         fontWeight: "700",
+        color: "#787878",
+        letterSpacing: 0.5,
+        opacity: 0.6,
+    },
+    bentoSubtitleDark: {
+        fontSize: 10,
+        fontWeight: "700",
+        color: "#546E7A",
+        letterSpacing: 1,
+        opacity: 0.7,
+    },
+
+    // Top 10 Section
+    top10List: {
+        paddingHorizontal: 24,
+        paddingRight: 8,
+    },
+    top10Card: {
+        width: 260,
+        marginRight: 16,
+    },
+    top10Content: {
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#E0E0E0",
+        borderRadius: 16,
+        padding: 14,
+        height: 200,
+        width: 260,
+        justifyContent: "space-between",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+        position: 'relative',
+    },
+    rankBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#263238',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        zIndex: 10,
+    },
+    rankBadgeText: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#FFFFFF',
         letterSpacing: 0.5,
     },
-    statContainer: {
-        alignItems: 'flex-end',
-        minWidth: 60,
+    rankNumber: {
+        display: 'none', // Deprecated - now using rankBadge
     },
-    statNumber: {
-        fontSize: 16,
-        fontWeight: "800",
-        color: "#1F2937",
-        letterSpacing: -0.5,
+    categoryPill: {
+        alignSelf: "flex-start",
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        marginBottom: 8,
     },
-    statLabel: {
-        fontSize: 11,
-        fontWeight: "500",
-        color: "#9CA3AF",
+    categoryPillText: {
+        fontSize: 9,
+        fontWeight: "700",
+        color: "#7B1FA2",
+        letterSpacing: 0.3,
     },
-    emptyState: {
-        alignItems: 'center',
-        paddingVertical: 40,
-        gap: 12,
+    top10Author: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
+        gap: 6,
     },
-    emptyStateText: {
-        color: "#9CA3AF",
-        fontSize: 14,
-    },
-    loadingContainer: {
-        paddingVertical: 40,
+    top10Avatar: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: "#EFE8FF",
+        justifyContent: "center",
         alignItems: "center",
     },
-    resultsSection: {
-        marginTop: 8,
+    top10AuthorName: {
+        fontSize: 10,
+        fontWeight: "600",
+        color: "#9575cd",
+        flex: 1,
     },
-    postsList: {
-        borderTopWidth: 1,
-        borderTopColor: "#F3F4F6",
-    }
+    top10Title: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#212121",
+        lineHeight: 17,
+        marginBottom: 4,
+    },
+    top10Description: {
+        fontSize: 11,
+        fontWeight: "400",
+        color: "#757575",
+        lineHeight: 15,
+        marginBottom: 8,
+    },
+    top10Reactions: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    top10ReactionItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
+    },
+    top10ReactionText: {
+        fontSize: 10,
+        fontWeight: "600",
+        color: "#757575",
+    },
+    top10CommentSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
+        marginLeft: "auto",
+    },
+    top10Stats: {
+        display: 'none', // Deprecated
+    },
+    top10Footer: {
+        display: 'none', // Deprecated
+    },
+
+    // Stories of the Day
+    storiesList: {
+        paddingHorizontal: 24,
+    },
+    storyCard: {
+        width: width * 0.85,
+        marginRight: 16,
+        padding: 32,
+        borderWidth: 1,
+        borderColor: "#f0f0f0",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+    },
+    quoteIcon: {
+        marginBottom: 24,
+    },
+    storyQuote: {
+        fontSize: 20,
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontStyle: "italic",
+        color: "#111827",
+        textAlign: "center",
+        lineHeight: 30,
+        marginBottom: 24,
+    },
+    storyAuthor: {
+        fontSize: 14,
+        color: "#6B7280",
+        marginTop: -16,
+        marginBottom: 24,
+        fontStyle: "italic",
+    },
+    divider: {
+        width: 40,
+        height: 2,
+        backgroundColor: "#E0E7FF",
+        marginBottom: 16,
+    },
+    storyTag: {
+        fontSize: 10,
+        fontWeight: "700",
+        color: "#9CA3AF",
+        letterSpacing: 1.5,
+    },
+
+    // Editorial Pick
+    editorialSection: {
+        padding: 32,
+        alignItems: "center",
+        marginTop: 24,
+    },
+    curatedTitle: {
+        fontSize: 10,
+        fontWeight: "800",
+        color: "#9CA3AF",
+        letterSpacing: 2,
+        marginBottom: 16,
+    },
+    editorialLabel: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#A5B4FC",
+        letterSpacing: 1,
+        marginBottom: 16,
+    },
+    articleTitle: {
+        fontSize: 28,
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        color: "#1F2937",
+        textAlign: "center",
+        lineHeight: 36,
+        marginBottom: 16,
+    },
+    articleSnippet: {
+        fontSize: 14,
+        color: "#6B7280",
+        textAlign: "center",
+        lineHeight: 24,
+        marginBottom: 32,
+        paddingHorizontal: 16,
+    },
+    readMoreButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 16,
+    },
+    readMoreLine: {
+        width: 40,
+        height: 1,
+        backgroundColor: "#E5E7EB",
+    },
+    readMoreText: {
+        fontSize: 10,
+        fontWeight: "700",
+        color: "#374151",
+        letterSpacing: 1.5,
+    },
 });
