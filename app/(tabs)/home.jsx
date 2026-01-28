@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -41,6 +42,7 @@ export default function Home() {
   const [firebasePosts, setFirebasePosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   const categories = [
     "All Feed",
@@ -175,104 +177,119 @@ export default function Home() {
     <SafeAreaView style={styles.container} edges={["top"]}>
 
 
-      {/* Header */}
-      <View style={styles.header}>
-
-        <Text style={styles.logo}>LetItOut</Text>
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={() => router.push("/notifications")}
-        >
-          <Ionicons
-            name="notifications-outline"
-            size={26}
-            color="#212121"
-          />
-          {unreadCount > 0 && (
-            <View style={{
-              position: 'absolute',
-              top: -2,
-              right: -2,
-              backgroundColor: '#FF5252',
-              borderRadius: 9, // half of width/height
-              minWidth: 18,
-              height: 18,
-              justifyContent: 'center',
-              alignItems: 'center',
-              paddingHorizontal: 2,
-              borderWidth: 1.5,
-              borderColor: '#FFFFFF',
-            }}>
-              <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#BDBDBD" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search discussions..."
-            placeholderTextColor="#BDBDBD"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearchQuery("")}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close-circle" size={20} color="#BDBDBD" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Category Filter */}
-      <View style={styles.categoriesContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContent}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryChip,
-                selectedCategory === category && {
-                  backgroundColor: getCategoryColor(category),
-                  borderColor: getCategoryColor(category),
-                },
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedCategory === category &&
-                  styles.categoryTextActive,
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Posts Feed */}
       <FlatList
-        data={filteredPosts}
+        data={[
+          { id: 'header' }, // Just header now, no search
+          { id: 'sticky-categories' },
+          ...filteredPosts
+        ]}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => {
+          if (item.id === 'header') {
+            return (
+              <View style={styles.header}>
+                <TouchableOpacity style={styles.iconButton}>
+                  <Ionicons name="menu-outline" size={24} color="#212121" />
+                </TouchableOpacity>
+
+                <View style={styles.logoContainer}>
+                  <Text style={styles.logo}>Let It Out</Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => router.push("/notifications")}
+                >
+                  <View style={styles.notificationIconContainer}>
+                    <Ionicons
+                      name="notifications-outline"
+                      size={24}
+                      color="#212121"
+                    />
+                    {unreadCount > 0 && (
+                      <View style={styles.badge} />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            );
+          }
+          if (item.id === 'sticky-categories') {
+            return (
+              <View style={styles.stickyContainer}>
+                {isSearchExpanded ? (
+                  <View style={styles.expandedWrapper}>
+                    <View style={styles.expandedSearchBar}>
+                      <Ionicons name="search" size={20} color="#212121" />
+                      <TextInput
+                        style={styles.expandedSearchInput}
+                        placeholder="Search..."
+                        placeholderTextColor="#9E9E9E"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoFocus
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => {
+                        setSearchQuery("");
+                        setIsSearchExpanded(false);
+                      }}
+                    >
+                      <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.categoriesRow}>
+                    <TouchableOpacity
+                      style={styles.searchIconButton}
+                      onPress={() => setIsSearchExpanded(true)}
+                    >
+                      <Ionicons name="search" size={20} color="#212121" />
+                    </TouchableOpacity>
+
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.categoriesContent}
+                    >
+                      {categories.map((category) => (
+                        <TouchableOpacity
+                          key={category}
+                          style={[
+                            styles.categoryChip,
+                            selectedCategory === category && {
+                              backgroundColor: getCategoryColor(category),
+                              borderColor: getCategoryColor(category),
+                              shadowColor: getCategoryColor(category),
+                              shadowOpacity: 0.3,
+                            },
+                          ]}
+                          onPress={() => setSelectedCategory(category)}
+                        >
+                          <Text
+                            style={[
+                              styles.categoryText,
+                              selectedCategory === category &&
+                              styles.categoryTextActive,
+                            ]}
+                          >
+                            {category}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+            );
+          }
+          return <PostCard post={item} />;
+        }}
         contentContainerStyle={styles.feedContent}
         showsVerticalScrollIndicator={false}
+        stickyHeaderIndices={[1]} // Make only the categories (index 1) sticky
         ListEmptyComponent={
           loading ? (
             <View style={styles.emptyContainer}>
@@ -307,66 +324,158 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F5F5F5",
   },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "700",
     color: "#212121",
+    letterSpacing: -0.5,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },
-  notificationButton: {
+  iconButton: {
     width: 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 20,
+    backgroundColor: "#FAFAFA",
+  },
+  notificationIconContainer: {
+    position: 'relative',
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 2,
+    backgroundColor: '#FF5252',
+    borderRadius: 4,
+    width: 8,
+    height: 8,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   searchContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: "#FFFFFF",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 30,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 10,
+    gap: 12,
+    // Premium Shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#FAFAFA",
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
     color: "#212121",
+    fontWeight: "500",
+  },
+  stickyContainer: {
+    backgroundColor: "#FFFFFF", // Changed from #F5F5F5 to White
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  categoriesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    height: 40, // Enforce fixed height
+  },
+  searchIconButton: {
+    width: 40,
+    height: 40, // Fixed height
+    borderRadius: 20,
+    backgroundColor: "#F5F5F5", // Slight contrast button instead of white-on-white, or border? Let's use F5F5F5 for button bg on white row
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expandedWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  expandedSearchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "#F5F5F5",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    height: 40,
+    gap: 8,
+  },
+  expandedSearchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: "#212121",
+    fontWeight: "500",
+    padding: 0,
+    height: '100%',
+  },
+  cancelButton: {
+    paddingHorizontal: 4,
+  },
+  cancelText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#212121",
   },
   categoriesContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingBottom: 16,
+    backgroundColor: "transparent",
   },
   categoriesContent: {
-    paddingHorizontal: 20,
-    gap: 12,
+    paddingRight: 20,
+    gap: 10,
+    alignItems: 'center', // Center vertically
   },
   categoryChip: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    height: 40, // EXACT MATCH
+    justifyContent: 'center', // Center text
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    backgroundColor: "#F5F5F5", // Grey chip on White bg now? Or keep white chip?
+    // If bg is white, white chip is invisible without shadow.
+    // User said "don't need grey bg". Maybe they want White Chips on White Bg (with shadow)?
+    // Or maybe "don't need grey bg" means the STICKY CONTAINER bg?
+    // I will stick to White Chips with Shadow on White Container, OR slightly off-white chips.
+    // Let's use #F5F5F5 for chips/button on a #FFFFFF container. It's clean.
+  },
+  categoryChipActive: {
+    backgroundColor: "#9F8BFF", // Re-add active style helper if lost?
+    // No, logic is inline. But style name exists?
   },
   categoryText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     color: "#757575",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   categoryTextActive: {
     color: "#FFFFFF",
