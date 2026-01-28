@@ -841,7 +841,19 @@ export default function PostDetail() {
                             </View>
 
                             {/* Author Section */}
-                            <View style={styles.authorSection}>
+                            <TouchableOpacity
+                                style={styles.authorSection}
+                                onPress={() => {
+                                    if (post.authorId && !post.isAnonymous) {
+                                        if (user && user.uid === post.authorId) {
+                                            router.push("/(tabs)/profile");
+                                        } else {
+                                            router.push(`/user/${post.authorId}`);
+                                        }
+                                    }
+                                }}
+                                disabled={post.isAnonymous || !post.authorId}
+                            >
                                 {post.isAnonymous ||
                                     !post.authorName ||
                                     post.authorName === "Anonymous" ||
@@ -859,7 +871,7 @@ export default function PostDetail() {
                                         ? "Anonymous"
                                         : post.authorName}
                                 </Text>
-                            </View>
+                            </TouchableOpacity>
 
                             <Text style={styles.postTitle}>{post.title}</Text>
                             <Text style={styles.postDescription}>{post.description}</Text>

@@ -278,7 +278,20 @@ export default function PostCard({ post, hideDescription = false }) {
                 </View>
 
                 {/* Author Section */}
-                <View style={styles.authorSection}>
+                <TouchableOpacity
+                    style={styles.authorSection}
+                    onPress={(e) => {
+                        e.stopPropagation(); // Prevent navigating to post details
+                        if (post.authorId && !post.isAnonymous) {
+                            if (user && user.uid === post.authorId) {
+                                router.push("/(tabs)/profile");
+                            } else {
+                                router.push(`/user/${post.authorId}`);
+                            }
+                        }
+                    }}
+                    disabled={post.isAnonymous || !post.authorId}
+                >
                     {post.isAnonymous ||
                         !post.authorName ||
                         post.authorName === "Anonymous" ||
@@ -299,7 +312,7 @@ export default function PostCard({ post, hideDescription = false }) {
                         </Text>
                         <Text style={styles.timestamp}>{post.timestamp}</Text>
                     </View>
-                </View>
+                </TouchableOpacity>
 
                 <Text style={styles.title}>{post.title}</Text>
 
