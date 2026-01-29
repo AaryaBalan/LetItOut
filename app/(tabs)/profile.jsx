@@ -51,6 +51,9 @@ export default function Profile() {
   const [friendsListType, setFriendsListType] = useState('following');
   const [friendsList, setFriendsList] = useState([]);
   const [isLoadingFriends, setIsLoadingFriends] = useState(false);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [loadingSavedPosts, setLoadingSavedPosts] = useState(true);
+  const [showAllSavedModal, setShowAllSavedModal] = useState(false);
 
   // Listen to user profile changes in real-time
   useEffect(() => {
@@ -417,6 +420,49 @@ export default function Profile() {
     };
   }, [user]);
 
+  // Fetch saved posts
+  useEffect(() => {
+    const fetchSavedPosts = async () => {
+      if (!user) {
+        setLoadingSavedPosts(false);
+        return;
+      }
+
+      try {
+        // Get user's saved posts array
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const savedPostIds = userDoc.data().savedPosts || [];
+
+          if (savedPostIds.length === 0) {
+            setSavedPosts([]);
+            setLoadingSavedPosts(false);
+            return;
+          }
+
+          // Fetch each saved post
+          const postsPromises = savedPostIds.map(async (postId) => {
+            const postDoc = await getDoc(doc(db, "posts", postId));
+            if (postDoc.exists()) {
+              return { id: postDoc.id, ...postDoc.data() };
+            }
+            return null;
+          });
+
+          const posts = await Promise.all(postsPromises);
+          const validPosts = posts.filter(post => post !== null);
+          setSavedPosts(validPosts);
+        }
+      } catch (error) {
+        console.error("Error fetching saved posts:", error);
+      } finally {
+        setLoadingSavedPosts(false);
+      }
+    };
+
+    fetchSavedPosts();
+  }, [user]);
+
   const getTimeAgo = (timestamp) => {
     if (!timestamp) return "Just now";
     const now = new Date();
@@ -642,130 +688,73 @@ export default function Profile() {
           </View>
         </View>
 
-        {/* My Stories Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Stories</Text>
-            {userPosts.length > 2 && (
-              <TouchableOpacity
-                onPress={() => setShowAllStoriesModal(true)}
-              >
-                <Text style={styles.viewAllText}>VIEW ALL</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {loadingPosts ? (
-            <View style={styles.storyCard}>
-              <ActivityIndicator size="small" color="#B39DDB" style={{ marginBottom: 8 }} />
-              <Text style={styles.storyText}>Loading your posts...</Text>
+        {/* Stories and Saved Posts Row */}
+        <View style={styles.cardsRow}>
+          {/* My Stories Card */}
+          <TouchableOpacity
+            style={[styles.squareCard, styles.storiesCard]}
+            onPress={() => setShowAllStoriesModal(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.squareCardContent}>
+              <View style={[styles.squareIconContainer, styles.storiesIconBg]}>
+                <Ionicons name="document-text" size={32} color="#7C3AED" />
+              </View>
+              <Text style={styles.squareCount}>{userPosts.length}</Text>
+              <Text style={styles.squareLabel}>My Stories</Text>
             </View>
-          ) : userPosts.length > 0 ? (
-            userPosts.slice(0, 2).map((post) => {
-              const reactions = postReactions[post.id] || {
-                like: 0,
-                hug: 0,
-                metoo: 0,
-              };
-              const totalReactions =
-                reactions.like + reactions.hug + reactions.metoo;
+          </TouchableOpacity>
 
-              return (
-                <TouchableOpacity
-                  key={post.id}
-                  style={styles.storyCard}
-                  onPress={() => router.push(`/post/${post.id}`)}
-                >
-                  <Text style={styles.storyCategory}>
-                    {post.category.toUpperCase()}
-                  </Text>
-                  <Text style={styles.storyTime}>
-                    {getTimeAgo(post.createdAt)}
-                  </Text>
-                  <Text style={styles.storyText} numberOfLines={2}>
-                    {post.title}
-                  </Text>
-                  <View style={styles.storyFooter}>
-                    <Ionicons
-                      name="heart"
-                      size={16}
-                      color="#E57373"
-                    />
-                    <Text style={styles.storyHugs}>
-                      {totalReactions} reactions received
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
-          ) : (
-            <View style={styles.storyCard}>
-              <Text style={styles.storyText}>
-                No posts yet. Share your first thought!
-              </Text>
+          {/* Saved Posts Card */}
+          <TouchableOpacity
+            style={[styles.squareCard, styles.savedCard]}
+            onPress={() => setShowAllSavedModal(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.squareCardContent}>
+              <View style={[styles.squareIconContainer, styles.savedIconBg]}>
+                <Ionicons name="bookmark" size={32} color="#F59E0B" />
+              </View>
+              <Text style={styles.squareCount}>{savedPosts.length}</Text>
+              <Text style={styles.squareLabel}>Saved Posts</Text>
             </View>
-          )}
+          </TouchableOpacity>
         </View>
 
         {/* Supportive History Section */}
-        <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => setShowAllHistoryModal(true)}
+          activeOpacity={0.7}
+        >
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Supportive History</Text>
-            {supportiveHistory.length > 2 && (
-              <TouchableOpacity
-                onPress={() => setShowAllHistoryModal(true)}
-              >
-                <Text style={styles.recentText}>VIEW MORE</Text>
-              </TouchableOpacity>
-            )}
+            <Ionicons name="chevron-forward" size={20} color="#9575cd" />
           </View>
 
           {loadingHistory ? (
-            <View style={styles.historyCard}>
-              <ActivityIndicator size="small" color="#B39DDB" style={{ marginBottom: 8 }} />
-              <Text style={styles.historyText}>
-                Loading your activity...
-              </Text>
+            <View style={styles.summaryCard}>
+              <ActivityIndicator size="small" color="#B39DDB" />
             </View>
-          ) : supportiveHistory.length > 0 ? (
-            supportiveHistory.slice(0, 2).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.historyCard}
-                onPress={() => router.push(`/post/${item.postId}`)}
-              >
-                <Text
-                  style={[
-                    styles.historyTag,
-                    { color: getHistoryCardTextColor(item.type) },
-                  ]}
-                >
-                  {item.action.toUpperCase()}
-                </Text>
-                <Text style={styles.historyTime}>
-                  {getTimeAgo(item.timestamp)}
-                </Text>
-                {item.type === "comment" ? (
-                  <Text style={styles.historyText} numberOfLines={2}>
-                    "{item.comment.substring(0, 50)}
-                    {item.comment.length > 50 ? "..." : ""}" in "
-                    {item.postTitle}"
-                  </Text>
-                ) : (
-                  <Text style={styles.historyText} numberOfLines={2}>
-                    {item.postTitle}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ))
           ) : (
-            <View style={styles.historyCard}>
-              <Text style={styles.historyText}>
-                No activity yet. Start supporting others!
-              </Text>
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryIconContainer}>
+                  <Ionicons name="heart" size={24} color="#E57373" />
+                </View>
+                <View style={styles.summaryContent}>
+                  <Text style={styles.summaryCount}>{supportiveHistory.length}</Text>
+                  <Text style={styles.summaryLabel}>
+                    {supportiveHistory.length === 1 ? 'Interaction' : 'Interactions'}
+                  </Text>
+                </View>
+              </View>
+              {supportiveHistory.length > 0 && (
+                <Text style={styles.summaryHint}>Tap to view your support history</Text>
+              )}
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
@@ -856,6 +845,66 @@ export default function Profile() {
                 </TouchableOpacity>
               );
             })}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* All Saved Posts Modal */}
+      <Modal
+        visible={showAllSavedModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowAllSavedModal(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Saved Posts</Text>
+            <TouchableOpacity
+              onPress={() => setShowAllSavedModal(false)}
+            >
+              <Ionicons name="close" size={28} color="#212121" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollView}>
+            {savedPosts.length > 0 ? (
+              savedPosts.map((post) => (
+                <TouchableOpacity
+                  key={post.id}
+                  style={styles.storyCard}
+                  onPress={() => {
+                    setShowAllSavedModal(false);
+                    router.push(`/post/${post.id}`);
+                  }}
+                >
+                  <Text style={styles.storyCategory}>
+                    {post.category?.toUpperCase() || "GENERAL"}
+                  </Text>
+                  <Text style={styles.storyTime}>
+                    {getTimeAgo(post.createdAt)}
+                  </Text>
+                  <Text style={styles.storyText} numberOfLines={2}>
+                    {post.title}
+                  </Text>
+                  <View style={styles.storyFooter}>
+                    <Ionicons
+                      name="bookmark"
+                      size={16}
+                      color="#FFB74D"
+                    />
+                    <Text style={styles.storyHugs}>
+                      Saved
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.storyCard}>
+                <Text style={styles.storyText}>
+                  No saved posts yet. Tap the bookmark icon on any post to save it!
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -1395,6 +1444,101 @@ const styles = StyleSheet.create({
   emptyStateText: {
     color: "#9E9E9E",
     fontSize: 14,
+  },
+  summaryCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  summaryIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#F3E5F5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  summaryContent: {
+    flex: 1,
+  },
+  summaryCount: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#212121",
+    marginBottom: 4,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: "#757575",
+    fontWeight: "500",
+  },
+  summaryHint: {
+    fontSize: 12,
+    color: "#9575cd",
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  cardsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+  },
+  squareCard: {
+    flex: 1,
+    aspectRatio: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  squareCardContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  squareIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#F3E5F5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  squareCount: {
+    fontSize: 36,
+    fontWeight: "700",
+    color: "#212121",
+    marginBottom: 4,
+  },
+  squareLabel: {
+    fontSize: 13,
+    storiesCard: {
+      backgroundColor: "#F3E8FF",
+    },
+    storiesIconBg: {
+      backgroundColor: "#E9D5FF",
+    },
+    savedCard: {
+      backgroundColor: "#FEF3C7",
+    },
+    savedIconBg: {
+      backgroundColor: "#FDE68A",
+    },
+    color: "#757575",
+    fontWeight: "600",
+    textAlign: "center",
   },
 
 });

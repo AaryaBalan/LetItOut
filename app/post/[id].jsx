@@ -2,6 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     addDoc,
+    arrayRemove,
+    arrayUnion,
     collection,
     deleteDoc,
     doc,
@@ -90,6 +92,8 @@ export default function PostDetail() {
     const [showShareModal, setShowShareModal] = useState(false);
     const [friends, setFriends] = useState([]);
     const [sharing, setSharing] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     // Fetch post from Firebase or dummy data
     useEffect(() => {
@@ -343,6 +347,25 @@ export default function PostDetail() {
             hideSubscription.remove();
         };
     }, []);
+
+    // Check if post is saved
+    useEffect(() => {
+        const checkSavedStatus = async () => {
+            if (!user || !id) return;
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const savedPosts = userDoc.data().savedPosts || [];
+                    setIsSaved(savedPosts.includes(String(id)));
+                }
+            } catch (error) {
+                console.error("Error checking saved status:", error);
+            }
+        };
+
+        checkSavedStatus();
+    }, [user, id]);
 
     // Fetch friends list
     useEffect(() => {
@@ -752,6 +775,41 @@ export default function PostDetail() {
         );
     };
 
+
+    // Save/Unsave post
+    const handleSavePost = async () => {
+        if (!user) {
+            Alert.alert("Not Logged In", "Please log in to save posts.");
+            return;
+        }
+
+        if (saving) return;
+
+        setSaving(true);
+        try {
+            const userRef = doc(db, "users", user.uid);
+
+            if (isSaved) {
+                // Unsave post
+                await updateDoc(userRef, {
+                    savedPosts: arrayRemove(String(id))
+                });
+                setIsSaved(false);
+            } else {
+                // Save post
+                await updateDoc(userRef, {
+                    savedPosts: arrayUnion(String(id))
+                });
+                setIsSaved(true);
+            }
+        } catch (error) {
+            console.error("Error saving/unsaving post:", error);
+            Alert.alert("Error", "Failed to save post. Please try again.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleDelete = async () => {
         Alert.alert(
             "Delete Post",
@@ -795,6 +853,17 @@ export default function PostDetail() {
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Post Detail</Text>
                 <View style={styles.headerRight}>
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={handleSavePost}
+                        disabled={saving}
+                    >
+                        <Ionicons
+                            name={isSaved ? "bookmark" : "bookmark-outline"}
+                            size={24}
+                            color={isSaved ? "#FFB74D" : "#9575cd"}
+                        />
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.headerButton}
                         onPress={() => setShowShareModal(true)}
