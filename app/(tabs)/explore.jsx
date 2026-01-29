@@ -79,39 +79,51 @@ export default function Explore() {
         <SafeAreaView style={styles.container} edges={["top"]}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-            {/* Header - Home Style */}
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons name="menu-outline" size={24} color="#212121" />
-                </TouchableOpacity>
-
-                <View style={styles.logoContainer}>
-                    <Text style={styles.logo}>Explore</Text>
-                </View>
-
-                <TouchableOpacity
-                    style={styles.iconButton}
-                    onPress={() => router.push("/notifications")}
-                >
-                    <Ionicons name="notifications-outline" size={24} color="#212121" />
-                </TouchableOpacity>
-            </View>
-
-            {/* Search Bar - Home Style */}
-            <View style={styles.searchSection}>
-                <View style={styles.searchBar}>
-                    <Ionicons name="search-outline" size={20} color="#9CA3AF" />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search posts, topics..."
-                        placeholderTextColor="#9CA3AF"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-            </View>
-
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                {/* Modern White Header */}
+                <View style={styles.headerWrapper}>
+                    <View style={styles.header}>
+                        {/* Top Row */}
+                        <View style={styles.headerTop}>
+                            <View style={styles.headerLeft}>
+                                <View style={styles.logoContainer}>
+                                    <Ionicons name="compass" size={28} color="#9575cd" />
+                                </View>
+                                <View>
+                                    <Text style={styles.headerTitle}>Explore</Text>
+                                    <Text style={styles.headerSubtitle}>Discover & Connect</Text>
+                                </View>
+                            </View>
+                            <View style={styles.headerRight}>
+                                <TouchableOpacity
+                                    style={styles.iconButton}
+                                    onPress={() => router.push("/notifications")}
+                                >
+                                    <Ionicons name="notifications-outline" size={24} color="#212121" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Enhanced Search Bar */}
+                        <View style={styles.searchContainer}>
+                            <View style={styles.searchBar}>
+                                <Ionicons name="search" size={20} color="#9575cd" />
+                                <TextInput
+                                    style={styles.searchInput}
+                                    placeholder="Search communities, topics, people..."
+                                    placeholderTextColor="#BDBDBD"
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                />
+                                {searchQuery.length > 0 && (
+                                    <TouchableOpacity onPress={() => setSearchQuery("")}>
+                                        <Ionicons name="close-circle" size={20} color="#BDBDBD" />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </View>
+                    </View>
+                </View>
 
                 {searchQuery.trim() ? (
                     // Search Results
@@ -377,62 +389,89 @@ export default function Explore() {
                             </TouchableOpacity>
                         </View>
                     </>
-                )
-                }
-            </ScrollView >
-        </SafeAreaView >
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FAFAFA",
+        backgroundColor: "#FFFFFF",
+    },
+    scrollContent: {
+        paddingBottom: 20,
+    },
+    headerWrapper: {
+        backgroundColor: "#FFFFFF",
+        paddingTop: 8,
+        marginBottom: 12,
     },
     header: {
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+    },
+    headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: "#FFFFFF",
+        marginBottom: 16,
+        marginTop: 8,
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    logoContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: '#F3E5F5',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#212121',
+        letterSpacing: -0.5,
+    },
+    headerSubtitle: {
+        fontSize: 12,
+        color: '#9E9E9E',
+        marginTop: 2,
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
     iconButton: {
         width: 40,
         height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F5F5F5',
+        alignItems: 'center',
         justifyContent: 'center',
-        alignItems: 'center',
     },
-    logoContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    logo: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#212121",
-        letterSpacing: 0.5,
-    },
-    searchSection: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        backgroundColor: "#FFFFFF",
+    searchContainer: {
+        paddingHorizontal: 0,
     },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
-        borderRadius: 30,
+        backgroundColor: "#F8F9FA",
+        borderRadius: 24,
         paddingHorizontal: 16,
         paddingVertical: 12,
-        gap: 12,
+        gap: 10,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 4,
-        borderWidth: 1,
-        borderColor: "#FAFAFA",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     searchInput: {
         flex: 1,
