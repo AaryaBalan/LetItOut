@@ -26,6 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import AvatarSelectionModal from "../../components/AvatarSelectionModal";
 import EditProfileModal from "../../components/EditProfileModal";
+import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 
@@ -791,122 +792,87 @@ export default function Profile() {
       <Modal
         visible={showAllStoriesModal}
         animationType="slide"
-        transparent={false}
+        transparent={true}
         onRequestClose={() => setShowAllStoriesModal(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>All My Stories</Text>
-            <TouchableOpacity
-              onPress={() => setShowAllStoriesModal(false)}
-            >
-              <Ionicons name="close" size={28} color="#212121" />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent80}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>All My Stories</Text>
+              <TouchableOpacity
+                onPress={() => setShowAllStoriesModal(false)}
+              >
+                <Ionicons name="close" size={28} color="#212121" />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView style={styles.modalScrollView}>
-            {userPosts.map((post) => {
-              const reactions = postReactions[post.id] || {
-                like: 0,
-                hug: 0,
-                metoo: 0,
-              };
-              const totalReactions =
-                reactions.like + reactions.hug + reactions.metoo;
+            <ScrollView style={styles.modalScrollView} contentContainerStyle={styles.modalScrollContent}>
+              {userPosts.map((post) => {
+                const reactions = postReactions[post.id] || {
+                  like: 0,
+                  hug: 0,
+                  metoo: 0,
+                };
+                const postData = {
+                  ...post,
+                  timestamp: getTimeAgo(post.createdAt),
+                };
 
-              return (
-                <TouchableOpacity
-                  key={post.id}
-                  style={styles.storyCard}
-                  onPress={() => {
-                    setShowAllStoriesModal(false);
-                    router.push(`/post/${post.id}`);
-                  }}
-                >
-                  <Text style={styles.storyCategory}>
-                    {post.category.toUpperCase()}
-                  </Text>
-                  <Text style={styles.storyTime}>
-                    {getTimeAgo(post.createdAt)}
-                  </Text>
-                  <Text style={styles.storyText} numberOfLines={2}>
-                    {post.title}
-                  </Text>
-                  <View style={styles.storyFooter}>
-                    <Ionicons
-                      name="heart"
-                      size={16}
-                      color="#E57373"
-                    />
-                    <Text style={styles.storyHugs}>
-                      {totalReactions} reactions received
-                    </Text>
+                return (
+                  <View key={post.id} style={styles.postCardWrapper}>
+                    <PostCard post={postData} hideDescription={false} />
                   </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </SafeAreaView>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
 
       {/* All Saved Posts Modal */}
       <Modal
         visible={showAllSavedModal}
         animationType="slide"
-        transparent={false}
+        transparent={true}
         onRequestClose={() => setShowAllSavedModal(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Saved Posts</Text>
-            <TouchableOpacity
-              onPress={() => setShowAllSavedModal(false)}
-            >
-              <Ionicons name="close" size={28} color="#212121" />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent80}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Saved Posts</Text>
+              <TouchableOpacity
+                onPress={() => setShowAllSavedModal(false)}
+              >
+                <Ionicons name="close" size={28} color="#212121" />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView style={styles.modalScrollView}>
-            {savedPosts.length > 0 ? (
-              savedPosts.map((post) => (
-                <TouchableOpacity
-                  key={post.id}
-                  style={styles.storyCard}
-                  onPress={() => {
-                    setShowAllSavedModal(false);
-                    router.push(`/post/${post.id}`);
-                  }}
-                >
-                  <Text style={styles.storyCategory}>
-                    {post.category?.toUpperCase() || "GENERAL"}
+            <ScrollView style={styles.modalScrollView} contentContainerStyle={styles.modalScrollContent}>
+              {savedPosts.length > 0 ? (
+                savedPosts.map((post) => {
+                  const postData = {
+                    ...post,
+                    timestamp: getTimeAgo(post.createdAt),
+                  };
+
+                  return (
+                    <View key={post.id} style={styles.postCardWrapper}>
+                      <PostCard post={postData} hideDescription={false} />
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={styles.emptyState}>
+                  <Ionicons name="bookmark-outline" size={64} color="#BDBDBD" />
+                  <Text style={styles.emptyStateTitle}>No saved posts yet</Text>
+                  <Text style={styles.emptyStateText}>
+                    Tap the bookmark icon on any post to save it!
                   </Text>
-                  <Text style={styles.storyTime}>
-                    {getTimeAgo(post.createdAt)}
-                  </Text>
-                  <Text style={styles.storyText} numberOfLines={2}>
-                    {post.title}
-                  </Text>
-                  <View style={styles.storyFooter}>
-                    <Ionicons
-                      name="bookmark"
-                      size={16}
-                      color="#FFB74D"
-                    />
-                    <Text style={styles.storyHugs}>
-                      Saved
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <View style={styles.storyCard}>
-                <Text style={styles.storyText}>
-                  No saved posts yet. Tap the bookmark icon on any post to save it!
-                </Text>
-              </View>
-            )}
-          </ScrollView>
-        </SafeAreaView>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
 
       {/* All History Modal */}
@@ -1401,8 +1367,29 @@ const styles = StyleSheet.create({
   },
   modalScrollView: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    backgroundColor: "#F7F7F7",
+  },
+  modalScrollContent: {
+    paddingBottom: 20,
+  },
+  postCardWrapper: {
+    marginBottom: 0,
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#666",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    color: "#9E9E9E",
+    fontSize: 14,
+    textAlign: "center",
   },
   modalOverlay: {
     flex: 1,
@@ -1411,6 +1398,13 @@ const styles = StyleSheet.create({
   },
   modalContent75: {
     height: "75%",
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: "hidden",
+  },
+  modalContent80: {
+    height: "80%",
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
