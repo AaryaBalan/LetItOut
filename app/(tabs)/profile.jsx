@@ -589,7 +589,7 @@ export default function Profile() {
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Your Profile</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.settingsButton}
           onPress={() => router.push('/settings')}
         >

@@ -89,7 +89,7 @@ export default function Settings() {
         {/* Appearance Section */}
         <View style={[styles.section, { backgroundColor: theme.surface }]}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>APPEARANCE</Text>
-          
+
           <View style={[styles.settingItem, { borderBottomColor: theme.divider }]}>
             <View style={styles.settingInfo}>
               <View style={[styles.iconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
@@ -115,7 +115,7 @@ export default function Settings() {
         {/* Security Section */}
         <View style={[styles.section, { backgroundColor: theme.surface }]}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SECURITY</Text>
-          
+
           <TouchableOpacity
             style={[styles.settingItem, { borderBottomColor: theme.divider }]}
             onPress={() => setShowChangePasswordModal(true)}
@@ -138,12 +138,12 @@ export default function Settings() {
         {/* Account Info */}
         <View style={[styles.section, { backgroundColor: theme.surface }]}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ACCOUNT INFORMATION</Text>
-          
+
           <View style={[styles.infoItem, { borderBottomColor: theme.divider }]}>
             <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Email</Text>
             <Text style={[styles.infoValue, { color: theme.text }]}>{user?.email || "N/A"}</Text>
           </View>
-          
+
           <View style={[styles.infoItem, { borderBottomColor: 'transparent' }]}>
             <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>User ID</Text>
             <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={1}>
@@ -174,10 +174,10 @@ export default function Settings() {
             <View style={styles.modalBody}>
               <Text style={[styles.inputLabel, { color: theme.text }]}>New Password</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: theme.input, 
-                  borderColor: theme.inputBorder, 
-                  color: theme.text 
+                style={[styles.input, {
+                  backgroundColor: theme.input,
+                  borderColor: theme.inputBorder,
+                  color: theme.text
                 }]}
                 placeholder="Enter new password"
                 placeholderTextColor={theme.placeholder}
@@ -189,10 +189,10 @@ export default function Settings() {
 
               <Text style={[styles.inputLabel, { color: theme.text }]}>Confirm Password</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: theme.input, 
-                  borderColor: theme.inputBorder, 
-                  color: theme.text 
+                style={[styles.input, {
+                  backgroundColor: theme.input,
+                  borderColor: theme.inputBorder,
+                  color: theme.text
                 }]}
                 placeholder="Confirm new password"
                 placeholderTextColor={theme.placeholder}
