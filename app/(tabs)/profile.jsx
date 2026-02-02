@@ -29,10 +29,12 @@ import EditProfileModal from "../../components/EditProfileModal";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function Profile() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const [userPosts, setUserPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
@@ -581,24 +583,27 @@ export default function Profile() {
       : "N/A";
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Your Profile</Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="settings" size={24} color="#212121" />
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Your Profile</Text>
+        <TouchableOpacity 
+          style={styles.settingsButton}
+          onPress={() => router.push('/settings')}
+        >
+          <Ionicons name="settings" size={24} color={theme.text} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        style={[styles.scrollView, { backgroundColor: theme.background }]}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: theme.surface }]}>
           <View style={styles.avatarContainer}>
             <Avatar seed={profileCode} size={100} />
             <TouchableOpacity
@@ -609,19 +614,19 @@ export default function Profile() {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.username}>
+          <Text style={[styles.username, { color: theme.text }]}>
             {user.displayName || "Anonymous User"}
           </Text>
-          <Text style={styles.joinDate}>Joined {joinDate}</Text>
+          <Text style={[styles.joinDate, { color: theme.textSecondary }]}>Joined {joinDate}</Text>
 
           {/* Bio */}
           {userProfile?.bio && (
-            <Text style={styles.bio}>{userProfile.bio}</Text>
+            <Text style={[styles.bio, { color: theme.text }]}>{userProfile.bio}</Text>
           )}
 
           {/* Edit Profile Button */}
           <TouchableOpacity
-            style={styles.editProfileButton}
+            style={[styles.editProfileButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5', borderColor: theme.border }]}
             onPress={() => setShowEditModal(true)}
           >
             <Ionicons name="create-outline" size={18} color="#8B5CF6" />
@@ -631,17 +636,17 @@ export default function Profile() {
           {/* Additional Info */}
           <View style={styles.infoSection}>
             <View style={styles.infoItem}>
-              <Ionicons name="mail-outline" size={16} color="#757575" />
-              <Text style={styles.infoText}>{user.email}</Text>
+              <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
+              <Text style={[styles.infoText, { color: theme.text }]}>{user.email}</Text>
             </View>
             {userProfile?.phoneNumber && (
               <View style={styles.infoItem}>
                 <Ionicons
                   name="call-outline"
                   size={16}
-                  color="#757575"
+                  color={theme.textSecondary}
                 />
-                <Text style={styles.infoText}>
+                <Text style={[styles.infoText, { color: theme.text }]}>
                   {userProfile.phoneNumber}
                 </Text>
               </View>
@@ -693,43 +698,43 @@ export default function Profile() {
         <View style={styles.cardsRow}>
           {/* My Stories Card */}
           <TouchableOpacity
-            style={[styles.squareCard, styles.storiesCard]}
+            style={[styles.squareCard, styles.storiesCard, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowAllStoriesModal(true)}
             activeOpacity={0.7}
           >
             <View style={styles.squareCardContent}>
-              <View style={[styles.squareIconContainer, styles.storiesIconBg]}>
+              <View style={[styles.squareIconContainer, styles.storiesIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EDE9FE' }]}>
                 <Ionicons name="document-text" size={32} color="#7C3AED" />
               </View>
-              <Text style={styles.squareCount}>{userPosts.length}</Text>
-              <Text style={styles.squareLabel}>My Stories</Text>
+              <Text style={[styles.squareCount, { color: theme.text }]}>{userPosts.length}</Text>
+              <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>My Stories</Text>
             </View>
           </TouchableOpacity>
 
           {/* Saved Posts Card */}
           <TouchableOpacity
-            style={[styles.squareCard, styles.savedCard]}
+            style={[styles.squareCard, styles.savedCard, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => setShowAllSavedModal(true)}
             activeOpacity={0.7}
           >
             <View style={styles.squareCardContent}>
-              <View style={[styles.squareIconContainer, styles.savedIconBg]}>
+              <View style={[styles.squareIconContainer, styles.savedIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FEF3C7' }]}>
                 <Ionicons name="bookmark" size={32} color="#F59E0B" />
               </View>
-              <Text style={styles.squareCount}>{savedPosts.length}</Text>
-              <Text style={styles.squareLabel}>Saved Posts</Text>
+              <Text style={[styles.squareCount, { color: theme.text }]}>{savedPosts.length}</Text>
+              <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Supportive History Section */}
         <TouchableOpacity
-          style={styles.section}
+          style={[styles.section, { backgroundColor: theme.card, borderColor: theme.border }]}
           onPress={() => setShowAllHistoryModal(true)}
           activeOpacity={0.7}
         >
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Supportive History</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Supportive History</Text>
             <Ionicons name="chevron-forward" size={20} color="#9575cd" />
           </View>
 
@@ -740,7 +745,7 @@ export default function Profile() {
           ) : (
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
-                <View style={styles.summaryIconContainer}>
+                <View style={[styles.summaryIconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
                   <Ionicons name="heart" size={24} color="#E57373" />
                 </View>
                 <View style={styles.summaryContent}>
@@ -796,17 +801,17 @@ export default function Profile() {
         onRequestClose={() => setShowAllStoriesModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent80}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>All My Stories</Text>
+          <View style={[styles.modalContent80, { backgroundColor: theme.surface }]}>
+            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>All My Stories</Text>
               <TouchableOpacity
                 onPress={() => setShowAllStoriesModal(false)}
               >
-                <Ionicons name="close" size={28} color="#212121" />
+                <Ionicons name="close" size={28} color={theme.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScrollView} contentContainerStyle={styles.modalScrollContent}>
+            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface }]}>
               {userPosts.map((post) => {
                 const reactions = postReactions[post.id] || {
                   like: 0,
@@ -837,9 +842,9 @@ export default function Profile() {
         onRequestClose={() => setShowAllSavedModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent80}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Saved Posts</Text>
+          <View style={[styles.modalContent80, { backgroundColor: theme.surface }]}>
+            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Saved Posts</Text>
               <TouchableOpacity
                 onPress={() => setShowAllSavedModal(false)}
               >
@@ -847,7 +852,7 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScrollView} contentContainerStyle={styles.modalScrollContent}>
+            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface }]}>
               {savedPosts.length > 0 ? (
                 savedPosts.map((post) => {
                   const postData = {
@@ -893,7 +898,7 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScrollView}>
+            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
               {supportiveHistory.map((item) => (
                 <TouchableOpacity
                   key={item.id}
@@ -969,7 +974,7 @@ export default function Profile() {
                 <ActivityIndicator size="large" color="#B39DDB" />
               </View>
             ) : (
-              <ScrollView style={styles.modalScrollView}>
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
                 {friendsList.length > 0 ? (
                   friendsList.map(friend => (
                     <TouchableOpacity

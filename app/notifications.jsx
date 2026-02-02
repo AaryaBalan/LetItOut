@@ -26,10 +26,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { createFriendRequestAcceptedNotification } from "../utils/notifications";
 
 export default function Notifications() {
     const { user } = useAuth();
+    const { theme } = useTheme();
     const router = useRouter();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -343,7 +345,7 @@ export default function Notifications() {
 
         return (
             <TouchableOpacity
-                style={styles.notificationCard}
+                style={[styles.notificationCard, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}
                 onPress={() => !isProcessing && handleNotificationPress(item)}
                 activeOpacity={0.7}
                 disabled={isProcessing}
@@ -352,7 +354,7 @@ export default function Notifications() {
                     {profileCode ? (
                         <Avatar seed={profileCode} size={40} />
                     ) : (
-                        <View style={styles.defaultAvatar}>
+                        <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
                             <Ionicons name="person" size={20} color="#9575cd" />
                         </View>
                     )}
@@ -369,13 +371,13 @@ export default function Notifications() {
                 <View style={styles.contentContainer}>
                     <View style={styles.textRow}>
                         <View style={styles.textContainer}>
-                            <Text style={styles.username}>{item.fromUserName}</Text>
-                            <Text style={styles.message}>
+                            <Text style={[styles.username, { color: theme.text }]}>{item.fromUserName}</Text>
+                            <Text style={[styles.message, { color: theme.textSecondary }]}>
                                 {message.text} {message.emoji}
                             </Text>
                         </View>
                         <View style={styles.rightContainer}>
-                            <Text style={styles.timestamp}>
+                            <Text style={[styles.timestamp, { color: theme.textTertiary }]}>
                                 {getTimeAgo(item.createdAt)}
                             </Text>
                             {!item.read && <View style={styles.unreadDot} />}
@@ -503,8 +505,8 @@ export default function Notifications() {
     const unreadCount = notifications.filter((n) => !n.read).length;
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <View style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="chevron-back" size={28} color="#212121" />
                 </TouchableOpacity>

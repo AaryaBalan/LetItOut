@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function TabsLayout() {
     const { user } = useAuth();
+    const { theme } = useTheme();
     const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     // Fetch total unread chats count
@@ -36,11 +38,11 @@ export default function TabsLayout() {
                 headerShown: false,
                 tabBarShowLabel: false,
                 tabBarActiveTintColor: "#9575cd",
-                tabBarInactiveTintColor: "#BDBDBD",
+                tabBarInactiveTintColor: theme.textTertiary,
                 tabBarStyle: {
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: theme.surface,
                     borderTopWidth: 1,
-                    borderTopColor: "#E0E0E0",
+                    borderTopColor: theme.border,
                     height: 65,
                     paddingBottom: 10,
                     paddingTop: 8,

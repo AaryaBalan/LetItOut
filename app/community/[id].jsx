@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
+import { useTheme } from "../../context/ThemeContext";
 
 const CATEGORIES = [
     {
@@ -84,6 +85,7 @@ const CATEGORIES = [
 
 export default function CommunityDetail() {
     const { id } = useLocalSearchParams();
+    const { theme } = useTheme();
     const router = useRouter();
     const [posts, setPosts] = useState([]);
     const [filteredPosts, setFilteredPosts] = useState([]);
@@ -203,7 +205,7 @@ export default function CommunityDetail() {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <StatusBar
                 barStyle="light-content"
                 backgroundColor={categoryData.gradientColors[0]}
@@ -230,13 +232,13 @@ export default function CommunityDetail() {
                 </Text>
             </View>
 
-            <View style={styles.categoryFilters}>
+            <View style={[styles.categoryFilters, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
                 <TouchableOpacity
                     style={styles.filterButton}
                     onPress={() => setShowFilterModal(true)}
                 >
-                    <Ionicons name="options-outline" size={22} color="#6B7280" />
-                    <Text style={styles.filterButtonText}>Filters</Text>
+                    <Ionicons name="options-outline" size={22} color={theme.text} />
+                    <Text style={[styles.filterButtonText, { color: theme.text }]}>Filters</Text>
                 </TouchableOpacity>
 
                 {(selectedFilter !== "latest" || selectedSort !== "recent" || selectedMood !== null || showAnonymousOnly) && (
@@ -260,22 +262,23 @@ export default function CommunityDetail() {
                 renderItem={renderPost}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.postsListContainer}
+                style={{ backgroundColor: theme.background }}
+                contentContainerStyle={[styles.postsListContainer, { backgroundColor: theme.background }]}
                 ListEmptyComponent={
                     loading ? (
                         <View style={styles.emptyState}>
                             <ActivityIndicator size="large" color="#B39DDB" />
-                            <Text style={styles.emptyStateTitle}>Loading posts...</Text>
+                            <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
                         </View>
                     ) : (
                         <View style={styles.emptyState}>
                             <Ionicons
                                 name="search-outline"
                                 size={64}
-                                color="#BDBDBD"
+                                color={theme.textTertiary}
                             />
-                            <Text style={styles.emptyStateTitle}>No posts found</Text>
-                            <Text style={styles.emptyStateText}>
+                            <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>No posts found</Text>
+                            <Text style={[styles.emptyStateText, { color: theme.textTertiary }]}>
                                 Be the first to share in this category
                             </Text>
                         </View>
@@ -291,21 +294,22 @@ export default function CommunityDetail() {
                 onRequestClose={() => setShowFilterModal(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Sort & Filter</Text>
+                    <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Sort & Filter</Text>
                             <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                                <Ionicons name="close" size={28} color="#374151" />
+                                <Ionicons name="close" size={28} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
                         {/* Sort & Filter Section */}
                         <View style={styles.modalSection}>
-                            <Text style={styles.modalSectionTitle}>Sort & Filter</Text>
+                            <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Sort & Filter</Text>
                             <View style={styles.modalOptionsColumn}>
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         selectedFilter === "latest" && selectedSort === "recent" && styles.modalOptionActive,
                                     ]}
                                     onPress={() => {
@@ -316,11 +320,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="time-outline"
                                         size={20}
-                                        color={selectedFilter === "latest" && selectedSort === "recent" ? "#9B8BC9" : "#6B7280"}
+                                        color={selectedFilter === "latest" && selectedSort === "recent" ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             selectedFilter === "latest" && selectedSort === "recent" && styles.modalOptionTextActive,
                                         ]}
                                     >
@@ -333,6 +338,7 @@ export default function CommunityDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         selectedFilter === "help" && styles.modalOptionActive,
                                     ]}
                                     onPress={() => {
@@ -343,11 +349,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="hand-left-outline"
                                         size={20}
-                                        color={selectedFilter === "help" ? "#9B8BC9" : "#6B7280"}
+                                        color={selectedFilter === "help" ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             selectedFilter === "help" && styles.modalOptionTextActive,
                                         ]}
                                     >
@@ -360,6 +367,7 @@ export default function CommunityDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         selectedSort === "popular" && styles.modalOptionActive,
                                     ]}
                                     onPress={() => {
@@ -370,11 +378,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="trending-up-outline"
                                         size={20}
-                                        color={selectedSort === "popular" ? "#9B8BC9" : "#6B7280"}
+                                        color={selectedSort === "popular" ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             selectedSort === "popular" && styles.modalOptionTextActive,
                                         ]}
                                     >
@@ -387,6 +396,7 @@ export default function CommunityDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         selectedSort === "mostCommented" && styles.modalOptionActive,
                                     ]}
                                     onPress={() => {
@@ -397,11 +407,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="chatbubbles-outline"
                                         size={20}
-                                        color={selectedSort === "mostCommented" ? "#9B8BC9" : "#6B7280"}
+                                        color={selectedSort === "mostCommented" ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             selectedSort === "mostCommented" && styles.modalOptionTextActive,
                                         ]}
                                     >
@@ -416,11 +427,12 @@ export default function CommunityDetail() {
 
                         {/* Content Type Section */}
                         <View style={styles.modalSection}>
-                            <Text style={styles.modalSectionTitle}>Content Type</Text>
+                            <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Content Type</Text>
                             <View style={styles.modalOptionsColumn}>
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         showAnonymousOnly && styles.modalOptionActive,
                                     ]}
                                     onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
@@ -428,11 +440,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="eye-off-outline"
                                         size={20}
-                                        color={showAnonymousOnly ? "#9B8BC9" : "#6B7280"}
+                                        color={showAnonymousOnly ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             showAnonymousOnly && styles.modalOptionTextActive,
                                         ]}
                                     >
@@ -447,11 +460,12 @@ export default function CommunityDetail() {
 
                         {/* Mood Section */}
                         <View style={styles.modalSection}>
-                            <Text style={styles.modalSectionTitle}>Filter by Mood</Text>
+                            <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Filter by Mood</Text>
                             <View style={styles.modalOptionsColumn}>
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         selectedMood === "depression" && styles.modalOptionActive,
                                     ]}
                                     onPress={() => {
@@ -461,11 +475,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="sad-outline"
                                         size={20}
-                                        color={selectedMood === "depression" ? "#9B8BC9" : "#6B7280"}
+                                        color={selectedMood === "depression" ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             selectedMood === "depression" && styles.modalOptionTextActive,
                                         ]}
                                     >
@@ -478,6 +493,7 @@ export default function CommunityDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.modalOption,
+                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
                                         selectedMood === "happiness" && styles.modalOptionActive,
                                     ]}
                                     onPress={() => {
@@ -487,11 +503,12 @@ export default function CommunityDetail() {
                                     <Ionicons
                                         name="happy-outline"
                                         size={20}
-                                        color={selectedMood === "happiness" ? "#9B8BC9" : "#6B7280"}
+                                        color={selectedMood === "happiness" ? "#9B8BC9" : theme.textSecondary}
                                     />
                                     <Text
                                         style={[
                                             styles.modalOptionText,
+                                            { color: theme.text },
                                             selectedMood === "happiness" && styles.modalOptionTextActive,
                                         ]}
                                     >

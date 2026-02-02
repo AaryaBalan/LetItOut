@@ -39,6 +39,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { getPostById } from "../../data/dummyData";
 import {
     createCommentNotification,
@@ -71,6 +72,7 @@ export default function PostDetail() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { user } = useAuth();
+    const { theme } = useTheme();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAuthor, setIsAuthor] = useState(false);
@@ -840,18 +842,18 @@ export default function PostDetail() {
     const totalHugs = hugCount + meTooCount + likeCount;
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+            <StatusBar barStyle={theme.statusBar} backgroundColor={theme.surface} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                 <TouchableOpacity
                     onPress={() => router.back()}
                     style={styles.backButton}
                 >
-                    <Ionicons name="chevron-back" size={28} color="#212121" />
+                    <Ionicons name="chevron-back" size={28} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Post Detail</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Post Detail</Text>
                 <View style={styles.headerRight}>
                     <TouchableOpacity
                         style={styles.headerButton}
@@ -888,13 +890,13 @@ export default function PostDetail() {
                     keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
                 >
                     <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={styles.scrollContent}
+                        style={[styles.scrollView, { backgroundColor: theme.background }]}
+                        contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                     >
                         {/* Post Card */}
-                        <View style={styles.postCard}>
+                        <View style={[styles.postCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
                             <View style={styles.postHeader}>
                                 <View
                                     style={[
@@ -1036,10 +1038,10 @@ export default function PostDetail() {
                         </View>
 
                         {/* Supportive Replies Section */}
-                        <View style={styles.repliesSection}>
-                            <View style={styles.repliesHeader}>
-                                <Text style={styles.repliesTitle}>Supportive Replies</Text>
-                                <Text style={styles.repliesCountText}>
+                        <View style={[styles.repliesSection, { backgroundColor: theme.background }]}>
+                            <View style={[styles.repliesHeader, { backgroundColor: theme.background }]}>
+                                <Text style={[styles.repliesTitle, { color: theme.text }]}>Supportive Replies</Text>
+                                <Text style={[styles.repliesCountText, { color: theme.textSecondary }]}>
                                     {comments.length} REPLIES
                                 </Text>
                             </View>
@@ -1052,13 +1054,13 @@ export default function PostDetail() {
                                 JSON.stringify(comments),
                             )}
                             {comments.length > 0 ? (
-                                <View style={styles.commentsContainer}>
+                                <View style={[styles.commentsContainer, { backgroundColor: theme.background }]}>
                                     {comments.map((comment, index) => (
                                         <View
                                             key={comment.id || index}
-                                            style={styles.commentItem}
+                                            style={[styles.commentItem, { backgroundColor: theme.background }]}
                                         >
-                                            <View style={styles.commentCard}>
+                                            <View style={[styles.commentCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
                                                 <View style={styles.commentHeaderSection}>
                                                     {comment.commentorId && commentorProfiles[comment.commentorId] ? (
                                                         <Avatar seed={commentorProfiles[comment.commentorId]} size={35} />
@@ -1069,15 +1071,15 @@ export default function PostDetail() {
                                                     )}
                                                     <View style={styles.commentHeaderContent}>
                                                         <View style={styles.commentHeader}>
-                                                            <Text style={styles.commentUsername}>
+                                                            <Text style={[styles.commentUsername, { color: theme.text }]}>
                                                                 {comment.username || `KindSoul_${index + 1}`}
                                                             </Text>
-                                                            <Text style={styles.commentTimestamp}>
+                                                            <Text style={[styles.commentTimestamp, { color: theme.textTertiary }]}>
                                                                 {comment.timestamp}
                                                             </Text>
                                                         </View>
 
-                                                        <Text style={styles.commentText}>
+                                                        <Text style={[styles.commentText, { color: theme.textSecondary }]}>
                                                             {comment.text}
                                                         </Text>
 
@@ -1103,8 +1105,8 @@ export default function PostDetail() {
                                     ))}
                                 </View>
                             ) : (
-                                <View style={styles.noCommentsContainer}>
-                                    <Text style={styles.noCommentsText}>
+                                <View style={[styles.noCommentsContainer, { backgroundColor: theme.background }]}>
+                                    <Text style={[styles.noCommentsText, { color: theme.textSecondary }]}>
                                         No comments yet. Be the first to share support!
                                     </Text>
                                 </View>
@@ -1114,24 +1116,24 @@ export default function PostDetail() {
                         {/* Report Button */}
                         <TouchableOpacity
                             onPress={handleReport}
-                            style={styles.reportButton}
+                            style={[styles.reportButton, { backgroundColor: theme.background }]}
                         >
-                            <Ionicons name="flag-outline" size={16} color="#9E9E9E" />
-                            <Text style={styles.reportText}>REPORT CONTENT</Text>
+                            <Ionicons name="flag-outline" size={16} color={theme.textTertiary} />
+                            <Text style={[styles.reportText, { color: theme.textTertiary }]}>REPORT CONTENT</Text>
                         </TouchableOpacity>
                     </ScrollView>
 
                     {/* Bottom Input */}
-                    <View style={styles.bottomInput}>
+                    <View style={[styles.bottomInput, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: theme.input, color: theme.text, borderColor: theme.inputBorder }]}
                             placeholder="Type a message of support..."
-                            placeholderTextColor="#BDBDBD"
+                            placeholderTextColor={theme.placeholder}
                             value={newComment}
                             onChangeText={setNewComment}
                         />
                         <TouchableOpacity style={styles.emojiButton}>
-                            <Ionicons name="happy-outline" size={24} color="#9E9E9E" />
+                            <Ionicons name="happy-outline" size={24} color={theme.textSecondary} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.sendButton}
@@ -1159,18 +1161,18 @@ export default function PostDetail() {
                     style={styles.modalOverlay}
                     onPress={() => setShowShareModal(false)}
                 >
-                    <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Share with Friends</Text>
+                    <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={(e) => e.stopPropagation()}>
+                        <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+                            <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
                             <TouchableOpacity onPress={() => setShowShareModal(false)}>
-                                <Ionicons name="close" size={24} color="#757575" />
+                                <Ionicons name="close" size={24} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
                         {friends.length === 0 ? (
                             <View style={styles.emptyState}>
-                                <Ionicons name="people-outline" size={48} color="#BDBDBD" />
-                                <Text style={styles.emptyText}>No friends to share with</Text>
+                                <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
+                                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
                             </View>
                         ) : (
                             <FlatList
@@ -1178,18 +1180,18 @@ export default function PostDetail() {
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        style={styles.friendItem}
+                                        style={[styles.friendItem, { borderBottomColor: theme.divider }]}
                                         onPress={() => handleShare(item.id)}
                                         disabled={sharing}
                                     >
                                         {item.profileCode ? (
                                             <Avatar seed={item.profileCode} size={40} />
                                         ) : (
-                                            <View style={styles.defaultAvatar}>
+                                            <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
                                                 <Ionicons name="person" size={20} color="#9575cd" />
                                             </View>
                                         )}
-                                        <Text style={styles.friendName}>{item.name}</Text>
+                                        <Text style={[styles.friendName, { color: theme.text }]}>{item.name}</Text>
                                         <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
                                     </TouchableOpacity>
                                 )}

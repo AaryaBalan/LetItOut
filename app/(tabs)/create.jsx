@@ -20,11 +20,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
 
 export default function CreatePost() {
   const router = useRouter();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -115,19 +117,19 @@ export default function CreatePost() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.surface }]} edges={["top"]}>
+      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.surface} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.cancelButton}
         >
-          <Ionicons name="close" size={28} color="#757575" />
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Ionicons name="close" size={28} color={theme.textSecondary} />
+          <Text style={[styles.cancelText, { color: theme.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Post</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Create Post</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -141,23 +143,23 @@ export default function CreatePost() {
           showsVerticalScrollIndicator={false}
         >
           {/* Main Title */}
-          <Text style={styles.mainTitle}>
+          <Text style={[styles.mainTitle, { color: theme.text }]}>
             Release what's on your mind.
           </Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Everything you share is completely anonymous and kept safe
             within our community.
           </Text>
 
           {/* Form Card */}
-          <View style={styles.formCard}>
+          <View style={[styles.formCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             {/* Title Field */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>TITLE</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>TITLE</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.input, borderColor: theme.inputBorder, color: theme.text }]}
                 placeholder="Give it a name..."
-                placeholderTextColor="#BDBDBD"
+                placeholderTextColor={theme.placeholder}
                 value={title}
                 onChangeText={setTitle}
               />
@@ -165,17 +167,17 @@ export default function CreatePost() {
 
             {/* Category Picker */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>CATEGORY</Text>
-              <View style={styles.pickerContainer}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>CATEGORY</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
                 <Picker
                   selectedValue={category}
                   onValueChange={(itemValue) => setCategory(itemValue)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: theme.text }]}
                 >
                   <Picker.Item
                     label="Select a topic"
                     value=""
-                    color="#BDBDBD"
+                    color={theme.placeholder}
                   />
                   {categories.map((cat) => (
                     <Picker.Item key={cat} label={cat} value={cat} />
@@ -192,18 +194,18 @@ export default function CreatePost() {
 
             {/* Story TextArea */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>YOUR STORY</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>YOUR STORY</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, { backgroundColor: theme.input, borderColor: theme.inputBorder, color: theme.text }]}
                 placeholder="What's happening? Be as detailed as you like..."
-                placeholderTextColor="#BDBDBD"
+                placeholderTextColor={theme.placeholder}
                 multiline
                 numberOfLines={8}
                 value={description}
                 onChangeText={setDescription}
                 maxLength={maxCharacters}
               />
-              <Text style={styles.characterCount}>
+              <Text style={[styles.characterCount, { color: theme.textTertiary }]}>
                 {characterCount} / {maxCharacters}
               </Text>
             </View>
@@ -211,31 +213,31 @@ export default function CreatePost() {
             {/* Anonymous Toggle */}
             <View style={styles.toggleContainer}>
               <View style={styles.toggleLeft}>
-                <Text style={styles.toggleTitle}>Post Anonymously</Text>
-                <Text style={styles.toggleSubtitle}>
+                <Text style={[styles.toggleTitle, { color: theme.text }]}>Post Anonymously</Text>
+                <Text style={[styles.toggleSubtitle, { color: theme.textSecondary }]}>
                   Identity stays private
                 </Text>
               </View>
               <Switch
                 value={isAnonymous}
                 onValueChange={setIsAnonymous}
-                trackColor={{ false: "#E0E0E0", true: "#B39DDB" }}
+                trackColor={{ false: theme.inputBorder, true: "#B39DDB" }}
                 thumbColor={isAnonymous ? "#9575cd" : "#F5F5F5"}
-                ios_backgroundColor="#E0E0E0"
+                ios_backgroundColor={theme.inputBorder}
               />
             </View>
 
             {/* Mood Slider */}
             <View style={styles.moodContainer}>
-              <Text style={styles.label}>HOW ARE YOU FEELING?</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>HOW ARE YOU FEELING?</Text>
               <View style={styles.moodLabels}>
                 <View style={styles.moodLabelLeft}>
                   <Ionicons name="sad" size={20} color="#7986CB" />
-                  <Text style={styles.moodLabelText}>Depression</Text>
+                  <Text style={[styles.moodLabelText, { color: theme.textSecondary }]}>Depression</Text>
                 </View>
                 <Text style={styles.moodPercentage}>{moodLevel}%</Text>
                 <View style={styles.moodLabelRight}>
-                  <Text style={styles.moodLabelText}>Happiness</Text>
+                  <Text style={[styles.moodLabelText, { color: theme.textSecondary }]}>Happiness</Text>
                   <Ionicons name="happy" size={20} color="#FFB74D" />
                 </View>
               </View>

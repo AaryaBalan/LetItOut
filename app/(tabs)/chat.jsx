@@ -16,9 +16,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function ChatTab() {
     const { user } = useAuth();
+    const { theme } = useTheme();
     const router = useRouter();
     const [friends, setFriends] = useState([]);
     const [chats, setChats] = useState({});
@@ -158,28 +160,29 @@ export default function ChatTab() {
 
     const renderFriend = ({ item }) => (
         <TouchableOpacity
-            style={styles.friendCard}
+            style={[styles.friendCard, { borderBottomColor: theme.divider }]}
             onPress={() => router.push(`/chat/${item.id}`)}
         >
             <View style={styles.avatarContainer}>
                 {item.profileCode ? (
                     <Avatar seed={item.profileCode} size={50} />
                 ) : (
-                    <View style={styles.defaultAvatar}>
+                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
                         <Ionicons name="person" size={24} color="#9575cd" />
                     </View>
                 )}
             </View>
             <View style={styles.infoContainer}>
                 <View style={styles.nameRow}>
-                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={[styles.name, { color: theme.text }]}>{item.name}</Text>
                     {item.lastMessageTimestamp && (
-                        <Text style={styles.timeText}>{getTimeString(item.lastMessageTimestamp)}</Text>
+                        <Text style={[styles.timeText, { color: theme.textTertiary }]}>{getTimeString(item.lastMessageTimestamp)}</Text>
                     )}
                 </View>
                 <View style={styles.messageRow}>
                     <Text style={[
                         styles.subtext,
+                        { color: item.unreadCount > 0 ? theme.text : theme.textSecondary },
                         item.unreadCount > 0 && styles.unreadSubtext
                     ]} numberOfLines={1}>
                         {item.lastMessage || "Tap to chat"}
@@ -195,20 +198,20 @@ export default function ChatTab() {
     );
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             {/* Header - No back button for Tab */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Messages</Text>
+            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Messages</Text>
             </View>
 
             {/* Search */}
             <View style={styles.searchContainer}>
-                <View style={styles.searchBar}>
-                    <Ionicons name="search" size={20} color="#BDBDBD" />
+                <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
+                    <Ionicons name="search" size={20} color={theme.placeholder} />
                     <TextInput
-                        style={styles.searchInput}
+                        style={[styles.searchInput, { color: theme.text }]}
                         placeholder="Search friends..."
-                        placeholderTextColor="#BDBDBD"
+                        placeholderTextColor={theme.placeholder}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
@@ -219,16 +222,17 @@ export default function ChatTab() {
                 data={filteredFriends}
                 keyExtractor={(item) => item.id}
                 renderItem={renderFriend}
-                contentContainerStyle={styles.listContent}
+                style={{ backgroundColor: theme.background }}
+                contentContainerStyle={[styles.listContent, { backgroundColor: theme.background }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
                 ListEmptyComponent={
                     !loading && (
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="people-outline" size={64} color="#E0E0E0" />
-                            <Text style={styles.emptyText}>No friends found</Text>
-                            <Text style={styles.emptySubtext}>Connect with others to start chatting</Text>
+                            <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
+                            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends found</Text>
+                            <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>Connect with others to start chatting</Text>
                         </View>
                     )
                 }

@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { posts as dummyPosts } from "../../data/dummyData";
 
 const getCategoryColor = (category) => {
@@ -36,6 +37,7 @@ const getCategoryColor = (category) => {
 
 export default function Home() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
@@ -174,7 +176,7 @@ export default function Home() {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
 
 
       <FlatList
@@ -187,13 +189,13 @@ export default function Home() {
         renderItem={({ item }) => {
           if (item.id === 'header') {
             return (
-              <View style={styles.header}>
+              <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
                 <TouchableOpacity style={styles.iconButton}>
-                  <Ionicons name="menu-outline" size={24} color="#212121" />
+                  <Ionicons name="menu-outline" size={24} color={theme.text} />
                 </TouchableOpacity>
 
                 <View style={styles.logoContainer}>
-                  <Text style={styles.logo}>Let It Out</Text>
+                  <Text style={[styles.logo, { color: theme.text }]}>Let It Out</Text>
                 </View>
 
                 <TouchableOpacity
@@ -204,7 +206,7 @@ export default function Home() {
                     <Ionicons
                       name="notifications-outline"
                       size={24}
-                      color="#212121"
+                      color={theme.text}
                     />
                     {unreadCount > 0 && (
                       <View style={styles.badge} />
@@ -216,15 +218,15 @@ export default function Home() {
           }
           if (item.id === 'sticky-categories') {
             return (
-              <View style={styles.stickyContainer}>
+              <View style={[styles.stickyContainer, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
                 {isSearchExpanded ? (
                   <View style={styles.expandedWrapper}>
-                    <View style={styles.expandedSearchBar}>
-                      <Ionicons name="search" size={20} color="#212121" />
+                    <View style={[styles.expandedSearchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
+                      <Ionicons name="search" size={20} color={theme.text} />
                       <TextInput
-                        style={styles.expandedSearchInput}
+                        style={[styles.expandedSearchInput, { color: theme.text }]}
                         placeholder="Search..."
-                        placeholderTextColor="#9E9E9E"
+                        placeholderTextColor={theme.placeholder}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         autoFocus
@@ -237,7 +239,7 @@ export default function Home() {
                         setIsSearchExpanded(false);
                       }}
                     >
-                      <Text style={styles.cancelText}>Cancel</Text>
+                      <Text style={[styles.cancelText, { color: theme.text }]}>Cancel</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (

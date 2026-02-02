@@ -17,12 +17,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
 export default function Explore() {
     const router = useRouter();
     const { user: currentUser } = useAuth();
+    const { theme } = useTheme();
     const [searchQuery, setSearchQuery] = useState("");
     const [posts, setPosts] = useState([]);
     const [users, setUsers] = useState([]);
@@ -76,22 +78,22 @@ export default function Explore() {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.surface }]} edges={["top"]}>
+            <StatusBar barStyle={theme.statusBar} backgroundColor={theme.surface} />
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: theme.surface }} contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.surface }]}>
                 {/* Modern White Header */}
-                <View style={styles.headerWrapper}>
+                <View style={[styles.headerWrapper, { backgroundColor: theme.surface }]}>
                     <View style={styles.header}>
                         {/* Top Row */}
                         <View style={styles.headerTop}>
                             <View style={styles.headerLeft}>
-                                <View style={styles.logoContainer}>
+                                <View style={[styles.logoContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#E1D5F4' }]}>
                                     <Ionicons name="compass" size={28} color="#9575cd" />
                                 </View>
                                 <View>
-                                    <Text style={styles.headerTitle}>Explore</Text>
-                                    <Text style={styles.headerSubtitle}>Discover & Connect</Text>
+                                    <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
+                                    <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
                                 </View>
                             </View>
                             <View style={styles.headerRight}>
@@ -99,19 +101,19 @@ export default function Explore() {
                                     style={styles.iconButton}
                                     onPress={() => router.push("/notifications")}
                                 >
-                                    <Ionicons name="notifications-outline" size={24} color="#212121" />
+                                    <Ionicons name="notifications-outline" size={24} color={theme.text} />
                                 </TouchableOpacity>
                             </View>
                         </View>
 
                         {/* Enhanced Search Bar */}
                         <View style={styles.searchContainer}>
-                            <View style={styles.searchBar}>
+                            <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
                                 <Ionicons name="search" size={20} color="#9575cd" />
                                 <TextInput
-                                    style={styles.searchInput}
+                                    style={[styles.searchInput, { color: theme.text }]}
                                     placeholder="Search communities, topics, people..."
-                                    placeholderTextColor="#BDBDBD"
+                                    placeholderTextColor={theme.placeholder}
                                     value={searchQuery}
                                     onChangeText={setSearchQuery}
                                 />
@@ -127,20 +129,20 @@ export default function Explore() {
 
                 {searchQuery.trim() ? (
                     // Search Results
-                    <View style={styles.resultsSection}>
+                    <View style={[styles.resultsSection, { backgroundColor: theme.surface }]}>
                         {filteredPosts.map(post => <PostCard key={post.id} post={post} />)}
                     </View>
                 ) : (
                     <>
                         {/* Discovery - Bento Grid */}
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>DISCOVERY</Text>
+                        <View style={[styles.sectionHeader, { backgroundColor: theme.surface }]}>
+                            <Text style={[styles.sectionTitle, { color: theme.text }]}>DISCOVERY</Text>
                         </View>
 
-                        <View style={styles.bentoGrid}>
+                        <View style={[styles.bentoGrid, { backgroundColor: theme.surface }]}>
                             {/* Feed Card - Wide */}
                             <TouchableOpacity
-                                style={[styles.bentoCard, styles.cardFeed]}
+                                style={[styles.bentoCard, styles.cardFeed, theme.isDark && { backgroundColor: '#1A1A2E' }]}
                                 onPress={() => router.push("/(tabs)/home")}
                             >
                                 <View style={styles.cardContentHorizontal}>
@@ -157,7 +159,7 @@ export default function Explore() {
                             {/* Row 1: Mental Health & Stress */}
                             <View style={styles.bentoRow}>
                                 <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardHealing]}
+                                    style={[styles.bentoCard, styles.cardHealing, theme.isDark && { backgroundColor: '#2A2419' }]}
                                     onPress={() => handleCategoryPress("Mental Health")}
                                 >
                                     <View style={styles.iconCircle}>
@@ -170,7 +172,7 @@ export default function Explore() {
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardAnxiety]}
+                                    style={[styles.bentoCard, styles.cardAnxiety, theme.isDark && { backgroundColor: '#1E1A2A' }]}
                                     onPress={() => handleCategoryPress("Stress")}
                                 >
                                     <View style={styles.iconCircle}>
@@ -185,7 +187,7 @@ export default function Explore() {
 
                             {/* Row 2: Relationship (Wide) */}
                             <TouchableOpacity
-                                style={[styles.bentoCard, styles.cardRelationships]}
+                                style={[styles.bentoCard, styles.cardRelationships, theme.isDark && { backgroundColor: '#2A1E24' }]}
                                 onPress={() => handleCategoryPress("Relationship")}
                             >
                                 <View style={styles.cardContentHorizontal}>
@@ -200,7 +202,7 @@ export default function Explore() {
                             {/* Row 3: Family & Study */}
                             <View style={styles.bentoRow}>
                                 <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardFamily]}
+                                    style={[styles.bentoCard, styles.cardFamily, theme.isDark && { backgroundColor: '#2A1919' }]}
                                     onPress={() => handleCategoryPress("Family")}
                                 >
                                     <View style={styles.iconCircle}>
@@ -213,7 +215,7 @@ export default function Explore() {
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardStudy]}
+                                    style={[styles.bentoCard, styles.cardStudy, theme.isDark && { backgroundColor: '#19252A' }]}
                                     onPress={() => handleCategoryPress("Study")}
                                 >
                                     <View style={styles.iconCircle}>
@@ -229,7 +231,7 @@ export default function Explore() {
                             {/* Row 4: Other & All Topics */}
                             <View style={styles.bentoRow}>
                                 <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardOther]}
+                                    style={[styles.bentoCard, styles.cardOther, theme.isDark && { backgroundColor: '#1F2228' }]}
                                     onPress={() => handleCategoryPress("Other")}
                                 >
                                     <View style={styles.iconCircle}>
@@ -242,7 +244,7 @@ export default function Explore() {
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardAll]}
+                                    style={[styles.bentoCard, styles.cardAll, theme.isDark && { backgroundColor: '#1A1A1A' }]}
                                     onPress={() => handleCategoryPress("All")}
                                 >
                                     <View style={[styles.iconCircle, { backgroundColor: '#37474F' }]}>
@@ -257,19 +259,20 @@ export default function Explore() {
                         </View>
 
                         {/* Top 10 Stories */}
-                        <View style={[styles.sectionHeader, { marginTop: 32 }]}>
-                            <Text style={styles.sectionTitle}>TOP 10 TODAY</Text>
+                        <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
+                            <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP 10 TODAY</Text>
                         </View>
 
                         <ScrollView
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.top10List}
+                            style={{ backgroundColor: theme.surface }}
+                            contentContainerStyle={[styles.top10List, { backgroundColor: theme.surface }]}
                         >
                             {top10Posts.map((post, index) => (
                                 <TouchableOpacity
                                     key={post.id}
-                                    style={styles.top10Card}
+                                    style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
                                     onPress={() => router.push(`/post/${post.id}`)}
                                 >
                                     <View style={styles.top10Content}>
@@ -326,9 +329,9 @@ export default function Explore() {
                         </ScrollView>
 
                         {/* Stories of the Day */}
-                        <View style={[styles.sectionHeader, { marginTop: 32 }]}>
-                            <Text style={styles.sectionTitle}>STORIES OF THE DAY</Text>
-                            <Text style={styles.swipeHint}>Swipe to read</Text>
+                        <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
+                            <Text style={[styles.sectionTitle, { color: theme.text }]}>STORIES OF THE DAY</Text>
+                            <Text style={[styles.swipeHint, { color: theme.textSecondary }]}>Swipe to read</Text>
                         </View>
 
                         <ScrollView
@@ -337,23 +340,24 @@ export default function Explore() {
                             pagingEnabled
                             decelerationRate="fast"
                             snapToInterval={width * 0.85 + 16}
-                            contentContainerStyle={styles.storiesList}
+                            style={{ backgroundColor: theme.surface }}
+                            contentContainerStyle={[styles.storiesList, { backgroundColor: theme.surface }]}
                         >
                             {/* Static Featured Quote */}
-                            <View style={styles.storyCard}>
-                                <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
-                                <Text style={styles.storyQuote}>
+                            <View style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                <Ionicons name="chatbox-ellipses-outline" size={32} color={theme.isDark ? '#3A3A5A' : '#E0E7FF'} style={styles.quoteIcon} />
+                                <Text style={[styles.storyQuote, { color: theme.text }]}>
                                     "There is a crack in everything. That's how the light gets in."
                                 </Text>
-                                <View style={styles.divider} />
-                                <Text style={styles.storyTag}>ON RESILIENCE</Text>
+                                <View style={[styles.divider, { backgroundColor: theme.border }]} />
+                                <Text style={[styles.storyTag, { color: theme.textSecondary }]}>ON RESILIENCE</Text>
                             </View>
 
                             {/* Dynamic Stories from Posts */}
                             {posts.slice(0, 5).map(post => (
                                 <TouchableOpacity
                                     key={post.id}
-                                    style={styles.storyCard}
+                                    style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
                                     onPress={() => router.push(`/post/${post.id}`)}
                                 >
                                     <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
@@ -370,15 +374,15 @@ export default function Explore() {
                         </ScrollView>
 
                         {/* Editorial Pick */}
-                        <View style={styles.editorialSection}>
-                            <Text style={styles.curatedTitle}>CURATED FOR YOU</Text>
-                            <Text style={styles.editorialLabel}>EDITORIAL PICK</Text>
+                        <View style={[styles.editorialSection, { backgroundColor: theme.surface }]}>
+                            <Text style={[styles.curatedTitle, { color: theme.textSecondary }]}>CURATED FOR YOU</Text>
+                            <Text style={[styles.editorialLabel, { color: theme.textTertiary }]}>EDITORIAL PICK</Text>
 
-                            <Text style={styles.articleTitle}>
+                            <Text style={[styles.articleTitle, { color: theme.text }]}>
                                 How to find quiet in a world that never stops talking.
                             </Text>
 
-                            <Text style={styles.articleSnippet}>
+                            <Text style={[styles.articleSnippet, { color: theme.textSecondary }]}>
                                 In an age of constant connectivity, the most radical act is disconnection. Here is how we reclaim our inner silence.
                             </Text>
 

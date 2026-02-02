@@ -32,6 +32,7 @@ import EmojiPicker from "rn-emoji-keyboard";
 import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 // Helper functions for category colors
 const getCategoryColor = (category) => {
@@ -205,6 +206,7 @@ function SharedPostCard({ postData }) {
 export default function ChatScreen() {
     const { id } = useLocalSearchParams();
     const { user } = useAuth();
+    const { theme } = useTheme();
     const router = useRouter();
     const flatListRef = useRef(null);
 
@@ -493,46 +495,47 @@ export default function ChatScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                 <View style={styles.headerLeft}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                        <Ionicons name="chevron-back" size={28} color={theme.text} />
                     </TouchableOpacity>
                     {recipient && (
                         <View style={styles.headerAvatar}>
-                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={styles.defaultHeaderAvatar}><Ionicons name="person" size={20} color="#9575cd" /></View>}
+                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={20} color="#9575cd" /></View>}
                         </View>
                     )}
                 </View>
                 <View style={styles.headerContent}>
-                    <Text style={styles.headerTitle}>{recipient ? recipient.name : "Chat"}</Text>
-                    <Text style={styles.headerSubtitle}>ACTIVE SUPPORTER</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>{recipient ? recipient.name : "Chat"}</Text>
+                    <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>ACTIVE SUPPORTER</Text>
                 </View>
                 <TouchableOpacity style={styles.moreButton}>
-                    <Ionicons name="ellipsis-horizontal" size={24} color="#757575" />
+                    <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
                 </TouchableOpacity>
             </View>
 
-            <View style={{ flex: 1, paddingBottom: Platform.OS === "android" ? keyboardHeight : 0 }}>
+            <View style={{ flex: 1, paddingBottom: Platform.OS === "android" ? keyboardHeight : 0, backgroundColor: theme.background }}>
                 <KeyboardAvoidingView
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, backgroundColor: theme.background }}
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
                     keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
                 >
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, backgroundColor: theme.background }}>
                         <FlatList
                             ref={flatListRef}
                             data={messages}
                             keyExtractor={(item) => item.id}
                             renderItem={renderItem}
-                            contentContainerStyle={styles.messagesList}
+                            style={{ backgroundColor: theme.background }}
+                            contentContainerStyle={[styles.messagesList, { backgroundColor: theme.background }]}
                             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                             onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
                             ListEmptyComponent={
                                 !loading && (
-                                    <View style={styles.emptyChatContainer}>
+                                    <View style={[styles.emptyChatContainer, { backgroundColor: theme.background }]}>
                                         <View style={styles.emptyChatAvatarContainer}>
                                             {recipient && recipient.profileCode ?
                                                 <Avatar seed={recipient.profileCode} size={80} /> :
@@ -565,7 +568,7 @@ export default function ChatScreen() {
 
                     {/* Reply Banner */}
                     {replyingTo && (
-                        <View style={styles.replyBanner}>
+                        <View style={[styles.replyBanner, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
                             <View style={styles.replyBannerLine} />
                             <View style={styles.replyBannerContent}>
                                 <Text style={styles.replyBannerSender}>Replying to {replyingTo.senderName}</Text>
@@ -577,16 +580,16 @@ export default function ChatScreen() {
                         </View>
                     )}
 
-                    <View style={styles.inputWrapper}>
+                    <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
                         <TouchableOpacity style={styles.emojiButton} onPress={toggleEmojiBoard}>
-                            <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={28} color="#9E9E9E" />
+                            <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={28} color={theme.textSecondary} />
                         </TouchableOpacity>
 
-                        <View style={styles.inputContainer}>
+                        <View style={[styles.inputContainer, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { color: theme.text }]}
                                 placeholder="Type a message..."
-                                placeholderTextColor="#9E9E9E"
+                                placeholderTextColor={theme.placeholder}
                                 value={inputText}
                                 onChangeText={setInputText}
                                 multiline

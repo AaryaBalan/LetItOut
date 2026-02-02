@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
 const getCategoryColor = (category) => {
@@ -60,6 +61,7 @@ const formatTimestamp = (timestamp) => {
 
 export default function PostCard({ post, hideDescription = false }) {
     const { user } = useAuth();
+    const { theme } = useTheme();
     const router = useRouter();
     const [likeCount, setLikeCount] = useState(0);
     const [hugCount, setHugCount] = useState(0);
@@ -280,7 +282,7 @@ export default function PostCard({ post, hideDescription = false }) {
 
     return (
         <Link href={`/post/${post.id}`} asChild>
-            <TouchableOpacity style={styles.card}>
+            <TouchableOpacity style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
                 <View style={styles.cardHeader}>
                     <View
                         style={[
@@ -313,7 +315,7 @@ export default function PostCard({ post, hideDescription = false }) {
                         !post.authorName ||
                         post.authorName === "Anonymous" ||
                         !authorProfileCode ? (
-                        <View style={styles.avatarContainer}>
+                        <View style={[styles.avatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
                             <Ionicons name="person" size={16} color="#9575cd" />
                         </View>
                     ) : (
@@ -322,26 +324,26 @@ export default function PostCard({ post, hideDescription = false }) {
                         </View>
                     )}
                     <View>
-                        <Text style={styles.authorName}>
+                        <Text style={[styles.authorName, { color: theme.text }]}>
                             {post.isAnonymous || !post.authorName
                                 ? "Anonymous"
                                 : post.authorName}
                         </Text>
-                        <Text style={styles.timestamp}>{formatTimestamp(post.timestamp)}</Text>
+                        <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
                     </View>
                 </TouchableOpacity>
 
-                <Text style={styles.title}>{post.title}</Text>
+                <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
 
                 {!hideDescription && (
-                    <Text style={styles.preview} numberOfLines={3}>
+                    <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={3}>
                         {post.description}
                     </Text>
                 )}
 
                 {/* Comments Preview */}
                 {comments.length > 0 && (
-                    <View style={styles.commentsPreview}>
+                    <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#0A0A0A' : '#F9F9F9', borderColor: theme.border }]}>
                         {comments.map((comment) => (
                             <View key={comment.id} style={styles.commentItem}>
                                 <Avatar
@@ -350,10 +352,10 @@ export default function PostCard({ post, hideDescription = false }) {
                                     style={styles.commentAvatar}
                                 />
                                 <View style={styles.commentTextContainer}>
-                                    <Text style={styles.commentUsername}>
+                                    <Text style={[styles.commentUsername, { color: theme.text }]}>
                                         {comment.commentorName || "Anonymous"}
                                     </Text>
-                                    <Text style={styles.commentText} numberOfLines={2}>
+                                    <Text style={[styles.commentText, { color: theme.textSecondary }]} numberOfLines={2}>
                                         {comment.text || comment.comment}
                                     </Text>
                                 </View>
@@ -366,17 +368,17 @@ export default function PostCard({ post, hideDescription = false }) {
                     <View style={styles.reactions}>
                         <View style={styles.reactionButton}>
                             <Ionicons name="heart" size={16} color="#E57373" />
-                            <Text style={styles.reactionCount}>{likeCount}</Text>
+                            <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
                         </View>
 
                         <View style={styles.reactionButton}>
                             <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                            <Text style={styles.reactionCount}>{hugCount}</Text>
+                            <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
                         </View>
 
                         <View style={styles.reactionButton}>
                             <Ionicons name="happy" size={16} color="#66BB6A" />
-                            <Text style={styles.reactionCount}>{meTooCount}</Text>
+                            <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
                         </View>
                     </View>
 
@@ -397,9 +399,9 @@ export default function PostCard({ post, hideDescription = false }) {
                             <Ionicons
                                 name="chatbubble-outline"
                                 size={18}
-                                color="#9E9E9E"
+                                color={theme.textTertiary}
                             />
-                            <Text style={styles.commentCount}>{commentCount}</Text>
+                            <Text style={[styles.commentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
                         </View>
                     </View>
                 </View>
@@ -415,18 +417,18 @@ export default function PostCard({ post, hideDescription = false }) {
                         style={styles.modalOverlay}
                         onPress={() => setShowShareModal(false)}
                     >
-                        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Share with Friends</Text>
+                        <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={(e) => e.stopPropagation()}>
+                            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+                                <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
                                 <TouchableOpacity onPress={() => setShowShareModal(false)}>
-                                    <Ionicons name="close" size={24} color="#757575" />
+                                    <Ionicons name="close" size={24} color={theme.textSecondary} />
                                 </TouchableOpacity>
                             </View>
 
                             {friends.length === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <Ionicons name="people-outline" size={48} color="#BDBDBD" />
-                                    <Text style={styles.emptyText}>No friends to share with</Text>
+                                    <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
+                                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
                                 </View>
                             ) : (
                                 <FlatList
@@ -434,7 +436,7 @@ export default function PostCard({ post, hideDescription = false }) {
                                     keyExtractor={(item) => item.id}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
-                                            style={styles.friendItem}
+                                            style={[styles.friendItem, { borderBottomColor: theme.divider }]}
                                             onPress={() => handleShare(item.id)}
                                             disabled={sharing}
                                         >
