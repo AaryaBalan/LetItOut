@@ -147,8 +147,8 @@ export default function Explore() {
                             >
                                 <View style={styles.cardContentHorizontal}>
                                     <View>
-                                        <Text style={styles.bentoTitleBig}>Your Feed</Text>
-                                        <Text style={styles.bentoSubtitleDark}>LATEST UPDATES</Text>
+                                        <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Your Feed</Text>
+                                        <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LATEST UPDATES</Text>
                                     </View>
                                     <View style={[styles.iconCircle, { backgroundColor: '#FFFFFF' }]}>
                                         <Ionicons name="newspaper" size={24} color="#5C6BC0" />
@@ -166,8 +166,8 @@ export default function Explore() {
                                         <Ionicons name="fitness" size={24} color="#C8A656" />
                                     </View>
                                     <View>
-                                        <Text style={styles.bentoTitleSerif}>Mental Health</Text>
-                                        <Text style={styles.bentoSubtitle}>DAILY WELLBEING</Text>
+                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Mental Health</Text>
+                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>DAILY WELLBEING</Text>
                                     </View>
                                 </TouchableOpacity>
 
@@ -179,8 +179,8 @@ export default function Explore() {
                                         <Ionicons name="leaf" size={24} color="#7C6BA8" />
                                     </View>
                                     <View>
-                                        <Text style={styles.bentoTitleSerif}>Stress</Text>
-                                        <Text style={styles.bentoSubtitle}>FINDING PEACE</Text>
+                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Stress</Text>
+                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>FINDING PEACE</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>
@@ -192,8 +192,8 @@ export default function Explore() {
                             >
                                 <View style={styles.cardContentHorizontal}>
                                     <View>
-                                        <Text style={styles.bentoTitleBig}>Relationship</Text>
-                                        <Text style={styles.bentoSubtitleDark}>LOVE & CONNECTION</Text>
+                                        <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Relationship</Text>
+                                        <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LOVE & CONNECTION</Text>
                                     </View>
                                     <Ionicons name="heart" size={48} color="rgba(244, 143, 177, 0.5)" />
                                 </View>
@@ -209,8 +209,8 @@ export default function Explore() {
                                         <Ionicons name="home" size={24} color="#E57373" />
                                     </View>
                                     <View>
-                                        <Text style={styles.bentoTitleSerif}>Family</Text>
-                                        <Text style={styles.bentoSubtitle}>HOME SUPPORT</Text>
+                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Family</Text>
+                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>HOME SUPPORT</Text>
                                     </View>
                                 </TouchableOpacity>
 
@@ -222,8 +222,8 @@ export default function Explore() {
                                         <Ionicons name="school" size={24} color="#5FA49C" />
                                     </View>
                                     <View>
-                                        <Text style={styles.bentoTitleSerif}>Study</Text>
-                                        <Text style={styles.bentoSubtitle}>CAREER & GROWTH</Text>
+                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Study</Text>
+                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>CAREER & GROWTH</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>
@@ -238,8 +238,8 @@ export default function Explore() {
                                         <Ionicons name="ellipsis-horizontal" size={24} color="#90A4AE" />
                                     </View>
                                     <View>
-                                        <Text style={styles.bentoTitleSerif}>Other</Text>
-                                        <Text style={styles.bentoSubtitleDark}>SHARE YOUR STORY</Text>
+                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Other</Text>
+                                        <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>SHARE YOUR STORY</Text>
                                     </View>
                                 </TouchableOpacity>
 

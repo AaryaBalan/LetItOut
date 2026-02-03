@@ -44,7 +44,17 @@ const getCategoryLabel = (category) => {
 
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Just now";
+
+    // If timestamp is already a formatted string (like "5m ago"), return it
+    if (typeof timestamp === 'string' && (timestamp.includes('ago') || timestamp === 'Just now')) {
+        return timestamp;
+    }
+
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return "Just now";
+
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -291,20 +301,7 @@ export default function PostCard({ post, hideDescription = false }) {
                 <TouchableOpacity style={[styles.card, {
                     backgroundColor: theme.card
                 }]}>
-                    <View style={styles.cardHeader}>
-                        <View
-                            style={[
-                                styles.categoryBadge,
-                                { backgroundColor: getCategoryColor(post.category) },
-                            ]}
-                        >
-                            <Text style={styles.categoryText}>
-                                {getCategoryLabel(post.category)}
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* Author Section */}
+                    {/* Author Section with Category Badge */}
                     <TouchableOpacity
                         style={styles.authorSection}
                         onPress={(e) => {
@@ -331,13 +328,23 @@ export default function PostCard({ post, hideDescription = false }) {
                                 <Avatar seed={authorProfileCode} size={40} />
                             </View>
                         )}
-                        <View>
+                        <View style={{ flex: 1 }}>
                             <Text style={[styles.authorName, { color: theme.text }]}>
                                 {post.isAnonymous || !post.authorName
                                     ? "Anonymous"
                                     : post.authorName}
                             </Text>
                             <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
+                        </View>
+                        <View
+                            style={[
+                                styles.categoryBadge,
+                                { backgroundColor: getCategoryColor(post.category) },
+                            ]}
+                        >
+                            <Text style={styles.categoryText}>
+                                {getCategoryLabel(post.category)}
+                            </Text>
                         </View>
                     </TouchableOpacity>
 
@@ -501,6 +508,7 @@ const styles = StyleSheet.create({
     authorSection: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: 10,
     },
     avatarWrapper: {

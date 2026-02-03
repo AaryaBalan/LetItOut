@@ -821,6 +821,9 @@ export default function Profile() {
                 const postData = {
                   ...post,
                   timestamp: getTimeAgo(post.createdAt),
+                  authorName: user?.displayName || userProfile?.displayName || "Anonymous",
+                  authorId: user?.uid || null,
+                  isAnonymous: post.isAnonymous || false,
                 };
 
                 return (
@@ -858,6 +861,9 @@ export default function Profile() {
                   const postData = {
                     ...post,
                     timestamp: getTimeAgo(post.createdAt),
+                    authorName: post.authorName || (post.isAnonymous ? "Anonymous" : "Unknown"),
+                    authorId: post.authorId || null,
+                    isAnonymous: post.isAnonymous || false,
                   };
 
                   return (

@@ -944,8 +944,8 @@ export default function PostDetail() {
                                 </Text>
                             </TouchableOpacity>
 
-                            <Text style={styles.postTitle}>{post.title}</Text>
-                            <Text style={styles.postDescription}>{post.description}</Text>
+                            <Text style={[styles.postTitle, { color: theme.text, fontWeight: '700' }]}>{post.title}</Text>
+                            <Text style={[styles.postDescription, { color: theme.textSecondary }]}>{post.description}</Text>
 
                             {/* Hugs Sent */}
                             <View style={styles.hugsSentContainer}>
