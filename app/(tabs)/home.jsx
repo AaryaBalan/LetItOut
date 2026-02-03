@@ -177,8 +177,6 @@ export default function Home() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-
-
       <FlatList
         data={[
           { id: 'header' }, // Just header now, no search
@@ -189,42 +187,46 @@ export default function Home() {
         renderItem={({ item }) => {
           if (item.id === 'header') {
             return (
-              <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
-                <TouchableOpacity style={styles.iconButton}>
-                  <Ionicons name="menu-outline" size={24} color={theme.text} />
-                </TouchableOpacity>
-
-                <View style={styles.logoContainer}>
-                  <Text style={[styles.logo, { color: theme.text }]}>Let It Out</Text>
+              <View style={[styles.header, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
+                <View style={styles.headerLeft}>
+                  <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}>
+                    <Ionicons name="menu-outline" size={24} color={theme.isDark ? '#FFFFFF' : theme.text} />
+                  </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => router.push("/notifications")}
-                >
-                  <View style={styles.notificationIconContainer}>
-                    <Ionicons
-                      name="notifications-outline"
-                      size={24}
-                      color={theme.text}
-                    />
-                    {unreadCount > 0 && (
-                      <View style={styles.badge} />
-                    )}
-                  </View>
-                </TouchableOpacity>
+                <View style={styles.logoContainerCenter}>
+                  <Text style={[styles.logo, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Let It Out</Text>
+                </View>
+
+                <View style={styles.headerRight}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}
+                    onPress={() => router.push("/notifications")}
+                  >
+                    <View style={styles.notificationIconContainer}>
+                      <Ionicons
+                        name="notifications-outline"
+                        size={24}
+                        color={theme.isDark ? '#FFFFFF' : theme.text}
+                      />
+                      {unreadCount > 0 && (
+                        <View style={styles.badge} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </View>
               </View>
             );
           }
           if (item.id === 'sticky-categories') {
             return (
-              <View style={[styles.stickyContainer, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+              <View style={[styles.stickyContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider }]}>
                 {isSearchExpanded ? (
                   <View style={styles.expandedWrapper}>
-                    <View style={[styles.expandedSearchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                      <Ionicons name="search" size={20} color={theme.text} />
+                    <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#2A2A2A' : theme.input, borderColor: theme.inputBorder }]}>
+                      <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : theme.text} />
                       <TextInput
-                        style={[styles.expandedSearchInput, { color: theme.text }]}
+                        style={[styles.expandedSearchInput, { color: theme.isDark ? '#FFFFFF' : theme.text }]}
                         placeholder="Search..."
                         placeholderTextColor={theme.placeholder}
                         value={searchQuery}
@@ -239,16 +241,16 @@ export default function Home() {
                         setIsSearchExpanded(false);
                       }}
                     >
-                      <Text style={[styles.cancelText, { color: theme.text }]}>Cancel</Text>
+                      <Text style={[styles.cancelText, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Cancel</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <View style={styles.categoriesRow}>
                     <TouchableOpacity
-                      style={styles.searchIconButton}
+                      style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
                       onPress={() => setIsSearchExpanded(true)}
                     >
-                      <Ionicons name="search" size={20} color="#212121" />
+                      <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
                     </TouchableOpacity>
 
                     <ScrollView
@@ -261,6 +263,7 @@ export default function Home() {
                           key={category}
                           style={[
                             styles.categoryChip,
+                            { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' },
                             selectedCategory === category && {
                               backgroundColor: getCategoryColor(category),
                               borderColor: getCategoryColor(category),
@@ -273,6 +276,7 @@ export default function Home() {
                           <Text
                             style={[
                               styles.categoryText,
+                              { color: theme.isDark ? '#AAAAAA' : '#757575' },
                               selectedCategory === category &&
                               styles.categoryTextActive,
                             ]}
@@ -320,17 +324,30 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F5F5F5",
+    position: 'relative',
+  },
+  headerLeft: {
+    width: 56,
+    alignItems: 'flex-start',
+  },
+  headerRight: {
+    width: 56,
+    alignItems: 'flex-end',
+  },
+  logoContainerCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
   },
   logoContainer: {
     alignItems: 'center',
@@ -349,7 +366,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 20,
-    backgroundColor: "#FAFAFA",
   },
   notificationIconContainer: {
     position: 'relative',
@@ -398,9 +414,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   stickyContainer: {
-    backgroundColor: "#FFFFFF", // Changed from #F5F5F5 to White
     paddingVertical: 8,
-    paddingHorizontal: 16,
   },
   categoriesRow: {
     flexDirection: 'row',
@@ -410,9 +424,8 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     width: 40,
-    height: 40, // Fixed height
+    height: 40,
     borderRadius: 20,
-    backgroundColor: "#F5F5F5", // Slight contrast button instead of white-on-white, or border? Let's use F5F5F5 for button bg on white row
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -426,7 +439,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: "#F5F5F5",
     borderRadius: 20,
     paddingHorizontal: 12,
     height: 40,
@@ -452,21 +464,15 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   categoriesContent: {
-    paddingRight: 20,
+    paddingRight: 16,
     gap: 10,
     alignItems: 'center', // Center vertically
   },
   categoryChip: {
     paddingHorizontal: 20,
-    height: 40, // EXACT MATCH
-    justifyContent: 'center', // Center text
+    height: 40,
+    justifyContent: 'center',
     borderRadius: 20,
-    backgroundColor: "#F5F5F5", // Grey chip on White bg now? Or keep white chip?
-    // If bg is white, white chip is invisible without shadow.
-    // User said "don't need grey bg". Maybe they want White Chips on White Bg (with shadow)?
-    // Or maybe "don't need grey bg" means the STICKY CONTAINER bg?
-    // I will stick to White Chips with Shadow on White Container, OR slightly off-white chips.
-    // Let's use #F5F5F5 for chips/button on a #FFFFFF container. It's clean.
   },
   categoryChipActive: {
     backgroundColor: "#9F8BFF", // Re-add active style helper if lost?
@@ -483,8 +489,9 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   feedContent: {
-    paddingTop: 0,
+    paddingTop: 12,
     paddingBottom: 20,
+    paddingHorizontal: 16,
   },
   emptyContainer: {
     flex: 1,

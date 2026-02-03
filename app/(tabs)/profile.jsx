@@ -634,7 +634,7 @@ export default function Profile() {
           </TouchableOpacity>
 
           {/* Additional Info */}
-          <View style={styles.infoSection}>
+          <View style={[styles.infoSection, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
             <View style={styles.infoItem}>
               <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
               <Text style={[styles.infoText, { color: theme.text }]}>{user.email}</Text>
@@ -675,21 +675,21 @@ export default function Profile() {
 
           {/* Stats */}
           <View style={styles.statsContainer}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{userProfile?.loveSent || 0}</Text>
-              <Text style={styles.statLabel}>LOVE SENT</Text>
+            <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
+              <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>LOVE SENT</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{userProfile?.postCount || 0}</Text>
-              <Text style={styles.statLabel}>STORIES</Text>
+            <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
+              <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>STORIES</Text>
             </View>
-            <TouchableOpacity style={styles.statBox} onPress={() => handleOpenFriends('followers')}>
-              <Text style={styles.statNumber}>{followersCount}</Text>
-              <Text style={styles.statLabel}>FOLLOWERS</Text>
+            <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('followers')}>
+              <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWERS</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.statBox} onPress={() => handleOpenFriends('following')}>
-              <Text style={styles.statNumber}>{followingCount}</Text>
-              <Text style={styles.statLabel}>FOLLOWING</Text>
+            <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('following')}>
+              <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWING</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -729,7 +729,7 @@ export default function Profile() {
 
         {/* Supportive History Section */}
         <TouchableOpacity
-          style={[styles.section, { backgroundColor: theme.card, borderColor: theme.border }]}
+          style={[styles.section, { backgroundColor: theme.isDark ? '#000000' : theme.card, borderColor: theme.border, padding: 16, borderRadius: 12 }]}
           onPress={() => setShowAllHistoryModal(true)}
           activeOpacity={0.7}
         >
@@ -739,18 +739,18 @@ export default function Profile() {
           </View>
 
           {loadingHistory ? (
-            <View style={styles.summaryCard}>
+            <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
               <ActivityIndicator size="small" color="#B39DDB" />
             </View>
           ) : (
-            <View style={styles.summaryCard}>
+            <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
               <View style={styles.summaryRow}>
                 <View style={[styles.summaryIconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
                   <Ionicons name="heart" size={24} color="#E57373" />
                 </View>
                 <View style={styles.summaryContent}>
-                  <Text style={styles.summaryCount}>{supportiveHistory.length}</Text>
-                  <Text style={styles.summaryLabel}>
+                  <Text style={[styles.summaryCount, { color: theme.text }]}>{supportiveHistory.length}</Text>
+                  <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
                     {supportiveHistory.length === 1 ? 'Interaction' : 'Interactions'}
                   </Text>
                 </View>
@@ -811,7 +811,7 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface }]}>
+            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
               {userPosts.map((post) => {
                 const reactions = postReactions[post.id] || {
                   like: 0,
@@ -824,7 +824,7 @@ export default function Profile() {
                 };
 
                 return (
-                  <View key={post.id} style={styles.postCardWrapper}>
+                  <View key={post.id} style={[styles.postCardWrapper, { marginBottom: 12 }]}>
                     <PostCard post={postData} hideDescription={false} />
                   </View>
                 );
@@ -848,11 +848,11 @@ export default function Profile() {
               <TouchableOpacity
                 onPress={() => setShowAllSavedModal(false)}
               >
-                <Ionicons name="close" size={28} color="#212121" />
+                <Ionicons name="close" size={28} color={theme.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface }]}>
+            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
               {savedPosts.length > 0 ? (
                 savedPosts.map((post) => {
                   const postData = {
@@ -861,16 +861,16 @@ export default function Profile() {
                   };
 
                   return (
-                    <View key={post.id} style={styles.postCardWrapper}>
+                    <View key={post.id} style={[styles.postCardWrapper, { marginBottom: 12 }]}>
                       <PostCard post={postData} hideDescription={false} />
                     </View>
                   );
                 })
               ) : (
                 <View style={styles.emptyState}>
-                  <Ionicons name="bookmark-outline" size={64} color="#BDBDBD" />
-                  <Text style={styles.emptyStateTitle}>No saved posts yet</Text>
-                  <Text style={styles.emptyStateText}>
+                  <Ionicons name="bookmark-outline" size={64} color={theme.textTertiary} />
+                  <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>No saved posts yet</Text>
+                  <Text style={[styles.emptyStateText, { color: theme.textTertiary }]}>
                     Tap the bookmark icon on any post to save it!
                   </Text>
                 </View>
@@ -888,21 +888,21 @@ export default function Profile() {
         onRequestClose={() => setShowAllHistoryModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent75}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Supportive History</Text>
+          <View style={[styles.modalContent75, { backgroundColor: theme.surface }]}>
+            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Supportive History</Text>
               <TouchableOpacity
                 onPress={() => setShowAllHistoryModal(false)}
               >
-                <Ionicons name="close" size={28} color="#212121" />
+                <Ionicons name="close" size={28} color={theme.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
+            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}>
               {supportiveHistory.map((item) => (
                 <TouchableOpacity
                   key={item.id}
-                  style={styles.historyCard}
+                  style={[styles.historyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
                   onPress={() => {
                     setShowAllHistoryModal(false);
                     router.push(`/post/${item.postId}`);
@@ -916,15 +916,15 @@ export default function Profile() {
                   >
                     {item.action.toUpperCase()}
                   </Text>
-                  <Text style={styles.historyTime}>
+                  <Text style={[styles.historyTime, { color: theme.textTertiary }]}>
                     {getTimeAgo(item.timestamp)}
                   </Text>
                   {item.type === "comment" ? (
-                    <Text style={styles.historyText}>
+                    <Text style={[styles.historyText, { color: theme.textSecondary }]}>
                       "{item.comment}" in "{item.postTitle}"
                     </Text>
                   ) : (
-                    <Text style={styles.historyText}>
+                    <Text style={[styles.historyText, { color: theme.textSecondary }]}>
                       {item.postTitle}
                     </Text>
                   )}
@@ -958,14 +958,14 @@ export default function Profile() {
         transparent={true}
         onRequestClose={() => setShowFriendsModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent75}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]}>
+          <View style={[styles.modalContent75, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
+            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>
                 {friendsListType === 'following' ? 'Following' : 'Followers'}
               </Text>
               <TouchableOpacity onPress={() => setShowFriendsModal(false)}>
-                <Ionicons name="close" size={28} color="#212121" />
+                <Ionicons name="close" size={28} color={theme.text} />
               </TouchableOpacity>
             </View>
 
@@ -979,7 +979,7 @@ export default function Profile() {
                   friendsList.map(friend => (
                     <TouchableOpacity
                       key={friend.id}
-                      style={styles.friendItem}
+                      style={[styles.friendItem, { borderBottomColor: theme.divider }]}
                       onPress={() => {
                         setShowFriendsModal(false);
                         router.push(`/user/${friend.id}`);
@@ -987,17 +987,17 @@ export default function Profile() {
                     >
                       <Avatar seed={friend.profileCode || friend.email} size={50} />
                       <View style={styles.friendInfo}>
-                        <Text style={styles.friendName}>{friend.displayName}</Text>
-                        <Text style={styles.friendBio} numberOfLines={1}>
+                        <Text style={[styles.friendName, { color: theme.text }]}>{friend.displayName}</Text>
+                        <Text style={[styles.friendBio, { color: theme.textSecondary }]} numberOfLines={1}>
                           {friend.bio || "No bio available"}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color="#E0E0E0" />
+                      <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
                     </TouchableOpacity>
                   ))
                 ) : (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyStateText}>
+                    <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
                       {friendsListType === 'following' ? "You aren't following anyone yet." : "No followers yet."}
                     </Text>
                   </View>
@@ -1015,7 +1015,6 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
   },
   header: {
     flexDirection: "row",
@@ -1023,7 +1022,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#F5F5F5",
   },
   headerTitle: {
     fontSize: 24,

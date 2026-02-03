@@ -16,12 +16,14 @@ import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { createFriendRequestNotification } from "../../utils/notifications";
 
 export default function UserProfile() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { user: currentUser } = useAuth();
+    const { theme } = useTheme();
     const [userProfile, setUserProfile] = useState(null);
     const [userPosts, setUserPosts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -206,7 +208,7 @@ export default function UserProfile() {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.container} edges={["top"]}>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#FF8A65" />
                 </View>
@@ -216,15 +218,15 @@ export default function UserProfile() {
 
     if (!userProfile) {
         return (
-            <SafeAreaView style={styles.container} edges={["top"]}>
-                <View style={[styles.header, { justifyContent: 'flex-start' }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+                <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border, justifyContent: 'flex-start' }]}>
+                    <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB' }]}>
+                        <Ionicons name="arrow-back" size={24} color={theme.text} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.errorContainer}>
-                    <Ionicons name="person-remove-outline" size={48} color="#9CA3AF" />
-                    <Text style={styles.errorText}>User not found</Text>
+                    <Ionicons name="person-remove-outline" size={48} color={theme.textTertiary} />
+                    <Text style={[styles.errorText, { color: theme.textSecondary }]}>User not found</Text>
                 </View>
             </SafeAreaView>
         );
@@ -234,34 +236,34 @@ export default function UserProfile() {
     const roleColor = getRoleColor(role);
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+            <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
 
             {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB' }]}>
+                    <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Profile</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
                 {/* Profile Card */}
-                <View style={styles.profileHeader}>
+                <View style={[styles.profileHeader, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
                     <View style={styles.avatarContainer}>
                         <Avatar seed={userProfile.profileCode || userProfile.email} size={100} />
                     </View>
 
-                    <Text style={styles.displayName}>{userProfile.displayName}</Text>
+                    <Text style={[styles.displayName, { color: theme.text }]}>{userProfile.displayName}</Text>
 
                     <View style={[styles.roleBagde, { backgroundColor: `${roleColor}15` }]}>
                         <Text style={[styles.roleText, { color: roleColor }]}>{role}</Text>
                     </View>
 
                     {userProfile.bio ? (
-                        <Text style={styles.bioText}>{userProfile.bio}</Text>
+                        <Text style={[styles.bioText, { color: theme.textSecondary }]}>{userProfile.bio}</Text>
                     ) : null}
 
                     {/* Follow Button */}
@@ -269,17 +271,19 @@ export default function UserProfile() {
                         <TouchableOpacity
                             style={[
                                 styles.followButton,
-                                (followStatus === 1 || followStatus === 0) && styles.followingButton
+                                { backgroundColor: theme.isDark ? '#FFFFFF' : '#1F2937' },
+                                (followStatus === 1 || followStatus === 0) && [styles.followingButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3F4F6', borderColor: theme.border }]
                             ]}
                             onPress={handleToggleFollow}
                             disabled={followLoading}
                         >
                             {followLoading ? (
-                                <ActivityIndicator size="small" color={followStatus === 1 ? "#6B7280" : "#FFF"} />
+                                <ActivityIndicator size="small" color={followStatus === 1 ? theme.textSecondary : theme.isDark ? "#000000" : "#FFF"} />
                             ) : (
                                 <Text style={[
                                     styles.followButtonText,
-                                    (followStatus === 1 || followStatus === 0) && styles.followingButtonText
+                                    { color: theme.isDark ? '#000000' : '#FFFFFF' },
+                                    (followStatus === 1 || followStatus === 0) && [styles.followingButtonText, { color: theme.text }]
                                 ]}>
                                     {followStatus === 1 ? "Following" : followStatus === 0 ? "Requested" : "Follow"}
                                 </Text>
@@ -288,24 +292,24 @@ export default function UserProfile() {
                     )}
 
                     {/* Stats */}
-                    <View style={styles.statsRow}>
+                    <View style={[styles.statsRow, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB' }]}>
                         <View style={styles.statItem}>
-                            <Text style={styles.statNumber}>{userProfile.postCount || 0}</Text>
-                            <Text style={styles.statLabel}>Stories</Text>
+                            <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.postCount || 0}</Text>
+                            <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Stories</Text>
                         </View>
-                        <View style={styles.statDivider} />
+                        <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
                         <View style={styles.statItem}>
-                            <Text style={styles.statNumber}>{userProfile.loveSent || 0}</Text>
-                            <Text style={styles.statLabel}>Love Sent</Text>
+                            <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.loveSent || 0}</Text>
+                            <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Love Sent</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Posts Section */}
                 <View style={styles.postsSection}>
-                    <Text style={styles.sectionTitle}>
+                    <Text style={[styles.sectionTitle, { color: theme.text }]}>
                         Recent Stories
-                        <Text style={styles.postCount}> ({userPosts.length})</Text>
+                        <Text style={[styles.postCount, { color: theme.textTertiary }]}> ({userPosts.length})</Text>
                     </Text>
 
                     {userPosts.length > 0 ? (
@@ -314,8 +318,8 @@ export default function UserProfile() {
                         ))
                     ) : (
                         <View style={styles.emptyPostsState}>
-                            <Ionicons name="document-text-outline" size={40} color="#E5E7EB" />
-                            <Text style={styles.emptyPostsText}>No public stories shared yet</Text>
+                            <Ionicons name="document-text-outline" size={40} color={theme.textTertiary} />
+                            <Text style={[styles.emptyPostsText, { color: theme.textTertiary }]}>No public stories shared yet</Text>
                         </View>
                     )}
                 </View>
@@ -328,7 +332,6 @@ export default function UserProfile() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
     },
     loadingContainer: {
         flex: 1,
@@ -342,13 +345,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: "#F3F4F6",
     },
     backButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: "#F9FAFB",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -365,7 +366,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 4,
-        borderBottomColor: "#F9FAFB",
     },
     avatarContainer: {
         marginBottom: 16,
@@ -401,7 +401,6 @@ const styles = StyleSheet.create({
         maxWidth: '90%',
     },
     followButton: {
-        backgroundColor: "#1F2937",
         paddingVertical: 6,
         paddingHorizontal: 24,
         borderRadius: 20,
@@ -415,24 +414,19 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     followingButton: {
-        backgroundColor: "#F3F4F6",
         borderWidth: 1,
-        borderColor: "#E5E7EB",
         shadowOpacity: 0,
         elevation: 0,
     },
     followButtonText: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#FFFFFF",
     },
     followingButtonText: {
-        color: "#374151",
     },
     statsRow: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#F9FAFB",
         borderRadius: 20,
         paddingVertical: 16,
         paddingHorizontal: 32,
@@ -445,18 +439,15 @@ const styles = StyleSheet.create({
     statNumber: {
         fontSize: 18,
         fontWeight: "800",
-        color: "#1F2937",
         marginBottom: 0,
     },
     statLabel: {
         fontSize: 11,
         fontWeight: "600",
-        color: "#9CA3AF",
     },
     statDivider: {
         width: 1,
         height: 30,
-        backgroundColor: "#E5E7EB",
     },
     postsSection: {
         padding: 12,
@@ -464,13 +455,11 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#1F2937",
         marginBottom: 10,
     },
     postCount: {
         fontSize: 16,
         fontWeight: "500",
-        color: "#9CA3AF",
     },
     emptyPostsState: {
         alignItems: "center",
@@ -479,7 +468,6 @@ const styles = StyleSheet.create({
     },
     emptyPostsText: {
         fontSize: 14,
-        color: "#9CA3AF",
     },
     errorContainer: {
         flex: 1,
@@ -489,6 +477,5 @@ const styles = StyleSheet.create({
     },
     errorText: {
         fontSize: 16,
-        color: "#6B7280",
     }
 });

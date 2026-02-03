@@ -205,7 +205,7 @@ export default function ChatTab() {
             </View>
 
             {/* Search */}
-            <View style={styles.searchContainer}>
+            <View style={[styles.searchContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface }]}>
                 <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
                     <Ionicons name="search" size={20} color={theme.placeholder} />
                     <TextInput
@@ -249,7 +249,6 @@ export default function ChatTab() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
     },
     header: {
         flexDirection: "row",
@@ -258,7 +257,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: "#F5F5F5",
     },
     headerTitle: {
         fontSize: 18,
@@ -267,12 +265,10 @@ const styles = StyleSheet.create({
     },
     searchContainer: {
         padding: 16,
-        backgroundColor: "#FFFFFF",
     },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#F5F5F5",
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 10,

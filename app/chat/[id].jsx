@@ -51,6 +51,7 @@ const getCategoryColor = (category) => {
 // SharedPostCard component with live data
 function SharedPostCard({ postData }) {
     const router = useRouter();
+    const { theme } = useTheme();
     const [likeCount, setLikeCount] = useState(0);
     const [hugCount, setHugCount] = useState(0);
     const [meTooCount, setMeTooCount] = useState(0);
@@ -134,7 +135,7 @@ function SharedPostCard({ postData }) {
 
     return (
         <TouchableOpacity
-            style={styles.sharedPostCard}
+            style={[styles.sharedPostCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}
             onPress={() => router.push(`/post/${postData.id}`)}
             accessibilityRole="button"
             accessibilityLabel={`View post: ${postData.title}`}
@@ -154,7 +155,7 @@ function SharedPostCard({ postData }) {
             {/* Author Section */}
             <View style={styles.postAuthorSection}>
                 {postData.isAnonymous || !postData.authorName || postData.authorName === "Anonymous" || !authorProfileCode ? (
-                    <View style={styles.postAvatarContainer}>
+                    <View style={[styles.postAvatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
                         <Ionicons name="person" size={16} color="#9575cd" />
                     </View>
                 ) : (
@@ -166,15 +167,15 @@ function SharedPostCard({ postData }) {
                     <Text style={styles.postAuthorName}>
                         {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
                     </Text>
-                    <Text style={styles.postTimestamp}>{postData.timestamp}</Text>
+                    <Text style={[styles.postTimestamp, { color: theme.textSecondary }]}>{postData.timestamp}</Text>
                 </View>
             </View>
 
             {/* Title */}
-            <Text style={styles.postTitle}>{postData.title}</Text>
+            <Text style={[styles.postTitle, { color: theme.text, fontWeight: '700' }]}>{postData.title}</Text>
 
             {/* Description */}
-            <Text style={styles.postPreview} numberOfLines={3}>
+            <Text style={[styles.postPreview, { color: theme.textSecondary }]} numberOfLines={3}>
                 {postData.description}
             </Text>
 
@@ -183,20 +184,20 @@ function SharedPostCard({ postData }) {
                 <View style={styles.postReactions}>
                     <View style={styles.postReactionButton}>
                         <Ionicons name="heart" size={16} color="#E57373" />
-                        <Text style={styles.postReactionCount}>{likeCount}</Text>
+                        <Text style={[styles.postReactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
                     </View>
                     <View style={styles.postReactionButton}>
                         <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                        <Text style={styles.postReactionCount}>{hugCount}</Text>
+                        <Text style={[styles.postReactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
                     </View>
                     <View style={styles.postReactionButton}>
                         <Ionicons name="happy" size={16} color="#66BB6A" />
-                        <Text style={styles.postReactionCount}>{meTooCount}</Text>
+                        <Text style={[styles.postReactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
                     </View>
                 </View>
                 <View style={styles.postCommentSection}>
-                    <Ionicons name="chatbubble-outline" size={18} color="#9E9E9E" />
-                    <Text style={styles.postCommentCount}>{commentCount}</Text>
+                    <Ionicons name="chatbubble-outline" size={18} color={theme.textTertiary} />
+                    <Text style={[styles.postCommentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
                 </View>
             </View>
         </TouchableOpacity>
@@ -653,7 +654,7 @@ const styles = StyleSheet.create({
         borderWidth: 1, borderColor: "#FFFFFF"
     },
     headerContent: { flex: 1, justifyContent: 'center' },
-    headerTitle: { fontSize: 17, fontWeight: "700", color: "#212121", letterSpacing: -0.5 },
+    headerTitle: { fontSize: 17, fontWeight: "700", letterSpacing: -0.5 },
     headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#9F8BFF", marginTop: 2, letterSpacing: 0.5 },
     moreButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
 

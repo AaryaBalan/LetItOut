@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
 export default function AvatarSelectionModal({
@@ -17,6 +18,7 @@ export default function AvatarSelectionModal({
     onSelect,
     currentSeed,
 }) {
+    const { theme } = useTheme();
     const [randomSeeds, setRandomSeeds] = useState([]);
     const [selectedSeed, setSelectedSeed] = useState(currentSeed);
 
@@ -46,13 +48,13 @@ export default function AvatarSelectionModal({
             animationType="slide"
             onRequestClose={onClose}
         >
-            <Pressable style={styles.backdrop} onPress={onClose}>
+            <Pressable style={[styles.backdrop, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]} onPress={onClose}>
                 <View
-                    style={styles.modalContainer}
+                    style={[styles.modalContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}
                     onStartShouldSetResponder={() => true}
                 >
                     <View style={styles.titleContainer}>
-                        <Text style={styles.title}>Choose Your Avatar</Text>
+                        <Text style={[styles.title, { color: theme.text }]}>Choose Your Avatar</Text>
                         <TouchableOpacity
                             style={styles.refreshButton}
                             onPress={generateRandomSeeds}
@@ -70,6 +72,7 @@ export default function AvatarSelectionModal({
                                 key={seed}
                                 style={[
                                     styles.avatarOption,
+                                    { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' },
                                     selectedSeed === seed && styles.selectedAvatar,
                                 ]}
                                 onPress={() => setSelectedSeed(seed)}
@@ -81,10 +84,10 @@ export default function AvatarSelectionModal({
 
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
-                            style={[styles.button, styles.cancelButton]}
+                            style={[styles.button, styles.cancelButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' }]}
                             onPress={onClose}
                         >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                            <Text style={[styles.cancelButtonText, { color: theme.isDark ? theme.textSecondary : '#6B7280' }]}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.button, styles.selectButton]}
@@ -141,7 +144,6 @@ const styles = StyleSheet.create({
         borderColor: "transparent",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#EFE8FF",
         overflow: "hidden",
     },
     selectedAvatar: {

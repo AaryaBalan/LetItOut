@@ -425,12 +425,12 @@ export default function Notifications() {
     // Show login prompt
     if (!user) {
         return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+                <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                        <Ionicons name="chevron-back" size={28} color={theme.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Inbox</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>Inbox</Text>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -447,12 +447,12 @@ export default function Notifications() {
     // Show loading
     if (loading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+                <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                        <Ionicons name="chevron-back" size={28} color={theme.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Inbox</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>Inbox</Text>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -466,14 +466,14 @@ export default function Notifications() {
     // Show empty state
     if (notifications.length === 0) {
         return (
-            <SafeAreaView style={styles.container} edges={["top"]}>
-                <View style={styles.header}>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+                <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color="#212121" />
+                        <Ionicons name="chevron-back" size={28} color={theme.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Notifications</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
                     <TouchableOpacity style={styles.settingsButton}>
-                        <Ionicons name="settings-outline" size={24} color="#2D2D2D" />
+                        <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
                 </View>
                 <ScrollView
@@ -508,11 +508,11 @@ export default function Notifications() {
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={28} color="#212121" />
+                    <Ionicons name="chevron-back" size={28} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Notifications</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
                 <TouchableOpacity style={styles.settingsButton}>
-                    <Ionicons name="settings-outline" size={24} color="#2D2D2D" />
+                    <Ionicons name="settings-outline" size={24} color={theme.text} />
                 </TouchableOpacity>
             </View>
 
@@ -525,8 +525,8 @@ export default function Notifications() {
             >
                 {recent.length > 0 && (
                     <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>RECENT</Text>
+                        <View style={[styles.sectionHeader, { backgroundColor: theme.isDark ? '#0A0A0A' : '#FAFAFA', borderBottomColor: theme.divider }]}>
+                            <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>RECENT</Text>
                             {unreadCount > 0 && (
                                 <TouchableOpacity onPress={markAllAsRead}>
                                     <Text style={styles.markAllRead}>
@@ -543,8 +543,8 @@ export default function Notifications() {
 
                 {earlier.length > 0 && (
                     <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>EARLIER</Text>
+                        <View style={[styles.sectionHeader, { backgroundColor: theme.isDark ? '#0A0A0A' : '#FAFAFA', borderBottomColor: theme.divider }]}>
+                            <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>EARLIER</Text>
                         </View>
                         {earlier.map((item) => (
                             <View key={item.id}>{renderNotification({ item })}</View>
@@ -559,7 +559,6 @@ export default function Notifications() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
     },
     header: {
         flexDirection: "row",
@@ -568,8 +567,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: "#F5F5F5",
-        backgroundColor: "#FFFFFF",
     },
     headerTitle: {
         fontSize: 20,
@@ -595,9 +592,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: "#FAFAFA",
         borderBottomWidth: 1,
-        borderBottomColor: "#F0F0F0",
     },
     sectionTitle: {
         fontSize: 12,
@@ -614,11 +609,9 @@ const styles = StyleSheet.create({
     notificationCard: {
         flexDirection: "row",
         alignItems: "flex-start", // Align to top for long text
-        backgroundColor: "#FFFFFF",
         paddingHorizontal: 20,
         paddingVertical: 14,
         borderBottomWidth: 1,
-        borderBottomColor: "#F5F5F5",
     },
     avatarWithIcon: {
         position: "relative",

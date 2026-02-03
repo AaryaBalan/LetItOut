@@ -13,8 +13,10 @@ import {
     View,
 } from "react-native";
 import { db } from "../config/firebase";
+import { useTheme } from "../context/ThemeContext";
 
 export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
+    const { theme } = useTheme();
     const [displayName, setDisplayName] = useState("");
     const [bio, setBio] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -77,15 +79,15 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
             animationType="slide"
             onRequestClose={onClose}
         >
-            <Pressable style={styles.backdrop} onPress={onClose}>
+            <Pressable style={[styles.backdrop, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]} onPress={onClose}>
                 <View
-                    style={styles.modalContainer}
+                    style={[styles.modalContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}
                     onStartShouldSetResponder={() => true}
                 >
                     <View style={styles.header}>
-                        <Text style={styles.title}>Edit Profile</Text>
+                        <Text style={[styles.title, { color: theme.text }]}>Edit Profile</Text>
                         <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={28} color="#2D2D2D" />
+                            <Ionicons name="close" size={28} color={theme.text} />
                         </TouchableOpacity>
                     </View>
 
@@ -94,61 +96,61 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
                         showsVerticalScrollIndicator={false}
                     >
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Display Name</Text>
+                            <Text style={[styles.label, { color: theme.text }]}>Display Name</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB', borderColor: theme.isDark ? '#2A2A2A' : '#E5E7EB', color: theme.text }]}
                                 value={displayName}
                                 onChangeText={setDisplayName}
                                 placeholder="Enter your name"
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.placeholder}
                             />
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Email</Text>
+                            <Text style={[styles.label, { color: theme.text }]}>Email</Text>
                             <TextInput
-                                style={[styles.input, styles.disabledInput]}
+                                style={[styles.input, styles.disabledInput, { backgroundColor: theme.isDark ? '#0A0A0A' : '#F3F4F6', borderColor: theme.isDark ? '#2A2A2A' : '#E5E7EB', color: theme.textSecondary }]}
                                 value={user?.email || ""}
                                 editable={false}
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.placeholder}
                             />
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Phone Number</Text>
+                            <Text style={[styles.label, { color: theme.text }]}>Phone Number</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB', borderColor: theme.isDark ? '#2A2A2A' : '#E5E7EB', color: theme.text }]}
                                 value={phoneNumber}
                                 onChangeText={setPhoneNumber}
                                 placeholder="+1 234 567 8900"
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.placeholder}
                                 keyboardType="phone-pad"
                             />
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Bio</Text>
+                            <Text style={[styles.label, { color: theme.text }]}>Bio</Text>
                             <TextInput
-                                style={[styles.input, styles.textArea]}
+                                style={[styles.input, styles.textArea, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB', borderColor: theme.isDark ? '#2A2A2A' : '#E5E7EB', color: theme.text }]}
                                 value={bio}
                                 onChangeText={setBio}
                                 placeholder="Tell us about yourself..."
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.placeholder}
                                 multiline
                                 numberOfLines={3}
                                 textAlignVertical="top"
                                 maxLength={150}
                             />
-                            <Text style={styles.charCount}>{bio.length}/150</Text>
+                            <Text style={[styles.charCount, { color: theme.textTertiary }]}>{bio.length}/150</Text>
                         </View>
                     </ScrollView>
 
                     <View style={styles.footer}>
                         <TouchableOpacity
-                            style={[styles.button, styles.cancelButton]}
+                            style={[styles.button, styles.cancelButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' }]}
                             onPress={onClose}
                         >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                            <Text style={[styles.cancelButtonText, { color: theme.isDark ? theme.textSecondary : '#6B7280' }]}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.button, styles.saveButton]}

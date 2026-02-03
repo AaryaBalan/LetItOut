@@ -281,192 +281,201 @@ export default function PostCard({ post, hideDescription = false }) {
     };
 
     return (
-        <Link href={`/post/${post.id}`} asChild>
-            <TouchableOpacity style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <View style={styles.cardHeader}>
-                    <View
-                        style={[
-                            styles.categoryBadge,
-                            { backgroundColor: getCategoryColor(post.category) },
-                        ]}
-                    >
-                        <Text style={styles.categoryText}>
-                            {getCategoryLabel(post.category)}
-                        </Text>
-                    </View>
-                </View>
-
-                {/* Author Section */}
-                <TouchableOpacity
-                    style={styles.authorSection}
-                    onPress={(e) => {
-                        e.stopPropagation(); // Prevent navigating to post details
-                        if (post.authorId && !post.isAnonymous) {
-                            if (user && user.uid === post.authorId) {
-                                router.push("/(tabs)/profile");
-                            } else {
-                                router.push(`/user/${post.authorId}`);
-                            }
-                        }
-                    }}
-                    disabled={post.isAnonymous || !post.authorId}
-                >
-                    {post.isAnonymous ||
-                        !post.authorName ||
-                        post.authorName === "Anonymous" ||
-                        !authorProfileCode ? (
-                        <View style={[styles.avatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                            <Ionicons name="person" size={16} color="#9575cd" />
+        <View style={{
+            borderBottomWidth: 1,
+            borderBottomColor: theme.isDark ? '#333333' : '#E0E0E0',
+            paddingBottom: 12,
+            marginBottom: 16
+        }}>
+            <Link href={`/post/${post.id}`} asChild>
+                <TouchableOpacity style={[styles.card, {
+                    backgroundColor: theme.card
+                }]}>
+                    <View style={styles.cardHeader}>
+                        <View
+                            style={[
+                                styles.categoryBadge,
+                                { backgroundColor: getCategoryColor(post.category) },
+                            ]}
+                        >
+                            <Text style={styles.categoryText}>
+                                {getCategoryLabel(post.category)}
+                            </Text>
                         </View>
-                    ) : (
-                        <View style={styles.avatarWrapper}>
-                            <Avatar seed={authorProfileCode} size={40} />
+                    </View>
+
+                    {/* Author Section */}
+                    <TouchableOpacity
+                        style={styles.authorSection}
+                        onPress={(e) => {
+                            e.stopPropagation(); // Prevent navigating to post details
+                            if (post.authorId && !post.isAnonymous) {
+                                if (user && user.uid === post.authorId) {
+                                    router.push("/(tabs)/profile");
+                                } else {
+                                    router.push(`/user/${post.authorId}`);
+                                }
+                            }
+                        }}
+                        disabled={post.isAnonymous || !post.authorId}
+                    >
+                        {post.isAnonymous ||
+                            !post.authorName ||
+                            post.authorName === "Anonymous" ||
+                            !authorProfileCode ? (
+                            <View style={[styles.avatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
+                                <Ionicons name="person" size={16} color="#9575cd" />
+                            </View>
+                        ) : (
+                            <View style={styles.avatarWrapper}>
+                                <Avatar seed={authorProfileCode} size={40} />
+                            </View>
+                        )}
+                        <View>
+                            <Text style={[styles.authorName, { color: theme.text }]}>
+                                {post.isAnonymous || !post.authorName
+                                    ? "Anonymous"
+                                    : post.authorName}
+                            </Text>
+                            <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
+
+                    {!hideDescription && (
+                        <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={3}>
+                            {post.description}
+                        </Text>
+                    )}
+
+                    {/* Comments Preview */}
+                    {comments.length > 0 && (
+                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#0A0A0A' : '#F9F9F9', borderColor: theme.border }]}>
+                            {comments.map((comment) => (
+                                <View key={comment.id} style={[styles.commentItem, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F5F5F5' }]}>
+                                    <Avatar
+                                        seed={commentorProfiles[comment.commentorId] || "anonymous"}
+                                        size={35}
+                                        style={styles.commentAvatar}
+                                    />
+                                    <View style={styles.commentTextContainer}>
+                                        <Text style={[styles.commentUsername, { color: theme.text }]}>
+                                            {comment.commentorName || "Anonymous"}
+                                        </Text>
+                                        <Text style={[styles.commentText, { color: theme.textSecondary }]} numberOfLines={2}>
+                                            {comment.text || comment.comment}
+                                        </Text>
+                                    </View>
+                                </View>
+                            ))}
                         </View>
                     )}
-                    <View>
-                        <Text style={[styles.authorName, { color: theme.text }]}>
-                            {post.isAnonymous || !post.authorName
-                                ? "Anonymous"
-                                : post.authorName}
-                        </Text>
-                        <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
-                    </View>
-                </TouchableOpacity>
 
-                <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
-
-                {!hideDescription && (
-                    <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={3}>
-                        {post.description}
-                    </Text>
-                )}
-
-                {/* Comments Preview */}
-                {comments.length > 0 && (
-                    <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#0A0A0A' : '#F9F9F9', borderColor: theme.border }]}>
-                        {comments.map((comment) => (
-                            <View key={comment.id} style={styles.commentItem}>
-                                <Avatar
-                                    seed={commentorProfiles[comment.commentorId] || "anonymous"}
-                                    size={35}
-                                    style={styles.commentAvatar}
-                                />
-                                <View style={styles.commentTextContainer}>
-                                    <Text style={[styles.commentUsername, { color: theme.text }]}>
-                                        {comment.commentorName || "Anonymous"}
-                                    </Text>
-                                    <Text style={[styles.commentText, { color: theme.textSecondary }]} numberOfLines={2}>
-                                        {comment.text || comment.comment}
-                                    </Text>
-                                </View>
+                    <View style={styles.footer}>
+                        <View style={styles.reactions}>
+                            <View style={styles.reactionButton}>
+                                <Ionicons name="heart" size={16} color="#E57373" />
+                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
                             </View>
-                        ))}
-                    </View>
-                )}
 
-                <View style={styles.footer}>
-                    <View style={styles.reactions}>
-                        <View style={styles.reactionButton}>
-                            <Ionicons name="heart" size={16} color="#E57373" />
-                            <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
+                            <View style={styles.reactionButton}>
+                                <Ionicons name="hand-left" size={16} color="#FFB74D" />
+                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
+                            </View>
+
+                            <View style={styles.reactionButton}>
+                                <Ionicons name="happy" size={16} color="#66BB6A" />
+                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
+                            </View>
                         </View>
 
-                        <View style={styles.reactionButton}>
-                            <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                            <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
-                        </View>
+                        <View style={styles.rightFooter}>
+                            <TouchableOpacity
+                                style={styles.shareButton}
+                                onPress={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setShowShareModal(true);
+                                }}
+                            >
+                                <Ionicons name="paper-plane-outline" size={20} color="#9F8BFF" />
+                                <Text style={styles.sendText}>Send</Text>
+                            </TouchableOpacity>
 
-                        <View style={styles.reactionButton}>
-                            <Ionicons name="happy" size={16} color="#66BB6A" />
-                            <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.rightFooter}>
-                        <TouchableOpacity
-                            style={styles.shareButton}
-                            onPress={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setShowShareModal(true);
-                            }}
-                        >
-                            <Ionicons name="paper-plane-outline" size={20} color="#9F8BFF" />
-                            <Text style={styles.sendText}>Send</Text>
-                        </TouchableOpacity>
-
-                        <View style={styles.commentSection}>
-                            <Ionicons
-                                name="chatbubble-outline"
-                                size={18}
-                                color={theme.textTertiary}
-                            />
-                            <Text style={[styles.commentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
+                            <View style={styles.commentSection}>
+                                <Ionicons
+                                    name="chatbubble-outline"
+                                    size={18}
+                                    color={theme.textTertiary}
+                                />
+                                <Text style={[styles.commentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
+                            </View>
                         </View>
                     </View>
-                </View>
 
-                {/* Share Modal */}
-                <Modal
-                    visible={showShareModal}
-                    transparent={true}
-                    animationType="fade"
-                    onRequestClose={() => setShowShareModal(false)}
-                >
-                    <Pressable
-                        style={styles.modalOverlay}
-                        onPress={() => setShowShareModal(false)}
+                    {/* Share Modal */}
+                    <Modal
+                        visible={showShareModal}
+                        transparent={true}
+                        animationType="fade"
+                        onRequestClose={() => setShowShareModal(false)}
                     >
-                        <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={(e) => e.stopPropagation()}>
-                            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                                <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
-                                <TouchableOpacity onPress={() => setShowShareModal(false)}>
-                                    <Ionicons name="close" size={24} color={theme.textSecondary} />
-                                </TouchableOpacity>
-                            </View>
-
-                            {friends.length === 0 ? (
-                                <View style={styles.emptyState}>
-                                    <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
-                                    <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
+                        <Pressable
+                            style={[styles.modalOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]}
+                            onPress={() => setShowShareModal(false)}
+                        >
+                            <Pressable style={[styles.modalContent, { backgroundColor: theme.isDark ? '#1A1A1A' : theme.surface }]} onPress={(e) => e.stopPropagation()}>
+                                <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+                                    <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
+                                    <TouchableOpacity onPress={() => setShowShareModal(false)}>
+                                        <Ionicons name="close" size={24} color={theme.textSecondary} />
+                                    </TouchableOpacity>
                                 </View>
-                            ) : (
-                                <FlatList
-                                    data={friends}
-                                    keyExtractor={(item) => item.id}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={[styles.friendItem, { borderBottomColor: theme.divider }]}
-                                            onPress={() => handleShare(item.id)}
-                                            disabled={sharing}
-                                        >
-                                            {item.profileCode ? (
-                                                <Avatar seed={item.profileCode} size={40} />
-                                            ) : (
-                                                <View style={styles.defaultAvatar}>
-                                                    <Ionicons name="person" size={20} color="#9575cd" />
-                                                </View>
-                                            )}
-                                            <Text style={styles.friendName}>{item.name}</Text>
-                                            <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
-                                        </TouchableOpacity>
-                                    )}
-                                />
-                            )}
+
+                                {friends.length === 0 ? (
+                                    <View style={styles.emptyState}>
+                                        <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
+                                        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
+                                    </View>
+                                ) : (
+                                    <FlatList
+                                        data={friends}
+                                        keyExtractor={(item) => item.id}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                style={[styles.friendItem, { borderBottomColor: theme.divider }]}
+                                                onPress={() => handleShare(item.id)}
+                                                disabled={sharing}
+                                            >
+                                                {item.profileCode ? (
+                                                    <Avatar seed={item.profileCode} size={40} />
+                                                ) : (
+                                                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
+                                                        <Ionicons name="person" size={20} color="#9575cd" />
+                                                    </View>
+                                                )}
+                                                <Text style={[styles.friendName, { color: theme.text }]}>{item.name}</Text>
+                                                <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
+                                            </TouchableOpacity>
+                                        )}
+                                    />
+                                )}
+                            </Pressable>
                         </Pressable>
-                    </Pressable>
-                </Modal>
-            </TouchableOpacity>
-        </Link>
+                    </Modal>
+                </TouchableOpacity>
+            </Link>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     card: {
         backgroundColor: "#FFFFFF",
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: "#F0F0F0",
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 20,
     },
     cardHeader: {
         flexDirection: "row",
@@ -519,7 +528,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#212121",
         marginBottom: 6,
         lineHeight: 20,
     },
@@ -534,7 +542,6 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     commentItem: {
-        backgroundColor: "#F5F5F5",
         paddingHorizontal: 12,
         paddingVertical: 10,
         borderRadius: 8,

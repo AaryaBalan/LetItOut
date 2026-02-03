@@ -232,13 +232,13 @@ export default function CommunityDetail() {
                 </Text>
             </View>
 
-            <View style={[styles.categoryFilters, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+            <View style={[styles.categoryFilters, { backgroundColor: theme.isDark ? '#1A1A1A' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
                 <TouchableOpacity
-                    style={styles.filterButton}
+                    style={[styles.filterButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' }]}
                     onPress={() => setShowFilterModal(true)}
                 >
-                    <Ionicons name="options-outline" size={22} color={theme.text} />
-                    <Text style={[styles.filterButtonText, { color: theme.text }]}>Filters</Text>
+                    <Ionicons name="options-outline" size={22} color={theme.isDark ? '#FFFFFF' : theme.text} />
+                    <Text style={[styles.filterButtonText, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Filters</Text>
                 </TouchableOpacity>
 
                 {(selectedFilter !== "latest" || selectedSort !== "recent" || selectedMood !== null || showAnonymousOnly) && (
@@ -536,7 +536,7 @@ export default function CommunityDetail() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#FAFAFA" },
+    container: { flex: 1 },
     categoryHeader: {
         paddingHorizontal: 20,
         paddingTop: 48,
@@ -580,9 +580,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: "#FFF",
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E7EB",
         gap: 10,
     },
     filterButton: {
@@ -591,7 +588,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
-        backgroundColor: "#F3F4F6",
         gap: 8,
     },
     filterButtonText: {
@@ -709,8 +705,8 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#FFFFFF",
     },
-    postsListContainer: { paddingTop: 0, paddingBottom: 100 },
-    postItemList: { marginBottom: 0 },
+    postsListContainer: { paddingTop: 12, paddingBottom: 100, paddingHorizontal: 16 },
+    postItemList: { marginBottom: 12 },
     emptyState: {
         alignItems: "center",
         justifyContent: "center",

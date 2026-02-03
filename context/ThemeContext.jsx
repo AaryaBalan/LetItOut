@@ -17,6 +17,10 @@ export const ThemeProvider = ({ children }) => {
       const savedTheme = await AsyncStorage.getItem('theme');
       if (savedTheme !== null) {
         setIsDark(savedTheme === 'dark');
+      } else {
+        // Default to light mode if no preference is saved
+        setIsDark(false);
+        await AsyncStorage.setItem('theme', 'light');
       }
     } catch (error) {
       console.error('Error loading theme:', error);
@@ -35,7 +39,7 @@ export const ThemeProvider = ({ children }) => {
 
   const theme = {
     // Background colors
-    background: isDark ? '#000000' : '#F5F5F5',
+    background: isDark ? '#000000' : '#FFFFFF',
     surface: isDark ? '#0A0A0A' : '#FFFFFF',
     card: isDark ? '#1A1A1A' : '#FFFFFF',
     cardElevated: isDark ? '#1F1F1F' : '#FFFFFF',
