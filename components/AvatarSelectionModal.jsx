@@ -23,7 +23,7 @@ export default function AvatarSelectionModal({
     const [selectedSeed, setSelectedSeed] = useState(currentSeed);
 
     const generateRandomSeeds = () => {
-        const seeds = Array.from({ length: 10 }, () =>
+        const seeds = Array.from({ length: 12 }, () =>
             Math.random().toString(36).substring(2, 15),
         );
         setRandomSeeds(seeds);
@@ -48,18 +48,25 @@ export default function AvatarSelectionModal({
             animationType="slide"
             onRequestClose={onClose}
         >
-            <Pressable style={[styles.backdrop, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]} onPress={onClose}>
+            <Pressable style={[styles.backdrop, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)' }]} onPress={onClose}>
                 <View
                     style={[styles.modalContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}
                     onStartShouldSetResponder={() => true}
                 >
-                    <View style={styles.titleContainer}>
-                        <Text style={[styles.title, { color: theme.text }]}>Choose Your Avatar</Text>
+                    {/* Handle Bar */}
+                    <View style={styles.handleBar} />
+
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <View>
+                            <Text style={[styles.title, { color: theme.text }]}>Choose Your Avatar</Text>
+                            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Select from 12 unique avatars</Text>
+                        </View>
                         <TouchableOpacity
                             style={styles.refreshButton}
                             onPress={generateRandomSeeds}
                         >
-                            <Ionicons name="refresh" size={24} color="#8B5CF6" />
+                            <Ionicons name="refresh-circle" size={36} color="#9575cd" />
                         </TouchableOpacity>
                     </View>
 
@@ -67,17 +74,23 @@ export default function AvatarSelectionModal({
                         contentContainerStyle={styles.avatarGrid}
                         showsVerticalScrollIndicator={false}
                     >
-                        {randomSeeds.map((seed) => (
+                        {randomSeeds.map((seed, index) => (
                             <TouchableOpacity
                                 key={seed}
                                 style={[
                                     styles.avatarOption,
-                                    { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' },
+                                    { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F9FA' },
                                     selectedSeed === seed && styles.selectedAvatar,
                                 ]}
                                 onPress={() => setSelectedSeed(seed)}
+                                activeOpacity={0.7}
                             >
-                                <Avatar seed={seed} size={100} square={true} />
+                                <Avatar seed={seed} size={90} square={true} />
+                                {selectedSeed === seed && (
+                                    <View style={styles.checkmarkContainer}>
+                                        <Ionicons name="checkmark-circle" size={28} color="#9575cd" />
+                                    </View>
+                                )}
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -93,7 +106,8 @@ export default function AvatarSelectionModal({
                             style={[styles.button, styles.selectButton]}
                             onPress={handleSelect}
                         >
-                            <Text style={styles.selectButtonText}>Select</Text>
+                            <Ionicons name="checkmark" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
+                            <Text style={styles.selectButtonText}>Select Avatar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -111,43 +125,87 @@ const styles = StyleSheet.create({
     modalContainer: {
         width: "100%",
         backgroundColor: "#FFFFFF",
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 24,
-        maxHeight: "80%",
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        paddingHorizontal: 24,
+        paddingTop: 12,
+        paddingBottom: 28,
+        maxHeight: "85%",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 8,
     },
-    titleContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+    handleBar: {
+        width: 40,
+        height: 4,
+        backgroundColor: "#E0E0E0",
+        borderRadius: 2,
+        alignSelf: "center",
         marginBottom: 20,
     },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 24,
+    },
     title: {
-        fontSize: 24,
-        fontWeight: "bold",
+        fontSize: 26,
+        fontWeight: "700",
         color: "#1F2937",
+        marginBottom: 4,
+    },
+    subtitle: {
+        fontSize: 14,
+        color: "#9E9E9E",
+        fontWeight: "400",
     },
     refreshButton: {
-        padding: 8,
+        padding: 4,
     },
     avatarGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
         justifyContent: "space-between",
-        gap: 12,
+        gap: 10,
+        paddingBottom: 12,
     },
     avatarOption: {
-        width: "47%",
+        width: "31%",
         aspectRatio: 1,
-        borderRadius: 16,
+        borderRadius: 20,
         borderWidth: 3,
         borderColor: "transparent",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
+        position: "relative",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 2,
     },
     selectedAvatar: {
-        borderColor: "#8B5CF6",
+        borderColor: "#9575cd",
+        shadowColor: "#9575cd",
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    checkmarkContainer: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 14,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
     },
     buttonContainer: {
         flexDirection: "row",
@@ -156,15 +214,24 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
+        paddingVertical: 16,
+        borderRadius: 14,
         alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "row",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     cancelButton: {
         backgroundColor: "#F3F4F6",
     },
     selectButton: {
-        backgroundColor: "#8B5CF6",
+        backgroundColor: "#9575cd",
+        shadowColor: "#9575cd",
+        shadowOpacity: 0.3,
     },
     cancelButtonText: {
         fontSize: 16,
