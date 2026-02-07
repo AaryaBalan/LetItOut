@@ -221,15 +221,20 @@ export default function CommunityDetail() {
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="chevron-back" size={28} color="#FFF" />
+                    <Ionicons name="chevron-back" size={24} color={id === "Mental Health" ? "#000" : "#FFF"} />
                 </TouchableOpacity>
-                <View style={styles.categoryHeaderIcon}>
-                    <Ionicons name={categoryData.icon} size={32} color="#FFF" />
+
+                <View style={styles.categoryHeaderContent}>
+                    <View style={styles.categoryHeaderIcon}>
+                        <Ionicons name={categoryData.icon} size={24} color={id === "Mental Health" ? "#000" : "#FFF"} />
+                    </View>
+                    <View style={styles.categoryHeaderTextContainer}>
+                        <Text style={[styles.categoryHeaderTitle, { color: id === "Mental Health" ? "#000" : "#FFF" }]}>{categoryData.id}</Text>
+                        <Text style={[styles.categoryHeaderQuote, { color: id === "Mental Health" ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.85)" }]}>
+                            "{categoryData.quote}"
+                        </Text>
+                    </View>
                 </View>
-                <Text style={styles.categoryHeaderTitle}>{categoryData.id}</Text>
-                <Text style={styles.categoryHeaderQuote}>
-                    "{categoryData.quote}"
-                </Text>
             </View>
 
             <View style={[styles.categoryFilters, { backgroundColor: theme.isDark ? '#1A1A1A' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
@@ -538,41 +543,45 @@ export default function CommunityDetail() {
 const styles = StyleSheet.create({
     container: { flex: 1 },
     categoryHeader: {
-        paddingHorizontal: 20,
-        paddingTop: 48,
-        paddingBottom: 24,
+        flexDirection: "row",
         alignItems: "center",
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: 12,
+        gap: 12,
     },
     backButton: {
-        position: "absolute",
-        left: 16,
-        top: 48,
-        zIndex: 10,
-        width: 40,
-        height: 40,
+        width: 36,
+        height: 36,
         justifyContent: "center",
         alignItems: "center",
     },
+    categoryHeaderContent: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
+    categoryHeaderTextContainer: {
+        flex: 1,
+    },
     categoryHeaderIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         backgroundColor: "rgba(255,255,255,0.25)",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 12,
     },
     categoryHeaderTitle: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: "700",
         color: "#FFF",
-        marginBottom: 8,
+        marginBottom: 2,
     },
     categoryHeaderQuote: {
-        fontSize: 14,
-        color: "rgba(255,255,255,0.9)",
-        textAlign: "center",
-        paddingHorizontal: 32,
+        fontSize: 12,
+        color: "rgba(255,255,255,0.85)",
         fontStyle: "italic",
     },
     categoryFilters: {
