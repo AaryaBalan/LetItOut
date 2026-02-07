@@ -205,9 +205,10 @@ export default function Home() {
                   >
                     <View style={styles.notificationIconContainer}>
                       <Ionicons
+                        key={theme.isDark ? 'dark' : 'light'}
                         name="notifications-outline"
                         size={24}
-                        color={theme.isDark ? '#FFFFFF' : theme.text}
+                        color={theme.isDark ? '#FFFFFF' : '#000000'}
                       />
                       {unreadCount > 0 && (
                         <View style={styles.badge} />

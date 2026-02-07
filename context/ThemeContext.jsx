@@ -7,6 +7,7 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(false);
+  const [themeLoaded, setThemeLoaded] = useState(false);
 
   useEffect(() => {
     loadTheme();
@@ -24,6 +25,8 @@ export const ThemeProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error loading theme:', error);
+    } finally {
+      setThemeLoaded(true);
     }
   };
 
@@ -84,7 +87,13 @@ export const ThemeProvider = ({ children }) => {
     isDark,
     theme,
     toggleTheme,
+    themeLoaded,
   };
+
+  // Don't render children until theme is loaded
+  if (!themeLoaded) {
+    return null;
+  }
 
   return (
     <ThemeContext.Provider value={value}>
