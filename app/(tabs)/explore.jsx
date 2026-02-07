@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, doc, onSnapshot, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -14,6 +14,7 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
@@ -28,6 +29,7 @@ export default function Explore() {
     const { theme } = useTheme();
     const [searchQuery, setSearchQuery] = useState("");
     const [posts, setPosts] = useState([]);
+    const [authorProfiles, setAuthorProfiles] = useState({});
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("posts"); // "posts" or "people"
@@ -63,6 +65,39 @@ export default function Explore() {
         });
         return () => unsubscribe();
     }, []);
+
+    // Fetch author profile codes for top 10 posts
+    useEffect(() => {
+        const fetchAuthorProfiles = async () => {
+            const profiles = {};
+            const top10 = [...posts]
+                .sort((a, b) => (b.reactionCount + b.commentCount) - (a.reactionCount + a.commentCount))
+                .slice(0, 10);
+
+            for (const post of top10) {
+                if (post.authorId && !post.isAnonymous) {
+                    try {
+                        const userRef = doc(db, "users", post.authorId);
+                        const unsubscribe = onSnapshot(userRef, (docSnapshot) => {
+                            if (docSnapshot.exists()) {
+                                const userData = docSnapshot.data();
+                                setAuthorProfiles(prev => ({
+                                    ...prev,
+                                    [post.authorId]: userData.profileCode || userData.email || null
+                                }));
+                            }
+                        });
+                    } catch (error) {
+                        console.error("Error fetching profile:", error);
+                    }
+                }
+            }
+        };
+
+        if (posts.length > 0) {
+            fetchAuthorProfiles();
+        }
+    }, [posts]);
 
     // Top 10 Logic
     const top10Posts = [...posts]
@@ -268,6 +303,9 @@ export default function Explore() {
                             <ScrollView
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
+                                pagingEnabled
+                                decelerationRate="fast"
+                                snapToInterval={width * 0.85 + 16}
                                 style={{ backgroundColor: theme.surface }}
                                 contentContainerStyle={[styles.top10List, { backgroundColor: theme.surface }]}
                             >
@@ -277,53 +315,66 @@ export default function Explore() {
                                         style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
                                         onPress={() => router.push(`/post/${post.id}`)}
                                     >
-                                        <View style={[styles.top10Content, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                            {/* Rank Badge - Top Right */}
-                                            <View style={styles.rankBadge}>
-                                                <Text style={styles.rankBadgeText}>#{index + 1}</Text>
-                                            </View>
+                                        {/* Rank Badge - Top Right */}
+                                        <View style={styles.rankBadge}>
+                                            <Text style={styles.rankBadgeText}>#{index + 1}</Text>
+                                        </View>
 
-                                            {/* Category Badge */}
-                                            <View style={[styles.categoryPill, { backgroundColor: '#F3E5F5' }]}>
-                                                <Text style={styles.categoryPillText}>{post.category}</Text>
+                                        {/* Author Profile Picture */}
+                                        {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
+                                            <View style={[styles.top10ProfilePic, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
+                                                <Ionicons name="person" size={24} color="#9575cd" />
                                             </View>
+                                        ) : (
+                                            <View style={styles.top10ProfilePic}>
+                                                <Avatar seed={authorProfiles[post.authorId]} size={48} />
+                                            </View>
+                                        )}
 
-                                            {/* Author Info */}
-                                            <View style={styles.top10Author}>
-                                                <View style={styles.top10Avatar}>
-                                                    <Ionicons name="person" size={12} color="#9575cd" />
-                                                </View>
-                                                <Text style={styles.top10AuthorName} numberOfLines={1}>
-                                                    {post.authorName || "Anonymous"}
+                                        {/* Title */}
+                                        <Text style={[styles.top10Title, { color: theme.text }]} numberOfLines={2}>
+                                            {post.title}
+                                        </Text>
+
+                                        {/* Description */}
+                                        <Text style={[styles.top10Description, { color: theme.textSecondary }]} numberOfLines={3}>
+                                            {post.description}
+                                        </Text>
+
+                                        {/* Author */}
+                                        {post.authorName && (
+                                            <Text style={[styles.top10QuoteAuthor, { color: theme.textSecondary }]}>
+                                                - {post.authorName}
+                                            </Text>
+                                        )}
+
+                                        {/* Divider */}
+                                        <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF' }]} />
+
+                                        {/* Category Tag */}
+                                        <Text style={[styles.top10Tag, { color: theme.textSecondary }]}>
+                                            ON {post.category.toUpperCase()}
+                                        </Text>
+
+                                        {/* Reactions */}
+                                        <View style={styles.top10Reactions}>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="heart" size={14} color="#E57373" />
+                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                    {Math.floor((post.reactionCount || 0) * 0.4)}
                                                 </Text>
                                             </View>
-
-                                            {/* Title */}
-                                            <Text style={[styles.top10Title, { color: theme.text }]} numberOfLines={2}>{post.title}</Text>
-
-                                            {/* Description */}
-                                            <Text style={styles.top10Description} numberOfLines={2}>
-                                                {post.description}
-                                            </Text>
-
-                                            {/* Reactions Footer */}
-                                            <View style={styles.top10Reactions}>
-                                                <View style={styles.top10ReactionItem}>
-                                                    <Ionicons name="heart" size={12} color="#E57373" />
-                                                    <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.4)}</Text>
-                                                </View>
-                                                <View style={styles.top10ReactionItem}>
-                                                    <Ionicons name="hand-left" size={12} color="#FFB74D" />
-                                                    <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
-                                                </View>
-                                                <View style={styles.top10ReactionItem}>
-                                                    <Ionicons name="happy" size={12} color="#66BB6A" />
-                                                    <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
-                                                </View>
-                                                <View style={styles.top10CommentSection}>
-                                                    <Ionicons name="chatbubble-outline" size={12} color="#9E9E9E" />
-                                                    <Text style={styles.top10ReactionText}>{post.commentCount || 0}</Text>
-                                                </View>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
+                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="happy" size={14} color="#66BB6A" />
+                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                </Text>
                                             </View>
                                         </View>
                                     </TouchableOpacity>
@@ -625,33 +676,22 @@ const styles = StyleSheet.create({
         paddingRight: 8,
     },
     top10Card: {
-        width: 260,
+        width: width * 0.85,
         marginRight: 16,
-    },
-    top10Content: {
-        // backgroundColor removed - now set inline with theme
+        padding: 32,
         borderWidth: 1,
-        // borderColor removed - now set inline with theme
-        borderRadius: 16,
-        padding: 14,
-        height: 200,
-        width: 260,
-        justifyContent: "space-between",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
+        justifyContent: "center",
+        alignItems: "center",
         position: 'relative',
     },
     rankBadge: {
         position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: '#263238',
+        top: 12,
+        right: 12,
+        backgroundColor: '#9575cd',
         borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 3,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
         zIndex: 10,
     },
     rankBadgeText: {
@@ -660,82 +700,51 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         letterSpacing: 0.5,
     },
-    rankNumber: {
-        display: 'none', // Deprecated - now using rankBadge
-    },
-    categoryPill: {
-        alignSelf: "flex-start",
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        marginBottom: 8,
-    },
-    categoryPillText: {
-        fontSize: 9,
-        fontWeight: "700",
-        color: "#7B1FA2",
-        letterSpacing: 0.3,
-    },
-    top10Author: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 8,
-        gap: 6,
-    },
-    top10Avatar: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: "#EFE8FF",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    top10AuthorName: {
-        fontSize: 10,
-        fontWeight: "600",
-        color: "#9575cd",
-        flex: 1,
-    },
     top10Title: {
-        fontSize: 13,
+        fontSize: 16,
         fontWeight: "700",
-        color: "#212121",
-        lineHeight: 17,
-        marginBottom: 4,
+        textAlign: "center",
+        lineHeight: 22,
+        marginBottom: 12,
     },
     top10Description: {
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: "400",
-        color: "#757575",
-        lineHeight: 15,
-        marginBottom: 8,
+        textAlign: "center",
+        lineHeight: 19,
+        marginBottom: 16,
+    },
+    top10QuoteAuthor: {
+        fontSize: 13,
+        marginTop: -8,
+        marginBottom: 20,
+        fontStyle: "italic",
+    },
+    top10Divider: {
+        width: 40,
+        height: 2,
+        marginBottom: 12,
+    },
+    top10Tag: {
+        fontSize: 11,
+        fontWeight: "700",
+        letterSpacing: 1.5,
+        marginBottom: 16,
     },
     top10Reactions: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
+        justifyContent: "center",
+        gap: 12,
     },
     top10ReactionItem: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 3,
+        gap: 4,
     },
     top10ReactionText: {
-        fontSize: 10,
+        fontSize: 12,
         fontWeight: "600",
-        color: "#757575",
-    },
-    top10CommentSection: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 3,
-        marginLeft: "auto",
-    },
-    top10Stats: {
-        display: 'none', // Deprecated
-    },
-    top10Footer: {
-        display: 'none', // Deprecated
     },
 
     // Stories of the Day
@@ -754,6 +763,15 @@ const styles = StyleSheet.create({
     },
     quoteIcon: {
         marginBottom: 24,
+    },
+    top10ProfilePic: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+        overflow: 'hidden',
     },
     storyQuote: {
         fontSize: 20,
