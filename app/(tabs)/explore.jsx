@@ -104,6 +104,12 @@ export default function Explore() {
         .sort((a, b) => (b.reactionCount + b.commentCount) - (a.reactionCount + a.commentCount))
         .slice(0, 10);
 
+    // Help Needed Posts Logic - 5 most recent posts with helpNeeded: true
+    const helpNeededPosts = [...posts]
+        .filter(p => p.helpNeeded === true)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5);
+
     // Filter Logic
     const filteredPosts = searchQuery.trim()
         ? posts.filter(p => p.title?.toLowerCase().includes(searchQuery.toLowerCase()) || p.description?.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -381,10 +387,9 @@ export default function Explore() {
                                 ))}
                             </ScrollView>
 
-                            {/* Stories of the Day */}
+                            {/* Posts That Need Your Help */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
-                                <Text style={[styles.sectionTitle, { color: theme.text }]}>STORIES OF THE DAY</Text>
-                                <Text style={[styles.swipeHint, { color: theme.textSecondary }]}>Swipe to read</Text>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>POSTS THAT NEED YOUR HELP</Text>
                             </View>
 
                             <ScrollView
@@ -394,36 +399,90 @@ export default function Explore() {
                                 decelerationRate="fast"
                                 snapToInterval={width * 0.85 + 16}
                                 style={{ backgroundColor: theme.surface }}
-                                contentContainerStyle={[styles.storiesList, { backgroundColor: theme.surface }]}
+                                contentContainerStyle={[styles.top10List, { backgroundColor: theme.surface }]}
                             >
-                                {/* Static Featured Quote */}
-                                <View style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                    <Ionicons name="chatbox-ellipses-outline" size={32} color={theme.isDark ? '#3A3A5A' : '#E0E7FF'} style={styles.quoteIcon} />
-                                    <Text style={[styles.storyQuote, { color: theme.text }]}>
-                                        "There is a crack in everything. That's how the light gets in."
-                                    </Text>
-                                    <View style={[styles.divider, { backgroundColor: theme.border }]} />
-                                    <Text style={[styles.storyTag, { color: theme.textSecondary }]}>ON RESILIENCE</Text>
-                                </View>
-
-                                {/* Dynamic Stories from Posts */}
-                                {posts.slice(0, 5).map(post => (
+                                {helpNeededPosts.map((post, index) => (
                                     <TouchableOpacity
                                         key={post.id}
-                                        style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                        style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
                                         onPress={() => router.push(`/post/${post.id}`)}
                                     >
-                                        <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
-                                        <Text style={styles.storyQuote} numberOfLines={4}>
-                                            "{post.description}"
-                                        </Text>
-                                        {post.authorName && (
-                                            <Text style={styles.storyAuthor}>- {post.authorName}</Text>
+                                        {/* Help Badge - Top Right */}
+                                        <View style={[styles.rankBadge, { backgroundColor: '#E57373' }]}>
+                                            <Ionicons name="help-circle" size={14} color="#FFFFFF" />
+                                        </View>
+
+                                        {/* Author Profile Picture */}
+                                        {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
+                                            <View style={[styles.top10ProfilePic, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
+                                                <Ionicons name="person" size={24} color="#9575cd" />
+                                            </View>
+                                        ) : (
+                                            <View style={styles.top10ProfilePic}>
+                                                <Avatar seed={authorProfiles[post.authorId]} size={48} />
+                                            </View>
                                         )}
-                                        <View style={styles.divider} />
-                                        <Text style={styles.storyTag}>ON {post.category.toUpperCase()}</Text>
+
+                                        {/* Title */}
+                                        <Text style={[styles.top10Title, { color: theme.text }]} numberOfLines={2}>
+                                            {post.title}
+                                        </Text>
+
+                                        {/* Description */}
+                                        <Text style={[styles.top10Description, { color: theme.textSecondary }]} numberOfLines={3}>
+                                            {post.description}
+                                        </Text>
+
+                                        {/* Author */}
+                                        {post.authorName && (
+                                            <Text style={[styles.top10QuoteAuthor, { color: theme.textSecondary }]}>
+                                                - {post.authorName}
+                                            </Text>
+                                        )}
+
+                                        {/* Divider */}
+                                        <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF' }]} />
+
+                                        {/* Category Tag */}
+                                        <Text style={[styles.top10Tag, { color: theme.textSecondary }]}>
+                                            ON {post.category.toUpperCase()}
+                                        </Text>
+
+                                        {/* Reactions */}
+                                        <View style={styles.top10Reactions}>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="heart" size={14} color="#E57373" />
+                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                    {Math.floor((post.reactionCount || 0) * 0.4)}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
+                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.top10ReactionItem}>
+                                                <Ionicons name="happy" size={14} color="#66BB6A" />
+                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                </Text>
+                                            </View>
+                                        </View>
                                     </TouchableOpacity>
                                 ))}
+
+                                {/* View More Card */}
+                                <TouchableOpacity
+                                    style={[styles.top10Card, styles.viewMoreCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                    onPress={() => router.push('/help-needed')}
+                                >
+                                    <Ionicons name="arrow-forward-circle" size={48} color="#9575cd" />
+                                    <Text style={[styles.viewMoreText, { color: theme.text }]}>View More</Text>
+                                    <Text style={[styles.viewMoreSubtext, { color: theme.textSecondary }]}>
+                                        See all posts that need help
+                                    </Text>
+                                </TouchableOpacity>
                             </ScrollView>
 
                             {/* Editorial Pick */}
@@ -745,6 +804,20 @@ const styles = StyleSheet.create({
     top10ReactionText: {
         fontSize: 12,
         fontWeight: "600",
+    },
+    viewMoreCard: {
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 12,
+    },
+    viewMoreText: {
+        fontSize: 18,
+        fontWeight: "700",
+    },
+    viewMoreSubtext: {
+        fontSize: 13,
+        textAlign: "center",
+        paddingHorizontal: 20,
     },
 
     // Stories of the Day
