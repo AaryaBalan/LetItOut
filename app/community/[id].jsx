@@ -267,7 +267,7 @@ export default function CommunityDetail() {
                 ListEmptyComponent={
                     loading ? (
                         <View style={styles.emptyState}>
-                            <ActivityIndicator size="large" color="#B39DDB" />
+                            <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
                             <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
                         </View>
                     ) : (
@@ -715,13 +715,11 @@ const styles = StyleSheet.create({
     emptyStateTitle: {
         fontSize: 18,
         fontWeight: "600",
-        color: "#6B7280",
         marginTop: 16,
         marginBottom: 8,
     },
     emptyStateText: {
         fontSize: 14,
-        color: "#9CA3AF",
         textAlign: "center",
     },
 });

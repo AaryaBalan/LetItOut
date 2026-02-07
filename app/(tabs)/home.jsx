@@ -299,18 +299,18 @@ export default function Home() {
         ListEmptyComponent={
           loading ? (
             <View style={styles.emptyContainer}>
-              <ActivityIndicator size="large" color="#B39DDB" />
-              <Text style={styles.emptyText}>Loading posts...</Text>
+              <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
             </View>
           ) : (
             <View style={styles.emptyContainer}>
               <Ionicons
                 name="document-text-outline"
                 size={64}
-                color="#BDBDBD"
+                color={theme.textTertiary}
               />
-              <Text style={styles.emptyText}>No posts yet</Text>
-              <Text style={styles.emptySubtext}>
+              <Text style={[styles.emptyText, { color: theme.text }]}>No posts yet</Text>
+              <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
                 Be the first to share your thoughts!
               </Text>
             </View>
@@ -502,12 +502,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#757575",
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: "#BDBDBD",
     marginTop: 8,
   },
 });

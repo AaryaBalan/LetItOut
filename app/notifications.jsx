@@ -434,9 +434,9 @@ export default function Notifications() {
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="log-in-outline" size={64} color="#BDBDBD" />
-                    <Text style={styles.emptyTitle}>Not Logged In</Text>
-                    <Text style={styles.emptySubtitle}>
+                    <Ionicons name="log-in-outline" size={64} color={theme.textTertiary} />
+                    <Text style={[styles.emptyTitle, { color: theme.text }]}>Not Logged In</Text>
+                    <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
                         Please log in to view notifications
                     </Text>
                 </View>
@@ -456,8 +456,8 @@ export default function Notifications() {
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <ActivityIndicator size="large" color="#B39DDB" style={{ marginBottom: 16 }} />
-                    <Text style={styles.emptyTitle}>Loading...</Text>
+                    <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
+                    <Text style={[styles.emptyTitle, { color: theme.text }]}>Loading...</Text>
                 </View>
             </SafeAreaView>
         );
@@ -488,10 +488,10 @@ export default function Notifications() {
                     <Ionicons
                         name="notifications-outline"
                         size={80}
-                        color="#D1D1D6"
+                        color={theme.textTertiary}
                     />
-                    <Text style={styles.emptyTitle}>No Notifications</Text>
-                    <Text style={styles.emptySubtitle}>
+                    <Text style={[styles.emptyTitle, { color: theme.text }]}>No Notifications</Text>
+                    <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
                         When people interact with your posts,{"\n"}you'll see
                         notifications here
                     </Text>
@@ -686,13 +686,11 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 20,
         fontWeight: "700",
-        color: "#212121",
         marginTop: 20,
         marginBottom: 8,
     },
     emptySubtitle: {
         fontSize: 14,
-        color: "#9E9E9E",
         textAlign: "center",
         lineHeight: 22,
     },

@@ -238,8 +238,8 @@ export default function ChatTab() {
                 }
             />
             {loading && (
-                <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color="#9575cd" />
+                <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
+                    <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
                 </View>
             )}
         </SafeAreaView>
@@ -356,17 +356,14 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 18,
         fontWeight: "600",
-        color: "#757575",
         marginTop: 16,
     },
     emptySubtext: {
         fontSize: 14,
-        color: "#BDBDBD",
         marginTop: 4,
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(255,255,255,0.8)",
         justifyContent: "center",
         alignItems: "center",
     },

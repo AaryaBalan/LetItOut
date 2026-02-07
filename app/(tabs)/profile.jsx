@@ -740,7 +740,7 @@ export default function Profile() {
 
           {loadingHistory ? (
             <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-              <ActivityIndicator size="small" color="#B39DDB" />
+              <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
             </View>
           ) : (
             <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
@@ -977,7 +977,7 @@ export default function Profile() {
 
             {isLoadingFriends ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#B39DDB" />
+                <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
               </View>
             ) : (
               <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>

@@ -491,7 +491,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={styles.errorContainer}>
                 <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-                <ActivityIndicator size="large" color="#B39DDB" style={{ marginBottom: 16 }} />
+                <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
                 <Text style={styles.errorText}>Loading...</Text>
             </SafeAreaView>
         );
