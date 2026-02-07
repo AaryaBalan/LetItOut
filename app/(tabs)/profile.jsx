@@ -27,6 +27,7 @@ import Avatar from "../../components/Avatar";
 import AvatarSelectionModal from "../../components/AvatarSelectionModal";
 import EditProfileModal from "../../components/EditProfileModal";
 import PostCard from "../../components/PostCard";
+import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -583,286 +584,247 @@ export default function Profile() {
       : "N/A";
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
+    <TabScreenWrapper>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+        <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
 
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Your Profile</Text>
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() => router.push('/settings')}
-        >
-          <Ionicons name="settings" size={24} color={theme.text} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={[styles.scrollView, { backgroundColor: theme.background }]}
-        contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Profile Card */}
-        <View style={[styles.profileCard, { backgroundColor: theme.surface }]}>
-          <View style={styles.avatarContainer}>
-            <Avatar seed={profileCode} size={100} />
-            <TouchableOpacity
-              style={styles.editAvatarButton}
-              onPress={() => setShowAvatarModal(true)}
-            >
-              <Ionicons name="pencil" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={[styles.username, { color: theme.text }]}>
-            {user.displayName || "Anonymous User"}
-          </Text>
-          <Text style={[styles.joinDate, { color: theme.textSecondary }]}>Joined {joinDate}</Text>
-
-          {/* Bio */}
-          {userProfile?.bio && (
-            <Text style={[styles.bio, { color: theme.text }]}>{userProfile.bio}</Text>
-          )}
-
-          {/* Edit Profile Button */}
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Your Profile</Text>
           <TouchableOpacity
-            style={[styles.editProfileButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5', borderColor: theme.border }]}
-            onPress={() => setShowEditModal(true)}
+            style={styles.settingsButton}
+            onPress={() => router.push('/settings')}
           >
-            <Ionicons name="create-outline" size={18} color="#8B5CF6" />
-            <Text style={styles.editProfileText}>Edit Profile</Text>
+            <Ionicons name="settings" size={24} color={theme.text} />
           </TouchableOpacity>
+        </View>
 
-          {/* Additional Info */}
-          <View style={[styles.infoSection, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
-            <View style={styles.infoItem}>
-              <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
-              <Text style={[styles.infoText, { color: theme.text }]}>{user.email}</Text>
+        <ScrollView
+          style={[styles.scrollView, { backgroundColor: theme.background }]}
+          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Profile Card */}
+          <View style={[styles.profileCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.avatarContainer}>
+              <Avatar seed={profileCode} size={100} />
+              <TouchableOpacity
+                style={styles.editAvatarButton}
+                onPress={() => setShowAvatarModal(true)}
+              >
+                <Ionicons name="pencil" size={16} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
-            {userProfile?.phoneNumber && (
-              <View style={styles.infoItem}>
-                <Ionicons
-                  name="call-outline"
-                  size={16}
-                  color={theme.textSecondary}
-                />
-                <Text style={[styles.infoText, { color: theme.text }]}>
-                  {userProfile.phoneNumber}
-                </Text>
-              </View>
+
+            <Text style={[styles.username, { color: theme.text }]}>
+              {user.displayName || "Anonymous User"}
+            </Text>
+            <Text style={[styles.joinDate, { color: theme.textSecondary }]}>Joined {joinDate}</Text>
+
+            {/* Bio */}
+            {userProfile?.bio && (
+              <Text style={[styles.bio, { color: theme.text }]}>{userProfile.bio}</Text>
             )}
-            <View style={styles.infoItem}>
-              <Ionicons
-                name="person-outline"
-                size={16}
-                color="#757575"
-              />
-              <Text style={styles.infoText}>
-                {user.displayName || "Anonymous"}
-              </Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Ionicons
-                name="calendar-outline"
-                size={16}
-                color="#757575"
-              />
-              <Text style={styles.infoText}>
-                Member since {memberSince}
-              </Text>
-            </View>
-          </View>
 
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>LOVE SENT</Text>
-            </View>
-            <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>STORIES</Text>
-            </View>
-            <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('followers')}>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWERS</Text>
+            {/* Edit Profile Button */}
+            <TouchableOpacity
+              style={[styles.editProfileButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5', borderColor: theme.border }]}
+              onPress={() => setShowEditModal(true)}
+            >
+              <Ionicons name="create-outline" size={18} color="#8B5CF6" />
+              <Text style={styles.editProfileText}>Edit Profile</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('following')}>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWING</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        {/* Stories and Saved Posts Row */}
-        <View style={styles.cardsRow}>
-          {/* My Stories Card */}
-          <TouchableOpacity
-            style={[styles.squareCard, styles.storiesCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-            onPress={() => setShowAllStoriesModal(true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.squareCardContent}>
-              <View style={[styles.squareIconContainer, styles.storiesIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EDE9FE' }]}>
-                <Ionicons name="document-text" size={32} color="#7C3AED" />
+            {/* Additional Info */}
+            <View style={[styles.infoSection, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
+              <View style={styles.infoItem}>
+                <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
+                <Text style={[styles.infoText, { color: theme.text }]}>{user.email}</Text>
               </View>
-              <Text style={[styles.squareCount, { color: theme.text }]}>{userPosts.length}</Text>
-              <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>My Stories</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Saved Posts Card */}
-          <TouchableOpacity
-            style={[styles.squareCard, styles.savedCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-            onPress={() => setShowAllSavedModal(true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.squareCardContent}>
-              <View style={[styles.squareIconContainer, styles.savedIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FEF3C7' }]}>
-                <Ionicons name="bookmark" size={32} color="#F59E0B" />
-              </View>
-              <Text style={[styles.squareCount, { color: theme.text }]}>{savedPosts.length}</Text>
-              <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Supportive History Section */}
-        <TouchableOpacity
-          style={[styles.section, { backgroundColor: theme.isDark ? '#000000' : theme.card, borderColor: theme.border, padding: 16, borderRadius: 12 }]}
-          onPress={() => setShowAllHistoryModal(true)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Supportive History</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9575cd" />
-          </View>
-
-          {loadingHistory ? (
-            <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-              <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
-            </View>
-          ) : (
-            <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-              <View style={styles.summaryRow}>
-                <View style={[styles.summaryIconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                  <Ionicons name="heart" size={24} color="#E57373" />
-                </View>
-                <View style={styles.summaryContent}>
-                  <Text style={[styles.summaryCount, { color: theme.text }]}>{supportiveHistory.length}</Text>
-                  <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                    {supportiveHistory.length === 1 ? 'Interaction' : 'Interactions'}
+              {userProfile?.phoneNumber && (
+                <View style={styles.infoItem}>
+                  <Ionicons
+                    name="call-outline"
+                    size={16}
+                    color={theme.textSecondary}
+                  />
+                  <Text style={[styles.infoText, { color: theme.text }]}>
+                    {userProfile.phoneNumber}
                   </Text>
                 </View>
-              </View>
-              {supportiveHistory.length > 0 && (
-                <Text style={styles.summaryHint}>Tap to view your support history</Text>
               )}
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="person-outline"
+                  size={16}
+                  color="#757575"
+                />
+                <Text style={styles.infoText}>
+                  {user.displayName || "Anonymous"}
+                </Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={16}
+                  color="#757575"
+                />
+                <Text style={styles.infoText}>
+                  Member since {memberSince}
+                </Text>
+              </View>
             </View>
-          )}
-        </TouchableOpacity>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.privacyButton}
-            onPress={handlePrivacySettings}
-          >
-            <Ionicons name="lock-closed" size={20} color="#FFFFFF" />
-            <Text style={styles.privacyButtonText}>Privacy Settings</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#212121" />
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.deactivateButton}
-            onPress={handleDeactivateAccount}
-          >
-            <Text style={styles.deactivateButtonText}>
-              DEACTIVATE ACCOUNT
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
-
-      {/* All Stories Modal */}
-      <Modal
-        visible={showAllStoriesModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAllStoriesModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent80, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>All My Stories</Text>
-              <TouchableOpacity
-                onPress={() => setShowAllStoriesModal(false)}
-              >
-                <Ionicons name="close" size={28} color={theme.text} />
+            {/* Stats */}
+            <View style={styles.statsContainer}>
+              <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>LOVE SENT</Text>
+              </View>
+              <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>STORIES</Text>
+              </View>
+              <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('followers')}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWERS</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('following')}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWING</Text>
               </TouchableOpacity>
             </View>
-
-            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
-              {userPosts.map((post) => {
-                const reactions = postReactions[post.id] || {
-                  like: 0,
-                  hug: 0,
-                  metoo: 0,
-                };
-                const postData = {
-                  ...post,
-                  timestamp: getTimeAgo(post.createdAt),
-                  authorName: user?.displayName || userProfile?.displayName || "Anonymous",
-                  authorId: user?.uid || null,
-                  isAnonymous: post.isAnonymous || false,
-                };
-
-                return (
-                  <View key={post.id} style={[styles.postCardWrapper, { marginBottom: 12 }]}>
-                    <PostCard post={postData} hideDescription={false} />
-                  </View>
-                );
-              })}
-            </ScrollView>
           </View>
-        </View>
-      </Modal>
 
-      {/* All Saved Posts Modal */}
-      <Modal
-        visible={showAllSavedModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAllSavedModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent80, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Saved Posts</Text>
-              <TouchableOpacity
-                onPress={() => setShowAllSavedModal(false)}
-              >
-                <Ionicons name="close" size={28} color={theme.text} />
-              </TouchableOpacity>
+          {/* Stories and Saved Posts Row */}
+          <View style={styles.cardsRow}>
+            {/* My Stories Card */}
+            <TouchableOpacity
+              style={[styles.squareCard, styles.storiesCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setShowAllStoriesModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.squareCardContent}>
+                <View style={[styles.squareIconContainer, styles.storiesIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EDE9FE' }]}>
+                  <Ionicons name="document-text" size={32} color="#7C3AED" />
+                </View>
+                <Text style={[styles.squareCount, { color: theme.text }]}>{userPosts.length}</Text>
+                <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>My Stories</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Saved Posts Card */}
+            <TouchableOpacity
+              style={[styles.squareCard, styles.savedCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setShowAllSavedModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.squareCardContent}>
+                <View style={[styles.squareIconContainer, styles.savedIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FEF3C7' }]}>
+                  <Ionicons name="bookmark" size={32} color="#F59E0B" />
+                </View>
+                <Text style={[styles.squareCount, { color: theme.text }]}>{savedPosts.length}</Text>
+                <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Supportive History Section */}
+          <TouchableOpacity
+            style={[styles.section, { backgroundColor: theme.isDark ? '#000000' : theme.card, borderColor: theme.border, padding: 16, borderRadius: 12 }]}
+            onPress={() => setShowAllHistoryModal(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Supportive History</Text>
+              <Ionicons name="chevron-forward" size={20} color="#9575cd" />
             </View>
 
-            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
-              {savedPosts.length > 0 ? (
-                savedPosts.map((post) => {
+            {loadingHistory ? (
+              <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
+                <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+              </View>
+            ) : (
+              <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
+                <View style={styles.summaryRow}>
+                  <View style={[styles.summaryIconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
+                    <Ionicons name="heart" size={24} color="#E57373" />
+                  </View>
+                  <View style={styles.summaryContent}>
+                    <Text style={[styles.summaryCount, { color: theme.text }]}>{supportiveHistory.length}</Text>
+                    <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                      {supportiveHistory.length === 1 ? 'Interaction' : 'Interactions'}
+                    </Text>
+                  </View>
+                </View>
+                {supportiveHistory.length > 0 && (
+                  <Text style={styles.summaryHint}>Tap to view your support history</Text>
+                )}
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.privacyButton}
+              onPress={handlePrivacySettings}
+            >
+              <Ionicons name="lock-closed" size={20} color="#FFFFFF" />
+              <Text style={styles.privacyButtonText}>Privacy Settings</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out-outline" size={20} color="#212121" />
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.deactivateButton}
+              onPress={handleDeactivateAccount}
+            >
+              <Text style={styles.deactivateButtonText}>
+                DEACTIVATE ACCOUNT
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+
+        {/* All Stories Modal */}
+        <Modal
+          visible={showAllStoriesModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowAllStoriesModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent80, { backgroundColor: theme.surface }]}>
+              <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>All My Stories</Text>
+                <TouchableOpacity
+                  onPress={() => setShowAllStoriesModal(false)}
+                >
+                  <Ionicons name="close" size={28} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
+                {userPosts.map((post) => {
+                  const reactions = postReactions[post.id] || {
+                    like: 0,
+                    hug: 0,
+                    metoo: 0,
+                  };
                   const postData = {
                     ...post,
                     timestamp: getTimeAgo(post.createdAt),
-                    authorName: post.authorName || (post.isAnonymous ? "Anonymous" : "Unknown"),
-                    authorId: post.authorId || null,
+                    authorName: user?.displayName || userProfile?.displayName || "Anonymous",
+                    authorId: user?.uid || null,
                     isAnonymous: post.isAnonymous || false,
                   };
 
@@ -871,150 +833,191 @@ export default function Profile() {
                       <PostCard post={postData} hideDescription={false} />
                     </View>
                   );
-                })
-              ) : (
-                <View style={styles.emptyState}>
-                  <Ionicons name="bookmark-outline" size={64} color={theme.textTertiary} />
-                  <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>No saved posts yet</Text>
-                  <Text style={[styles.emptyStateText, { color: theme.textTertiary }]}>
-                    Tap the bookmark icon on any post to save it!
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* All History Modal */}
-      <Modal
-        visible={showAllHistoryModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAllHistoryModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent75, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Supportive History</Text>
-              <TouchableOpacity
-                onPress={() => setShowAllHistoryModal(false)}
-              >
-                <Ionicons name="close" size={28} color={theme.text} />
-              </TouchableOpacity>
+                })}
+              </ScrollView>
             </View>
+          </View>
+        </Modal>
 
-            <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}>
-              {supportiveHistory.map((item) => (
+        {/* All Saved Posts Modal */}
+        <Modal
+          visible={showAllSavedModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowAllSavedModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent80, { backgroundColor: theme.surface }]}>
+              <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>Saved Posts</Text>
                 <TouchableOpacity
-                  key={item.id}
-                  style={[styles.historyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-                  onPress={() => {
-                    setShowAllHistoryModal(false);
-                    router.push(`/post/${item.postId}`);
-                  }}
+                  onPress={() => setShowAllSavedModal(false)}
                 >
-                  <Text
-                    style={[
-                      styles.historyTag,
-                      { color: getHistoryCardTextColor(item.type) },
-                    ]}
-                  >
-                    {item.action.toUpperCase()}
-                  </Text>
-                  <Text style={[styles.historyTime, { color: theme.textTertiary }]}>
-                    {getTimeAgo(item.timestamp)}
-                  </Text>
-                  {item.type === "comment" ? (
-                    <Text style={[styles.historyText, { color: theme.textSecondary }]}>
-                      "{item.comment}" in "{item.postTitle}"
-                    </Text>
-                  ) : (
-                    <Text style={[styles.historyText, { color: theme.textSecondary }]}>
-                      {item.postTitle}
-                    </Text>
-                  )}
+                  <Ionicons name="close" size={28} color={theme.text} />
                 </TouchableOpacity>
-              ))}
-              <View style={{ height: 40 }} />
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Avatar Selection Modal */}
-      <AvatarSelectionModal
-        visible={showAvatarModal}
-        onClose={() => setShowAvatarModal(false)}
-        onSelect={handleAvatarSelect}
-        currentSeed={profileCode}
-      />
-
-      <EditProfileModal
-        visible={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        user={user}
-        onUpdate={handleProfileUpdate}
-      />
-
-      {/* Friends List Modal */}
-      <Modal
-        visible={showFriendsModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowFriendsModal(false)}
-      >
-        <View style={[styles.modalOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modalContent75, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>
-                {friendsListType === 'following' ? 'Following' : 'Followers'}
-              </Text>
-              <TouchableOpacity onPress={() => setShowFriendsModal(false)}>
-                <Ionicons name="close" size={28} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-
-            {isLoadingFriends ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
               </View>
-            ) : (
-              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
-                {friendsList.length > 0 ? (
-                  friendsList.map(friend => (
-                    <TouchableOpacity
-                      key={friend.id}
-                      style={[styles.friendItem, { borderBottomColor: theme.divider }]}
-                      onPress={() => {
-                        setShowFriendsModal(false);
-                        router.push(`/user/${friend.id}`);
-                      }}
-                    >
-                      <Avatar seed={friend.profileCode || friend.email} size={50} />
-                      <View style={styles.friendInfo}>
-                        <Text style={[styles.friendName, { color: theme.text }]}>{friend.displayName}</Text>
-                        <Text style={[styles.friendBio, { color: theme.textSecondary }]} numberOfLines={1}>
-                          {friend.bio || "No bio available"}
-                        </Text>
+
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
+                {savedPosts.length > 0 ? (
+                  savedPosts.map((post) => {
+                    const postData = {
+                      ...post,
+                      timestamp: getTimeAgo(post.createdAt),
+                      authorName: post.authorName || (post.isAnonymous ? "Anonymous" : "Unknown"),
+                      authorId: post.authorId || null,
+                      isAnonymous: post.isAnonymous || false,
+                    };
+
+                    return (
+                      <View key={post.id} style={[styles.postCardWrapper, { marginBottom: 12 }]}>
+                        <PostCard post={postData} hideDescription={false} />
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
-                    </TouchableOpacity>
-                  ))
+                    );
+                  })
                 ) : (
                   <View style={styles.emptyState}>
-                    <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-                      {friendsListType === 'following' ? "You aren't following anyone yet." : "No followers yet."}
+                    <Ionicons name="bookmark-outline" size={64} color={theme.textTertiary} />
+                    <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>No saved posts yet</Text>
+                    <Text style={[styles.emptyStateText, { color: theme.textTertiary }]}>
+                      Tap the bookmark icon on any post to save it!
                     </Text>
                   </View>
                 )}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* All History Modal */}
+        <Modal
+          visible={showAllHistoryModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowAllHistoryModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent75, { backgroundColor: theme.surface }]}>
+              <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>Supportive History</Text>
+                <TouchableOpacity
+                  onPress={() => setShowAllHistoryModal(false)}
+                >
+                  <Ionicons name="close" size={28} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}>
+                {supportiveHistory.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.historyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                    onPress={() => {
+                      setShowAllHistoryModal(false);
+                      router.push(`/post/${item.postId}`);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.historyTag,
+                        { color: getHistoryCardTextColor(item.type) },
+                      ]}
+                    >
+                      {item.action.toUpperCase()}
+                    </Text>
+                    <Text style={[styles.historyTime, { color: theme.textTertiary }]}>
+                      {getTimeAgo(item.timestamp)}
+                    </Text>
+                    {item.type === "comment" ? (
+                      <Text style={[styles.historyText, { color: theme.textSecondary }]}>
+                        "{item.comment}" in "{item.postTitle}"
+                      </Text>
+                    ) : (
+                      <Text style={[styles.historyText, { color: theme.textSecondary }]}>
+                        {item.postTitle}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
                 <View style={{ height: 40 }} />
               </ScrollView>
-            )}
+            </View>
           </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+        </Modal>
+
+        {/* Avatar Selection Modal */}
+        <AvatarSelectionModal
+          visible={showAvatarModal}
+          onClose={() => setShowAvatarModal(false)}
+          onSelect={handleAvatarSelect}
+          currentSeed={profileCode}
+        />
+
+        <EditProfileModal
+          visible={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          user={user}
+          onUpdate={handleProfileUpdate}
+        />
+
+        {/* Friends List Modal */}
+        <Modal
+          visible={showFriendsModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowFriendsModal(false)}
+        >
+          <View style={[styles.modalOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]}>
+            <View style={[styles.modalContent75, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
+              <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>
+                  {friendsListType === 'following' ? 'Following' : 'Followers'}
+                </Text>
+                <TouchableOpacity onPress={() => setShowFriendsModal(false)}>
+                  <Ionicons name="close" size={28} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+
+              {isLoadingFriends ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                </View>
+              ) : (
+                <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
+                  {friendsList.length > 0 ? (
+                    friendsList.map(friend => (
+                      <TouchableOpacity
+                        key={friend.id}
+                        style={[styles.friendItem, { borderBottomColor: theme.divider }]}
+                        onPress={() => {
+                          setShowFriendsModal(false);
+                          router.push(`/user/${friend.id}`);
+                        }}
+                      >
+                        <Avatar seed={friend.profileCode || friend.email} size={50} />
+                        <View style={styles.friendInfo}>
+                          <Text style={[styles.friendName, { color: theme.text }]}>{friend.displayName}</Text>
+                          <Text style={[styles.friendBio, { color: theme.textSecondary }]} numberOfLines={1}>
+                            {friend.bio || "No bio available"}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View style={styles.emptyState}>
+                      <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
+                        {friendsListType === 'following' ? "You aren't following anyone yet." : "No followers yet."}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={{ height: 40 }} />
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </TabScreenWrapper>
   );
 }
 

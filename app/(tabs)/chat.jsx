@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
+import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -198,51 +199,53 @@ export default function ChatTab() {
     );
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-            {/* Header - No back button for Tab */}
-            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Messages</Text>
-            </View>
-
-            {/* Search */}
-            <View style={[styles.searchContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface }]}>
-                <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                    <Ionicons name="search" size={20} color={theme.placeholder} />
-                    <TextInput
-                        style={[styles.searchInput, { color: theme.text }]}
-                        placeholder="Search friends..."
-                        placeholderTextColor={theme.placeholder}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
+        <TabScreenWrapper>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+                {/* Header - No back button for Tab */}
+                <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>Messages</Text>
                 </View>
-            </View>
 
-            <FlatList
-                data={filteredFriends}
-                keyExtractor={(item) => item.id}
-                renderItem={renderFriend}
-                style={{ backgroundColor: theme.background }}
-                contentContainerStyle={[styles.listContent, { backgroundColor: theme.background }]}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-                ListEmptyComponent={
-                    !loading && (
-                        <View style={styles.emptyContainer}>
-                            <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
-                            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends found</Text>
-                            <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>Connect with others to start chatting</Text>
-                        </View>
-                    )
-                }
-            />
-            {loading && (
-                <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                    <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                {/* Search */}
+                <View style={[styles.searchContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface }]}>
+                    <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
+                        <Ionicons name="search" size={20} color={theme.placeholder} />
+                        <TextInput
+                            style={[styles.searchInput, { color: theme.text }]}
+                            placeholder="Search friends..."
+                            placeholderTextColor={theme.placeholder}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                    </View>
                 </View>
-            )}
-        </SafeAreaView>
+
+                <FlatList
+                    data={filteredFriends}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderFriend}
+                    style={{ backgroundColor: theme.background }}
+                    contentContainerStyle={[styles.listContent, { backgroundColor: theme.background }]}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                    ListEmptyComponent={
+                        !loading && (
+                            <View style={styles.emptyContainer}>
+                                <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
+                                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends found</Text>
+                                <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>Connect with others to start chatting</Text>
+                            </View>
+                        )
+                    }
+                />
+                {loading && (
+                    <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
+                        <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                    </View>
+                )}
+            </SafeAreaView>
+        </TabScreenWrapper>
     );
 }
 

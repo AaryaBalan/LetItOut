@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
+import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -78,324 +79,326 @@ export default function Explore() {
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.surface }]} edges={["top"]}>
-            <StatusBar barStyle={theme.statusBar} backgroundColor={theme.surface} />
+        <TabScreenWrapper>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.surface }]} edges={["top"]}>
+                <StatusBar barStyle={theme.statusBar} backgroundColor={theme.surface} />
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: theme.surface }} contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.surface }]}>
-                {/* Modern White Header */}
-                <View style={[styles.headerWrapper, { backgroundColor: theme.surface }]}>
-                    <View style={styles.header}>
-                        {/* Top Row */}
-                        <View style={styles.headerTop}>
-                            <View style={styles.headerLeft}>
-                                <View style={[styles.logoContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#E1D5F4' }]}>
-                                    <Ionicons name="compass" size={28} color="#9575cd" />
+                <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: theme.surface }} contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.surface }]}>
+                    {/* Modern White Header */}
+                    <View style={[styles.headerWrapper, { backgroundColor: theme.surface }]}>
+                        <View style={styles.header}>
+                            {/* Top Row */}
+                            <View style={styles.headerTop}>
+                                <View style={styles.headerLeft}>
+                                    <View style={[styles.logoContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#E1D5F4' }]}>
+                                        <Ionicons name="compass" size={28} color="#9575cd" />
+                                    </View>
+                                    <View>
+                                        <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
+                                        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
+                                    </View>
                                 </View>
-                                <View>
-                                    <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
-                                    <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
-                                </View>
-                            </View>
-                            <View style={styles.headerRight}>
-                                <TouchableOpacity
-                                    style={styles.iconButton}
-                                    onPress={() => router.push("/notifications")}
-                                >
-                                    <Ionicons name="notifications-outline" size={24} color={theme.text} />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Enhanced Search Bar */}
-                        <View style={styles.searchContainer}>
-                            <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                                <Ionicons name="search" size={20} color="#9575cd" />
-                                <TextInput
-                                    style={[styles.searchInput, { color: theme.text }]}
-                                    placeholder="Search communities, topics, people..."
-                                    placeholderTextColor={theme.placeholder}
-                                    value={searchQuery}
-                                    onChangeText={setSearchQuery}
-                                />
-                                {searchQuery.length > 0 && (
-                                    <TouchableOpacity onPress={() => setSearchQuery("")}>
-                                        <Ionicons name="close-circle" size={20} color="#BDBDBD" />
+                                <View style={styles.headerRight}>
+                                    <TouchableOpacity
+                                        style={styles.iconButton}
+                                        onPress={() => router.push("/notifications")}
+                                    >
+                                        <Ionicons name="notifications-outline" size={24} color={theme.text} />
                                     </TouchableOpacity>
-                                )}
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                {searchQuery.trim() ? (
-                    // Search Results
-                    <View style={[styles.resultsSection, { backgroundColor: theme.surface }]}>
-                        {filteredPosts.map(post => <PostCard key={post.id} post={post} />)}
-                    </View>
-                ) : (
-                    <>
-                        {/* Discovery - Bento Grid */}
-                        <View style={[styles.sectionHeader, { backgroundColor: theme.surface }]}>
-                            <Text style={[styles.sectionTitle, { color: theme.text }]}>DISCOVERY</Text>
-                        </View>
-
-                        <View style={[styles.bentoGrid, { backgroundColor: theme.surface }]}>
-                            {/* Feed Card - Wide */}
-                            <TouchableOpacity
-                                style={[styles.bentoCard, styles.cardFeed, theme.isDark && { backgroundColor: '#1A1A2E' }]}
-                                onPress={() => router.push("/(tabs)/home")}
-                            >
-                                <View style={styles.cardContentHorizontal}>
-                                    <View>
-                                        <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Your Feed</Text>
-                                        <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LATEST UPDATES</Text>
-                                    </View>
-                                    <View style={[styles.iconCircle, { backgroundColor: '#FFFFFF' }]}>
-                                        <Ionicons name="newspaper" size={24} color="#5C6BC0" />
-                                    </View>
                                 </View>
-                            </TouchableOpacity>
-
-                            {/* Row 1: Mental Health & Stress */}
-                            <View style={styles.bentoRow}>
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardHealing, theme.isDark && { backgroundColor: '#2A2419' }]}
-                                    onPress={() => handleCategoryPress("Mental Health")}
-                                >
-                                    <View style={styles.iconCircle}>
-                                        <Ionicons name="fitness" size={24} color="#C8A656" />
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Mental Health</Text>
-                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>DAILY WELLBEING</Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardAnxiety, theme.isDark && { backgroundColor: '#1E1A2A' }]}
-                                    onPress={() => handleCategoryPress("Stress")}
-                                >
-                                    <View style={styles.iconCircle}>
-                                        <Ionicons name="leaf" size={24} color="#7C6BA8" />
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Stress</Text>
-                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>FINDING PEACE</Text>
-                                    </View>
-                                </TouchableOpacity>
                             </View>
 
-                            {/* Row 2: Relationship (Wide) */}
-                            <TouchableOpacity
-                                style={[styles.bentoCard, styles.cardRelationships, theme.isDark && { backgroundColor: '#2A1E24' }]}
-                                onPress={() => handleCategoryPress("Relationship")}
-                            >
-                                <View style={styles.cardContentHorizontal}>
-                                    <View>
-                                        <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Relationship</Text>
-                                        <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LOVE & CONNECTION</Text>
-                                    </View>
-                                    <Ionicons name="heart" size={48} color="rgba(244, 143, 177, 0.5)" />
-                                </View>
-                            </TouchableOpacity>
-
-                            {/* Row 3: Family & Study */}
-                            <View style={styles.bentoRow}>
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardFamily, theme.isDark && { backgroundColor: '#2A1919' }]}
-                                    onPress={() => handleCategoryPress("Family")}
-                                >
-                                    <View style={styles.iconCircle}>
-                                        <Ionicons name="home" size={24} color="#E57373" />
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Family</Text>
-                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>HOME SUPPORT</Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardStudy, theme.isDark && { backgroundColor: '#19252A' }]}
-                                    onPress={() => handleCategoryPress("Study")}
-                                >
-                                    <View style={styles.iconCircle}>
-                                        <Ionicons name="school" size={24} color="#5FA49C" />
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Study</Text>
-                                        <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>CAREER & GROWTH</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Row 4: Other & All Topics */}
-                            <View style={styles.bentoRow}>
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardOther, theme.isDark && { backgroundColor: '#1F2228' }]}
-                                    onPress={() => handleCategoryPress("Other")}
-                                >
-                                    <View style={styles.iconCircle}>
-                                        <Ionicons name="ellipsis-horizontal" size={24} color="#90A4AE" />
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Other</Text>
-                                        <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>SHARE YOUR STORY</Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardAll, theme.isDark && { backgroundColor: '#1A1A1A' }]}
-                                    onPress={() => handleCategoryPress("All")}
-                                >
-                                    <View style={[styles.iconCircle, { backgroundColor: '#37474F' }]}>
-                                        <Ionicons name="grid" size={24} color="#FFFFFF" />
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.bentoTitleSerif, { color: '#FFFFFF' }]}>All Topics</Text>
-                                        <Text style={[styles.bentoSubtitle, { color: '#B0BEC5' }]}>BROWSE ALL</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Top 10 Stories */}
-                        <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
-                            <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP 10 TODAY</Text>
-                        </View>
-
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            style={{ backgroundColor: theme.surface }}
-                            contentContainerStyle={[styles.top10List, { backgroundColor: theme.surface }]}
-                        >
-                            {top10Posts.map((post, index) => (
-                                <TouchableOpacity
-                                    key={post.id}
-                                    style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
-                                    onPress={() => router.push(`/post/${post.id}`)}
-                                >
-                                    <View style={styles.top10Content}>
-                                        {/* Rank Badge - Top Right */}
-                                        <View style={styles.rankBadge}>
-                                            <Text style={styles.rankBadgeText}>#{index + 1}</Text>
-                                        </View>
-
-                                        {/* Category Badge */}
-                                        <View style={[styles.categoryPill, { backgroundColor: '#F3E5F5' }]}>
-                                            <Text style={styles.categoryPillText}>{post.category}</Text>
-                                        </View>
-
-                                        {/* Author Info */}
-                                        <View style={styles.top10Author}>
-                                            <View style={styles.top10Avatar}>
-                                                <Ionicons name="person" size={12} color="#9575cd" />
-                                            </View>
-                                            <Text style={styles.top10AuthorName} numberOfLines={1}>
-                                                {post.authorName || "Anonymous"}
-                                            </Text>
-                                        </View>
-
-                                        {/* Title */}
-                                        <Text style={styles.top10Title} numberOfLines={2}>{post.title}</Text>
-
-                                        {/* Description */}
-                                        <Text style={styles.top10Description} numberOfLines={2}>
-                                            {post.description}
-                                        </Text>
-
-                                        {/* Reactions Footer */}
-                                        <View style={styles.top10Reactions}>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="heart" size={12} color="#E57373" />
-                                                <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.4)}</Text>
-                                            </View>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="hand-left" size={12} color="#FFB74D" />
-                                                <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
-                                            </View>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="happy" size={12} color="#66BB6A" />
-                                                <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
-                                            </View>
-                                            <View style={styles.top10CommentSection}>
-                                                <Ionicons name="chatbubble-outline" size={12} color="#9E9E9E" />
-                                                <Text style={styles.top10ReactionText}>{post.commentCount || 0}</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-
-                        {/* Stories of the Day */}
-                        <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
-                            <Text style={[styles.sectionTitle, { color: theme.text }]}>STORIES OF THE DAY</Text>
-                            <Text style={[styles.swipeHint, { color: theme.textSecondary }]}>Swipe to read</Text>
-                        </View>
-
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            pagingEnabled
-                            decelerationRate="fast"
-                            snapToInterval={width * 0.85 + 16}
-                            style={{ backgroundColor: theme.surface }}
-                            contentContainerStyle={[styles.storiesList, { backgroundColor: theme.surface }]}
-                        >
-                            {/* Static Featured Quote */}
-                            <View style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                <Ionicons name="chatbox-ellipses-outline" size={32} color={theme.isDark ? '#3A3A5A' : '#E0E7FF'} style={styles.quoteIcon} />
-                                <Text style={[styles.storyQuote, { color: theme.text }]}>
-                                    "There is a crack in everything. That's how the light gets in."
-                                </Text>
-                                <View style={[styles.divider, { backgroundColor: theme.border }]} />
-                                <Text style={[styles.storyTag, { color: theme.textSecondary }]}>ON RESILIENCE</Text>
-                            </View>
-
-                            {/* Dynamic Stories from Posts */}
-                            {posts.slice(0, 5).map(post => (
-                                <TouchableOpacity
-                                    key={post.id}
-                                    style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-                                    onPress={() => router.push(`/post/${post.id}`)}
-                                >
-                                    <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
-                                    <Text style={styles.storyQuote} numberOfLines={4}>
-                                        "{post.description}"
-                                    </Text>
-                                    {post.authorName && (
-                                        <Text style={styles.storyAuthor}>- {post.authorName}</Text>
+                            {/* Enhanced Search Bar */}
+                            <View style={styles.searchContainer}>
+                                <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
+                                    <Ionicons name="search" size={20} color="#9575cd" />
+                                    <TextInput
+                                        style={[styles.searchInput, { color: theme.text }]}
+                                        placeholder="Search communities, topics, people..."
+                                        placeholderTextColor={theme.placeholder}
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                    />
+                                    {searchQuery.length > 0 && (
+                                        <TouchableOpacity onPress={() => setSearchQuery("")}>
+                                            <Ionicons name="close-circle" size={20} color="#BDBDBD" />
+                                        </TouchableOpacity>
                                     )}
-                                    <View style={styles.divider} />
-                                    <Text style={styles.storyTag}>ON {post.category.toUpperCase()}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-
-                        {/* Editorial Pick */}
-                        <View style={[styles.editorialSection, { backgroundColor: theme.surface }]}>
-                            <Text style={[styles.curatedTitle, { color: theme.textSecondary }]}>CURATED FOR YOU</Text>
-                            <Text style={[styles.editorialLabel, { color: theme.textTertiary }]}>EDITORIAL PICK</Text>
-
-                            <Text style={[styles.articleTitle, { color: theme.text }]}>
-                                How to find quiet in a world that never stops talking.
-                            </Text>
-
-                            <Text style={[styles.articleSnippet, { color: theme.textSecondary }]}>
-                                In an age of constant connectivity, the most radical act is disconnection. Here is how we reclaim our inner silence.
-                            </Text>
-
-                            <TouchableOpacity style={styles.readMoreButton}>
-                                <View style={styles.readMoreLine} />
-                                <Text style={styles.readMoreText}>READ ARTICLE</Text>
-                                <View style={styles.readMoreLine} />
-                            </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
-                    </>
-                )}
-            </ScrollView>
-        </SafeAreaView>
+                    </View>
+
+                    {searchQuery.trim() ? (
+                        // Search Results
+                        <View style={[styles.resultsSection, { backgroundColor: theme.surface }]}>
+                            {filteredPosts.map(post => <PostCard key={post.id} post={post} />)}
+                        </View>
+                    ) : (
+                        <>
+                            {/* Discovery - Bento Grid */}
+                            <View style={[styles.sectionHeader, { backgroundColor: theme.surface }]}>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>DISCOVERY</Text>
+                            </View>
+
+                            <View style={[styles.bentoGrid, { backgroundColor: theme.surface }]}>
+                                {/* Feed Card - Wide */}
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardFeed, theme.isDark && { backgroundColor: '#1A1A2E' }]}
+                                    onPress={() => router.push("/(tabs)/home")}
+                                >
+                                    <View style={styles.cardContentHorizontal}>
+                                        <View>
+                                            <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Your Feed</Text>
+                                            <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LATEST UPDATES</Text>
+                                        </View>
+                                        <View style={[styles.iconCircle, { backgroundColor: '#FFFFFF' }]}>
+                                            <Ionicons name="newspaper" size={24} color="#5C6BC0" />
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* Row 1: Mental Health & Stress */}
+                                <View style={styles.bentoRow}>
+                                    <TouchableOpacity
+                                        style={[styles.bentoCard, styles.cardHealing, theme.isDark && { backgroundColor: '#2A2419' }]}
+                                        onPress={() => handleCategoryPress("Mental Health")}
+                                    >
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="fitness" size={24} color="#C8A656" />
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Mental Health</Text>
+                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>DAILY WELLBEING</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.bentoCard, styles.cardAnxiety, theme.isDark && { backgroundColor: '#1E1A2A' }]}
+                                        onPress={() => handleCategoryPress("Stress")}
+                                    >
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="leaf" size={24} color="#7C6BA8" />
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Stress</Text>
+                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>FINDING PEACE</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Row 2: Relationship (Wide) */}
+                                <TouchableOpacity
+                                    style={[styles.bentoCard, styles.cardRelationships, theme.isDark && { backgroundColor: '#2A1E24' }]}
+                                    onPress={() => handleCategoryPress("Relationship")}
+                                >
+                                    <View style={styles.cardContentHorizontal}>
+                                        <View>
+                                            <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Relationship</Text>
+                                            <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LOVE & CONNECTION</Text>
+                                        </View>
+                                        <Ionicons name="heart" size={48} color="rgba(244, 143, 177, 0.5)" />
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* Row 3: Family & Study */}
+                                <View style={styles.bentoRow}>
+                                    <TouchableOpacity
+                                        style={[styles.bentoCard, styles.cardFamily, theme.isDark && { backgroundColor: '#2A1919' }]}
+                                        onPress={() => handleCategoryPress("Family")}
+                                    >
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="home" size={24} color="#E57373" />
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Family</Text>
+                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>HOME SUPPORT</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.bentoCard, styles.cardStudy, theme.isDark && { backgroundColor: '#19252A' }]}
+                                        onPress={() => handleCategoryPress("Study")}
+                                    >
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="school" size={24} color="#5FA49C" />
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Study</Text>
+                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>CAREER & GROWTH</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Row 4: Other & All Topics */}
+                                <View style={styles.bentoRow}>
+                                    <TouchableOpacity
+                                        style={[styles.bentoCard, styles.cardOther, theme.isDark && { backgroundColor: '#1F2228' }]}
+                                        onPress={() => handleCategoryPress("Other")}
+                                    >
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="ellipsis-horizontal" size={24} color="#90A4AE" />
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Other</Text>
+                                            <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>SHARE YOUR STORY</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.bentoCard, styles.cardAll, theme.isDark && { backgroundColor: '#1A1A1A' }]}
+                                        onPress={() => handleCategoryPress("All")}
+                                    >
+                                        <View style={[styles.iconCircle, { backgroundColor: '#37474F' }]}>
+                                            <Ionicons name="grid" size={24} color="#FFFFFF" />
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.bentoTitleSerif, { color: '#FFFFFF' }]}>All Topics</Text>
+                                            <Text style={[styles.bentoSubtitle, { color: '#B0BEC5' }]}>BROWSE ALL</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Top 10 Stories */}
+                            <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP 10 TODAY</Text>
+                            </View>
+
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                style={{ backgroundColor: theme.surface }}
+                                contentContainerStyle={[styles.top10List, { backgroundColor: theme.surface }]}
+                            >
+                                {top10Posts.map((post, index) => (
+                                    <TouchableOpacity
+                                        key={post.id}
+                                        style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                        onPress={() => router.push(`/post/${post.id}`)}
+                                    >
+                                        <View style={styles.top10Content}>
+                                            {/* Rank Badge - Top Right */}
+                                            <View style={styles.rankBadge}>
+                                                <Text style={styles.rankBadgeText}>#{index + 1}</Text>
+                                            </View>
+
+                                            {/* Category Badge */}
+                                            <View style={[styles.categoryPill, { backgroundColor: '#F3E5F5' }]}>
+                                                <Text style={styles.categoryPillText}>{post.category}</Text>
+                                            </View>
+
+                                            {/* Author Info */}
+                                            <View style={styles.top10Author}>
+                                                <View style={styles.top10Avatar}>
+                                                    <Ionicons name="person" size={12} color="#9575cd" />
+                                                </View>
+                                                <Text style={styles.top10AuthorName} numberOfLines={1}>
+                                                    {post.authorName || "Anonymous"}
+                                                </Text>
+                                            </View>
+
+                                            {/* Title */}
+                                            <Text style={styles.top10Title} numberOfLines={2}>{post.title}</Text>
+
+                                            {/* Description */}
+                                            <Text style={styles.top10Description} numberOfLines={2}>
+                                                {post.description}
+                                            </Text>
+
+                                            {/* Reactions Footer */}
+                                            <View style={styles.top10Reactions}>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="heart" size={12} color="#E57373" />
+                                                    <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.4)}</Text>
+                                                </View>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="hand-left" size={12} color="#FFB74D" />
+                                                    <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
+                                                </View>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="happy" size={12} color="#66BB6A" />
+                                                    <Text style={styles.top10ReactionText}>{Math.floor((post.reactionCount || 0) * 0.3)}</Text>
+                                                </View>
+                                                <View style={styles.top10CommentSection}>
+                                                    <Ionicons name="chatbubble-outline" size={12} color="#9E9E9E" />
+                                                    <Text style={styles.top10ReactionText}>{post.commentCount || 0}</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+
+                            {/* Stories of the Day */}
+                            <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>STORIES OF THE DAY</Text>
+                                <Text style={[styles.swipeHint, { color: theme.textSecondary }]}>Swipe to read</Text>
+                            </View>
+
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                pagingEnabled
+                                decelerationRate="fast"
+                                snapToInterval={width * 0.85 + 16}
+                                style={{ backgroundColor: theme.surface }}
+                                contentContainerStyle={[styles.storiesList, { backgroundColor: theme.surface }]}
+                            >
+                                {/* Static Featured Quote */}
+                                <View style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                    <Ionicons name="chatbox-ellipses-outline" size={32} color={theme.isDark ? '#3A3A5A' : '#E0E7FF'} style={styles.quoteIcon} />
+                                    <Text style={[styles.storyQuote, { color: theme.text }]}>
+                                        "There is a crack in everything. That's how the light gets in."
+                                    </Text>
+                                    <View style={[styles.divider, { backgroundColor: theme.border }]} />
+                                    <Text style={[styles.storyTag, { color: theme.textSecondary }]}>ON RESILIENCE</Text>
+                                </View>
+
+                                {/* Dynamic Stories from Posts */}
+                                {posts.slice(0, 5).map(post => (
+                                    <TouchableOpacity
+                                        key={post.id}
+                                        style={[styles.storyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                        onPress={() => router.push(`/post/${post.id}`)}
+                                    >
+                                        <Ionicons name="chatbox-ellipses-outline" size={32} color="#E0E7FF" style={styles.quoteIcon} />
+                                        <Text style={styles.storyQuote} numberOfLines={4}>
+                                            "{post.description}"
+                                        </Text>
+                                        {post.authorName && (
+                                            <Text style={styles.storyAuthor}>- {post.authorName}</Text>
+                                        )}
+                                        <View style={styles.divider} />
+                                        <Text style={styles.storyTag}>ON {post.category.toUpperCase()}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+
+                            {/* Editorial Pick */}
+                            <View style={[styles.editorialSection, { backgroundColor: theme.surface }]}>
+                                <Text style={[styles.curatedTitle, { color: theme.textSecondary }]}>CURATED FOR YOU</Text>
+                                <Text style={[styles.editorialLabel, { color: theme.textTertiary }]}>EDITORIAL PICK</Text>
+
+                                <Text style={[styles.articleTitle, { color: theme.text }]}>
+                                    How to find quiet in a world that never stops talking.
+                                </Text>
+
+                                <Text style={[styles.articleSnippet, { color: theme.textSecondary }]}>
+                                    In an age of constant connectivity, the most radical act is disconnection. Here is how we reclaim our inner silence.
+                                </Text>
+
+                                <TouchableOpacity style={styles.readMoreButton}>
+                                    <View style={styles.readMoreLine} />
+                                    <Text style={styles.readMoreText}>READ ARTICLE</Text>
+                                    <View style={styles.readMoreLine} />
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
+                </ScrollView>
+            </SafeAreaView>
+        </TabScreenWrapper>
     );
 }
 

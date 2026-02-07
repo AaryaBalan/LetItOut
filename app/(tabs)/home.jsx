@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
+import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -176,149 +177,151 @@ export default function Home() {
   });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-      <FlatList
-        data={[
-          { id: 'header' }, // Just header now, no search
-          { id: 'sticky-categories' },
-          ...filteredPosts
-        ]}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => {
-          if (item.id === 'header') {
-            return (
-              <View style={[styles.header, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
-                <View style={styles.headerLeft}>
-                  <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}>
-                    <Ionicons name="menu-outline" size={24} color={theme.isDark ? '#FFFFFF' : theme.text} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.logoContainerCenter}>
-                  <Text style={[styles.logo, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Let It Out</Text>
-                </View>
-
-                <View style={styles.headerRight}>
-                  <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}
-                    onPress={() => router.push("/notifications")}
-                  >
-                    <View style={styles.notificationIconContainer}>
-                      <Ionicons
-                        key={theme.isDark ? 'dark' : 'light'}
-                        name="notifications-outline"
-                        size={24}
-                        color={theme.isDark ? '#FFFFFF' : '#000000'}
-                      />
-                      {unreadCount > 0 && (
-                        <View style={styles.badge} />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          }
-          if (item.id === 'sticky-categories') {
-            return (
-              <View style={[styles.stickyContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider }]}>
-                {isSearchExpanded ? (
-                  <View style={styles.expandedWrapper}>
-                    <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#2A2A2A' : theme.input, borderColor: theme.inputBorder }]}>
-                      <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : theme.text} />
-                      <TextInput
-                        style={[styles.expandedSearchInput, { color: theme.isDark ? '#FFFFFF' : theme.text }]}
-                        placeholder="Search..."
-                        placeholderTextColor={theme.placeholder}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        autoFocus
-                      />
-                    </View>
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={() => {
-                        setSearchQuery("");
-                        setIsSearchExpanded(false);
-                      }}
-                    >
-                      <Text style={[styles.cancelText, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Cancel</Text>
+    <TabScreenWrapper>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+        <FlatList
+          data={[
+            { id: 'header' }, // Just header now, no search
+            { id: 'sticky-categories' },
+            ...filteredPosts
+          ]}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => {
+            if (item.id === 'header') {
+              return (
+                <View style={[styles.header, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
+                  <View style={styles.headerLeft}>
+                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}>
+                      <Ionicons name="menu-outline" size={24} color={theme.isDark ? '#FFFFFF' : theme.text} />
                     </TouchableOpacity>
                   </View>
-                ) : (
-                  <View style={styles.categoriesRow}>
-                    <TouchableOpacity
-                      style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                      onPress={() => setIsSearchExpanded(true)}
-                    >
-                      <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
-                    </TouchableOpacity>
 
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.categoriesContent}
+                  <View style={styles.logoContainerCenter}>
+                    <Text style={[styles.logo, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Let It Out</Text>
+                  </View>
+
+                  <View style={styles.headerRight}>
+                    <TouchableOpacity
+                      style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}
+                      onPress={() => router.push("/notifications")}
                     >
-                      {categories.map((category) => (
-                        <TouchableOpacity
-                          key={category}
-                          style={[
-                            styles.categoryChip,
-                            { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' },
-                            selectedCategory === category && {
-                              backgroundColor: getCategoryColor(category),
-                              borderColor: getCategoryColor(category),
-                              shadowColor: getCategoryColor(category),
-                              shadowOpacity: 0.3,
-                            },
-                          ]}
-                          onPress={() => setSelectedCategory(category)}
-                        >
-                          <Text
+                      <View style={styles.notificationIconContainer}>
+                        <Ionicons
+                          key={theme.isDark ? 'dark' : 'light'}
+                          name="notifications-outline"
+                          size={24}
+                          color={theme.isDark ? '#FFFFFF' : '#000000'}
+                        />
+                        {unreadCount > 0 && (
+                          <View style={styles.badge} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            }
+            if (item.id === 'sticky-categories') {
+              return (
+                <View style={[styles.stickyContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider }]}>
+                  {isSearchExpanded ? (
+                    <View style={styles.expandedWrapper}>
+                      <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#2A2A2A' : theme.input, borderColor: theme.inputBorder }]}>
+                        <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : theme.text} />
+                        <TextInput
+                          style={[styles.expandedSearchInput, { color: theme.isDark ? '#FFFFFF' : theme.text }]}
+                          placeholder="Search..."
+                          placeholderTextColor={theme.placeholder}
+                          value={searchQuery}
+                          onChangeText={setSearchQuery}
+                          autoFocus
+                        />
+                      </View>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => {
+                          setSearchQuery("");
+                          setIsSearchExpanded(false);
+                        }}
+                      >
+                        <Text style={[styles.cancelText, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.categoriesRow}>
+                      <TouchableOpacity
+                        style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
+                        onPress={() => setIsSearchExpanded(true)}
+                      >
+                        <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
+                      </TouchableOpacity>
+
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.categoriesContent}
+                      >
+                        {categories.map((category) => (
+                          <TouchableOpacity
+                            key={category}
                             style={[
-                              styles.categoryText,
-                              { color: theme.isDark ? '#AAAAAA' : '#757575' },
-                              selectedCategory === category &&
-                              styles.categoryTextActive,
+                              styles.categoryChip,
+                              { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' },
+                              selectedCategory === category && {
+                                backgroundColor: getCategoryColor(category),
+                                borderColor: getCategoryColor(category),
+                                shadowColor: getCategoryColor(category),
+                                shadowOpacity: 0.3,
+                              },
                             ]}
+                            onPress={() => setSelectedCategory(category)}
                           >
-                            {category}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
+                            <Text
+                              style={[
+                                styles.categoryText,
+                                { color: theme.isDark ? '#AAAAAA' : '#757575' },
+                                selectedCategory === category &&
+                                styles.categoryTextActive,
+                              ]}
+                            >
+                              {category}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+              );
+            }
+            return <PostCard post={item} />;
+          }}
+          contentContainerStyle={styles.feedContent}
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[1]} // Make only the categories (index 1) sticky
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.emptyContainer}>
+                <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
               </View>
-            );
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={64}
+                  color={theme.textTertiary}
+                />
+                <Text style={[styles.emptyText, { color: theme.text }]}>No posts yet</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
+                  Be the first to share your thoughts!
+                </Text>
+              </View>
+            )
           }
-          return <PostCard post={item} />;
-        }}
-        contentContainerStyle={styles.feedContent}
-        showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[1]} // Make only the categories (index 1) sticky
-        ListEmptyComponent={
-          loading ? (
-            <View style={styles.emptyContainer}>
-              <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons
-                name="document-text-outline"
-                size={64}
-                color={theme.textTertiary}
-              />
-              <Text style={[styles.emptyText, { color: theme.text }]}>No posts yet</Text>
-              <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-                Be the first to share your thoughts!
-              </Text>
-            </View>
-          )
-        }
-      />
-    </SafeAreaView>
+        />
+      </SafeAreaView>
+    </TabScreenWrapper>
   );
 }
 
