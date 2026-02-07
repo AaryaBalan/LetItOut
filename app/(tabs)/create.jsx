@@ -22,6 +22,7 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
+import { showInterstitialAd } from "../ads/InterstitialAds";
 
 export default function CreatePost() {
   const router = useRouter();
@@ -34,6 +35,22 @@ export default function CreatePost() {
   const [helpNeeded, setHelpNeeded] = useState(false);
   const [moodLevel, setMoodLevel] = useState(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle help needed toggle with interstitial ad
+  const handleHelpNeededToggle = (value) => {
+    setHelpNeeded(value);
+
+    // Show interstitial ad when help needed is turned ON
+    if (value === true) {
+      try {
+        showInterstitialAd(() => {
+          console.log('Interstitial ad closed');
+        });
+      } catch (error) {
+        console.warn('Failed to show interstitial ad:', error);
+      }
+    }
+  };
 
   const characterCount = description.length;
   const maxCharacters = 1000;
@@ -267,7 +284,7 @@ export default function CreatePost() {
               </View>
               <Switch
                 value={helpNeeded}
-                onValueChange={setHelpNeeded}
+                onValueChange={handleHelpNeededToggle}
                 trackColor={{ false: "#E0E0E0", true: "#FFB74D" }}
                 thumbColor={helpNeeded ? "#FF9800" : "#F5F5F5"}
                 ios_backgroundColor="#E0E0E0"
