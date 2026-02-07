@@ -536,6 +536,11 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         marginTop: 8,
     },
+    resultsSection: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        gap: 16,
+    },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',

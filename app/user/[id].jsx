@@ -252,21 +252,24 @@ export default function UserProfile() {
 
                 {/* Profile Card */}
                 <View style={[styles.profileHeader, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
-                    <View style={styles.avatarContainer}>
-                        <Avatar seed={userProfile.profileCode || userProfile.email} size={100} />
+                    {/* Horizontal Profile Row */}
+                    <View style={styles.profileRow}>
+                        <View style={styles.avatarContainer}>
+                            <Avatar seed={userProfile.profileCode || userProfile.email} size={80} />
+                        </View>
+
+                        <View style={styles.profileInfo}>
+                            <Text style={[styles.displayName, { color: theme.text }]}>{userProfile.displayName}</Text>
+                            <Text style={[styles.joinDate, { color: theme.textSecondary }]}>
+                                Joined {userProfile.createdAt ? new Date(userProfile.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
+                            </Text>
+                        </View>
                     </View>
 
-                    <Text style={[styles.displayName, { color: theme.text }]}>{userProfile.displayName}</Text>
+                    <Text style={[styles.bioText, { color: theme.textSecondary }]}>
+                        {userProfile.bio || "Just someone trying to navigate life, one day at a time."}
+                    </Text>
 
-                    <View style={[styles.roleBagde, { backgroundColor: `${roleColor}15` }]}>
-                        <Text style={[styles.roleText, { color: roleColor }]}>{role}</Text>
-                    </View>
-
-                    {userProfile.bio ? (
-                        <Text style={[styles.bioText, { color: theme.textSecondary }]}>{userProfile.bio}</Text>
-                    ) : null}
-
-                    {/* Follow Button */}
                     {currentUser && currentUser.uid !== id && (
                         <TouchableOpacity
                             style={[
@@ -280,13 +283,19 @@ export default function UserProfile() {
                             {followLoading ? (
                                 <ActivityIndicator size="small" color={followStatus === 1 ? theme.textSecondary : theme.isDark ? "#000000" : "#FFF"} />
                             ) : (
-                                <Text style={[
-                                    styles.followButtonText,
-                                    { color: theme.isDark ? '#000000' : '#FFFFFF' },
-                                    (followStatus === 1 || followStatus === 0) && [styles.followingButtonText, { color: theme.text }]
-                                ]}>
-                                    {followStatus === 1 ? "Following" : followStatus === 0 ? "Requested" : "Follow"}
-                                </Text>
+                                <>
+                                    <Ionicons
+                                        name={followStatus === 1 ? "checkmark" : followStatus === 0 ? "time-outline" : "person-add"}
+                                        size={16}
+                                        color={followStatus === 1 || followStatus === 0 ? theme.text : (theme.isDark ? "#000000" : "#FFFFFF")}
+                                    />
+                                    <Text style={[
+                                        styles.followButtonText,
+                                        { color: followStatus === 1 || followStatus === 0 ? theme.text : (theme.isDark ? "#000000" : "#FFFFFF") }
+                                    ]}>
+                                        {followStatus === 1 ? "Following" : followStatus === 0 ? "Requested" : "Follow"}
+                                    </Text>
+                                </>
                             )}
                         </TouchableOpacity>
                     )}
@@ -362,24 +371,41 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     profileHeader: {
-        alignItems: "center",
-        paddingVertical: 12,
+        paddingVertical: 20,
         paddingHorizontal: 16,
-        borderBottomWidth: 4,
+        borderBottomWidth: 1,
+    },
+    profileRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 16,
+        marginBottom: 16,
+    },
+    profileInfo: {
+        flex: 1,
+    },
+    nameRoleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap",
     },
     avatarContainer: {
-        marginBottom: 16,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
     },
     displayName: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: "800",
         color: "#111827",
-        marginBottom: 2,
+    },
+    joinDate: {
+        fontSize: 13,
+        color: "#6B7280",
+        marginTop: 2,
     },
     roleBagde: {
         paddingHorizontal: 8,
@@ -395,18 +421,18 @@ const styles = StyleSheet.create({
     bioText: {
         fontSize: 13,
         color: "#6B7280",
-        textAlign: "center",
         marginBottom: 12,
         lineHeight: 18,
-        maxWidth: '90%',
     },
     followButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "center",
+        gap: 6,
         paddingVertical: 6,
-        paddingHorizontal: 24,
+        paddingHorizontal: 16,
         borderRadius: 20,
         marginBottom: 12,
-        minWidth: 100,
-        alignItems: "center",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,

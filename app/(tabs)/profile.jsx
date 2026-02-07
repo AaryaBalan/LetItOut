@@ -606,34 +606,38 @@ export default function Profile() {
         >
           {/* Profile Card */}
           <View style={[styles.profileCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.avatarContainer}>
-              <Avatar seed={profileCode} size={100} />
+            {/* Horizontal Profile Header */}
+            <View style={styles.profileHeader}>
+              <View style={styles.avatarContainer}>
+                <Avatar seed={profileCode} size={80} />
+                <TouchableOpacity
+                  style={styles.editAvatarButton}
+                  onPress={() => setShowAvatarModal(true)}
+                >
+                  <Ionicons name="pencil" size={14} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.profileInfo}>
+                <Text style={[styles.username, { color: theme.text }]}>
+                  {user.displayName || "Anonymous User"}
+                </Text>
+                <Text style={[styles.joinDate, { color: theme.textSecondary }]}>Joined {joinDate}</Text>
+              </View>
+
+              {/* Edit Profile Button */}
               <TouchableOpacity
-                style={styles.editAvatarButton}
-                onPress={() => setShowAvatarModal(true)}
+                style={[styles.editProfileButtonCompact, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}
+                onPress={() => setShowEditModal(true)}
               >
-                <Ionicons name="pencil" size={16} color="#FFFFFF" />
+                <Ionicons name="create-outline" size={20} color="#8B5CF6" />
               </TouchableOpacity>
             </View>
-
-            <Text style={[styles.username, { color: theme.text }]}>
-              {user.displayName || "Anonymous User"}
-            </Text>
-            <Text style={[styles.joinDate, { color: theme.textSecondary }]}>Joined {joinDate}</Text>
 
             {/* Bio */}
             {userProfile?.bio && (
               <Text style={[styles.bio, { color: theme.text }]}>{userProfile.bio}</Text>
             )}
-
-            {/* Edit Profile Button */}
-            <TouchableOpacity
-              style={[styles.editProfileButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5', borderColor: theme.border }]}
-              onPress={() => setShowEditModal(true)}
-            >
-              <Ionicons name="create-outline" size={18} color="#8B5CF6" />
-              <Text style={styles.editProfileText}>Edit Profile</Text>
-            </TouchableOpacity>
 
             {/* Additional Info */}
             <View style={[styles.infoSection, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
@@ -1055,17 +1059,31 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 24,
-    alignItems: "center",
+    padding: 20,
     marginBottom: 16,
-    shadowColor: "#9575cd",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  editProfileButtonCompact: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarContainer: {
-    marginBottom: 16,
     position: "relative",
   },
   avatar: {
@@ -1078,15 +1096,15 @@ const styles = StyleSheet.create({
   },
   editAvatarButton: {
     position: "absolute",
-    bottom: 0,
-    right: -4,
+    bottom: -2,
+    right: -2,
     backgroundColor: "#9575cd",
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: "#FFFFFF",
     shadowColor: "#9575cd",
     shadowOffset: { width: 0, height: 2 },
@@ -1110,9 +1128,7 @@ const styles = StyleSheet.create({
   bio: {
     fontSize: 14,
     color: "#616161",
-    textAlign: "center",
     marginBottom: 16,
-    paddingHorizontal: 12,
     lineHeight: 20,
   },
   editProfileButton: {
@@ -1446,6 +1462,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#F5F5F5",
   },

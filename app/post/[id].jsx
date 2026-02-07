@@ -968,19 +968,19 @@ export default function PostDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.actionButton,
-                                        likeActive && styles.actionButtonActive,
+                                        likeActive && { backgroundColor: "#FFCDD2" }, // Red 100
                                     ]}
                                     onPress={handleLike}
                                 >
                                     <Ionicons
-                                        name="heart"
+                                        name={likeActive ? "heart" : "heart-outline"}
                                         size={18}
-                                        color={likeActive ? "#E57373" : "#9575cd"}
+                                        color={likeActive ? "#C62828" : "#9575cd"} // Red 800
                                     />
                                     <Text
                                         style={[
                                             styles.actionButtonText,
-                                            likeActive && styles.actionButtonTextActive,
+                                            likeActive && { color: "#C62828" }, // Red 800
                                         ]}
                                     >
                                         Like {likeCount > 0 && `(${likeCount})`}
@@ -990,19 +990,20 @@ export default function PostDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.actionButton,
-                                        hugActive && styles.actionButtonActive,
+                                        hugActive && { backgroundColor: "#FFE0B2" }, // Orange 100
                                     ]}
                                     onPress={handleHug}
                                 >
                                     <Ionicons
-                                        name="hand-left"
+                                        name={hugActive ? "hand-left" : "hand-left-outline"}
                                         size={18}
-                                        color={hugActive ? "#FFB74D" : "#9575cd"}
+                                        color={hugActive ? "#EF6C00" : "#9575cd"} // Orange 800
+                                        style={hugActive ? { textShadowColor: 'rgba(239, 108, 0, 0.3)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5 } : {}}
                                     />
                                     <Text
                                         style={[
                                             styles.actionButtonText,
-                                            hugActive && styles.actionButtonTextActive,
+                                            hugActive && { color: "#EF6C00" }, // Orange 800
                                         ]}
                                     >
                                         Send Hug {hugCount > 0 && `(${hugCount})`}
@@ -1012,19 +1013,19 @@ export default function PostDetail() {
                                 <TouchableOpacity
                                     style={[
                                         styles.actionButton,
-                                        meTooActive && styles.actionButtonActive,
+                                        meTooActive && { backgroundColor: "#C8E6C9" }, // Green 100
                                     ]}
                                     onPress={handleMeToo}
                                 >
                                     <Ionicons
-                                        name="happy"
+                                        name={meTooActive ? "happy" : "happy-outline"}
                                         size={18}
-                                        color={meTooActive ? "#66BB6A" : "#9575cd"}
+                                        color={meTooActive ? "#2E7D32" : "#9575cd"} // Green 800
                                     />
                                     <Text
                                         style={[
                                             styles.actionButtonText,
-                                            meTooActive && styles.actionButtonTextActive,
+                                            meTooActive && { color: "#2E7D32" }, // Green 800
                                         ]}
                                     >
                                         Me too {meTooCount > 0 && `(${meTooCount})`}
