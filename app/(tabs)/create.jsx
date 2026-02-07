@@ -277,7 +277,7 @@ export default function CreatePost() {
             {/* Help Needed Toggle */}
             <View style={styles.toggleContainer}>
               <View style={styles.toggleLeft}>
-                <Text style={styles.toggleTitle}>Help Needed</Text>
+                <Text style={[styles.toggleTitle, { color: theme.text }]}>Help Needed</Text>
                 <Text style={styles.toggleSubtitle}>
                   Looking for support and advice
                 </Text>

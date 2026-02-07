@@ -100,7 +100,7 @@ export default function Explore() {
                                 </View>
                                 <View style={styles.headerRight}>
                                     <TouchableOpacity
-                                        style={styles.iconButton}
+                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
                                         onPress={() => router.push("/notifications")}
                                     >
                                         <Ionicons name="notifications-outline" size={24} color={theme.text} />
@@ -277,7 +277,7 @@ export default function Explore() {
                                         style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
                                         onPress={() => router.push(`/post/${post.id}`)}
                                     >
-                                        <View style={styles.top10Content}>
+                                        <View style={[styles.top10Content, { backgroundColor: theme.card, borderColor: theme.border }]}>
                                             {/* Rank Badge - Top Right */}
                                             <View style={styles.rankBadge}>
                                                 <Text style={styles.rankBadgeText}>#{index + 1}</Text>
@@ -299,7 +299,7 @@ export default function Explore() {
                                             </View>
 
                                             {/* Title */}
-                                            <Text style={styles.top10Title} numberOfLines={2}>{post.title}</Text>
+                                            <Text style={[styles.top10Title, { color: theme.text }]} numberOfLines={2}>{post.title}</Text>
 
                                             {/* Description */}
                                             <Text style={styles.top10Description} numberOfLines={2}>
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F5F5F5',
+        // backgroundColor removed - now set inline with theme
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -629,9 +629,9 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     top10Content: {
-        backgroundColor: "#FFFFFF",
+        // backgroundColor removed - now set inline with theme
         borderWidth: 1,
-        borderColor: "#E0E0E0",
+        // borderColor removed - now set inline with theme
         borderRadius: 16,
         padding: 14,
         height: 200,
