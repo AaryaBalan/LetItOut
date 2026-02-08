@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
+import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
@@ -210,7 +211,7 @@ export default function UserProfile() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#FF8A65" />
+                    <Loading size="large" color="#FF8A65" />
                 </View>
             </SafeAreaView>
         );

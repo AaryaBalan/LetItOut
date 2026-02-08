@@ -24,6 +24,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
+import Loading from "../components/Loading";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -456,7 +457,7 @@ export default function Notifications() {
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
+                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.emptyTitle, { color: theme.text }]}>Loading...</Text>
                 </View>
             </SafeAreaView>

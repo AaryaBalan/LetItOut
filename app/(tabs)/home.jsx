@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Platform,
   ScrollView,
@@ -14,6 +13,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
@@ -391,7 +391,7 @@ export default function Home() {
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
-                <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
               </View>
             ) : filteredPosts.length === 0 ? (

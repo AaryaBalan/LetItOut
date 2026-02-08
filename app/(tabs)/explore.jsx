@@ -4,6 +4,7 @@ import { collection, doc, onSnapshot, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
+    Image,
     Platform,
     ScrollView,
     StatusBar,

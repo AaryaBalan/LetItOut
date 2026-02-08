@@ -3,17 +3,17 @@ import { useRouter } from "expo-router";
 import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     FlatList,
     RefreshControl,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
+import Loading from "../../components/Loading";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
@@ -241,7 +241,7 @@ export default function ChatTab() {
                 />
                 {loading && (
                     <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                        <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                        <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
                     </View>
                 )}
             </SafeAreaView>

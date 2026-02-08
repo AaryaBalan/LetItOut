@@ -26,6 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import AvatarSelectionModal from "../../components/AvatarSelectionModal";
 import EditProfileModal from "../../components/EditProfileModal";
+import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
@@ -983,7 +984,7 @@ export default function Profile() {
 
               {isLoadingFriends ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
                 </View>
               ) : (
                 <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>

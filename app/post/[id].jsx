@@ -19,9 +19,9 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     FlatList,
+    Image,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -37,6 +37,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
+import Loading from "../../components/Loading";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -491,7 +492,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={styles.errorContainer}>
                 <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-                <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
+                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
                 <Text style={styles.errorText}>Loading...</Text>
             </SafeAreaView>
         );

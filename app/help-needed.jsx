@@ -3,13 +3,13 @@ import { useRouter } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     ScrollView,
     StyleSheet,
     Text,
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Loading from "../components/Loading";
 import PostCard from "../components/PostCard";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -68,7 +68,7 @@ export default function HelpNeeded() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {loading ? (
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#9575cd" />
+                        <Loading size="large" color="#9575cd" />
                     </View>
                 ) : posts.length === 0 ? (
                     <View style={styles.emptyContainer}>
