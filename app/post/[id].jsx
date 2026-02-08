@@ -929,8 +929,11 @@ export default function PostDetail() {
                                     !post.authorName ||
                                     post.authorName === "Anonymous" ||
                                     !authorProfileCode ? (
-                                    <View style={styles.avatarContainer}>
-                                        <Ionicons name="person" size={18} color="#9575cd" />
+                                    <View style={styles.avatarWrapper}>
+                                        <Image
+                                            source={require("../../assets/images/letitout_logo.png")}
+                                            style={{ width: 40, height: 40, borderRadius: 20 }}
+                                        />
                                     </View>
                                 ) : (
                                     <View style={styles.avatarWrapper}>

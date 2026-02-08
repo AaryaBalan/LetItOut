@@ -14,7 +14,7 @@ import {
     where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -320,8 +320,11 @@ export default function PostCard({ post, hideDescription = false }) {
                             !post.authorName ||
                             post.authorName === "Anonymous" ||
                             !authorProfileCode ? (
-                            <View style={[styles.avatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                                <Ionicons name="person" size={16} color="#9575cd" />
+                            <View style={styles.avatarWrapper}>
+                                <Image
+                                    source={require("../assets/images/letitout_logo.png")}
+                                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                                />
                             </View>
                         ) : (
                             <View style={styles.avatarWrapper}>

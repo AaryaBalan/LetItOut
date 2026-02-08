@@ -328,8 +328,11 @@ export default function Explore() {
 
                                         {/* Author Profile Picture */}
                                         {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
-                                            <View style={[styles.top10ProfilePic, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                                                <Ionicons name="person" size={24} color="#9575cd" />
+                                            <View style={[styles.top10ProfilePic, { backgroundColor: 'transparent' }]}>
+                                                <Image
+                                                    source={require("../../assets/images/letitout_logo.png")}
+                                                    style={{ width: 48, height: 48, borderRadius: 24 }}
+                                                />
                                             </View>
                                         ) : (
                                             <View style={styles.top10ProfilePic}>
@@ -414,8 +417,11 @@ export default function Explore() {
 
                                         {/* Author Profile Picture */}
                                         {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
-                                            <View style={[styles.top10ProfilePic, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                                                <Ionicons name="person" size={24} color="#9575cd" />
+                                            <View style={[styles.top10ProfilePic, { backgroundColor: 'transparent' }]}>
+                                                <Image
+                                                    source={require("../../assets/images/letitout_logo.png")}
+                                                    style={{ width: 48, height: 48, borderRadius: 24 }}
+                                                />
                                             </View>
                                         ) : (
                                             <View style={styles.top10ProfilePic}>
