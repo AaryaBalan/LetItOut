@@ -3,8 +3,10 @@ import { useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
+  Animated,
   FlatList,
   Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -55,6 +57,29 @@ export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState("latest");
   const [selectedMood, setSelectedMood] = useState(null);
   const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const slideAnim = useState(new Animated.Value(-100))[0]; // Start off-screen
+
+  useEffect(() => {
+    if (refreshing) {
+      // Reset and animate in
+      slideAnim.setValue(-100);
+      Animated.spring(slideAnim, {
+        toValue: 100, // Target position
+        useNativeDriver: true,
+        friction: 6,
+        tension: 40,
+      }).start();
+    }
+  }, [refreshing]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    // Simulate refresh since Firestore is real-time
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  };
 
   const categories = [
     "All Feed",
@@ -419,8 +444,33 @@ export default function Home() {
               </View>
             ) : null
           }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#00000000']} // Fully transparent hex for Android
+              tintColor="transparent"
+              progressBackgroundColor="#00000000"
+              progressViewOffset={-1000} // Push native spinner far off-screen
+              style={{ backgroundColor: 'transparent', opacity: 0 }}
+            />
+          }
         />
 
+        {refreshing && (
+          <Animated.View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            zIndex: 9999,
+            elevation: 9999,
+            transform: [{ translateY: slideAnim }],
+          }}>
+            <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+          </Animated.View>
+        )}
 
         <FilterModal
           visible={filterModalVisible}

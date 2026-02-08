@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
-        backgroundColor: 'white', // Optional: background for the logo
+        backgroundColor: 'transparent', // Optional: background for the logo
     },
 });
 
