@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,

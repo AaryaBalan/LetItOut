@@ -36,6 +36,8 @@ const getCategoryColor = (category) => {
   return colors[category] || "#B39DDB";
 };
 
+import FilterModal from "../../components/FilterModal";
+
 export default function Home() {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -46,6 +48,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+  // Filter States
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedSort, setSelectedSort] = useState("recent");
+  const [selectedFilter, setSelectedFilter] = useState("latest");
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
 
   const categories = [
     "All Feed",
@@ -75,9 +84,11 @@ export default function Home() {
             timestamp: data.createdAt
               ? getTimeAgo(data.createdAt)
               : "Just now",
+            createdAtDate: data.createdAt ? new Date(data.createdAt.seconds * 1000) : new Date(),
             reactions: data.reactions || { support: 0, hug: 0 },
             reactionCount: data.reactionCount || 0,
             comments: data.comments || [],
+            commentCount: data.comments?.length || 0,
             isAnonymous: data.isAnonymous,
             authorName: data.authorName || "Anonymous",
             authorId: data.authorId,
@@ -161,19 +172,49 @@ export default function Home() {
   const allPosts = [...firebasePosts, ...dummyPosts];
 
   const filteredPosts = allPosts.filter((post) => {
-    // Filter by category
+    // 1. Filter by category
     const matchesCategory =
       selectedCategory === "All Feed" ||
       post.category.toLowerCase().includes(selectedCategory.toLowerCase());
 
-    // Filter by search query
+    // 2. Filter by search query
     const matchesSearch =
       searchQuery.trim() === "" ||
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.category.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesCategory && matchesSearch;
+    // 3. Filter by Anonymous Only
+    const matchesAnonymous = !showAnonymousOnly || post.isAnonymous;
+
+    // 4. Filter by Mood
+    let matchesMood = true;
+    if (selectedMood === "depression") {
+      matchesMood = (post.feelPercentage ?? 50) < 50;
+    } else if (selectedMood === "happiness") {
+      matchesMood = (post.feelPercentage ?? 50) >= 50;
+    }
+
+    return matchesCategory && matchesSearch && matchesAnonymous && matchesMood;
+  }).sort((a, b) => {
+    // 5. Handling "Help Needed" Filter (special case of sorting/filtering)
+    if (selectedFilter === "help") {
+      // Primary sort: Help Needed
+      if (a.helpNeeded && !b.helpNeeded) return -1;
+      if (!a.helpNeeded && b.helpNeeded) return 1;
+    }
+
+    // 6. Sorting
+    if (selectedSort === "popular") {
+      return (b.reactionCount || 0) - (a.reactionCount || 0);
+    }
+    if (selectedSort === "mostCommented") {
+      return (b.commentCount || 0) - (a.commentCount || 0);
+    }
+    // Default: recent (createdAtDate)
+    const dateA = a.createdAtDate || new Date(0);
+    const dateB = b.createdAtDate || new Date(0);
+    return dateB - dateA;
   });
 
   return (
@@ -249,12 +290,60 @@ export default function Home() {
                     </View>
                   ) : (
                     <View style={styles.categoriesRow}>
-                      <TouchableOpacity
-                        style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                        onPress={() => setIsSearchExpanded(true)}
-                      >
-                        <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
-                      </TouchableOpacity>
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity
+                          style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
+                          onPress={() => setIsSearchExpanded(true)}
+                        >
+                          <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
+                          onPress={() => setFilterModalVisible(true)}
+                        >
+                          <Ionicons name="options-outline" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Active Filters Display & Clear Button */}
+                      {(selectedSort !== "recent" ||
+                        selectedFilter !== "latest" ||
+                        selectedMood !== null ||
+                        showAnonymousOnly) && (
+                          <View style={{ marginBottom: 4, marginLeft: 8 }}>
+                            <TouchableOpacity
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                paddingHorizontal: 16,
+                                height: 40,
+                                borderRadius: 20,
+                                backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F0FF',
+                                gap: 8,
+                                borderWidth: 1,
+                                borderColor: theme.isDark ? 'transparent' : '#E8E4F3',
+                              }}
+                              onPress={() => {
+                                setSelectedSort("recent");
+                                setSelectedFilter("latest");
+                                setSelectedMood(null);
+                                setShowAnonymousOnly(false);
+                              }}
+                            >
+                              <Ionicons name="close-circle" size={18} color="#9B8BC9" />
+                              <Text
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: "600",
+                                  color: "#9B8BC9",
+                                }}
+                              >
+                                Clear
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
 
                       <ScrollView
                         horizontal
@@ -299,29 +388,54 @@ export default function Home() {
           contentContainerStyle={styles.feedContent}
           showsVerticalScrollIndicator={false}
           stickyHeaderIndices={[1]} // Make only the categories (index 1) sticky
-          ListEmptyComponent={
+          ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
                 <ActivityIndicator size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
               </View>
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={64}
-                  color={theme.textTertiary}
-                />
-                <Text style={[styles.emptyText, { color: theme.text }]}>No posts yet</Text>
-                <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-                  Be the first to share your thoughts!
+            ) : filteredPosts.length === 0 ? (
+              <View style={[styles.emptyContainer, { marginTop: 60 }]}>
+                <View style={{
+                  width: 120,
+                  height: 120,
+                  backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB',
+                  borderRadius: 60,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 24,
+                }}>
+                  <Ionicons
+                    name="telescope-outline"
+                    size={64}
+                    color="#9B8BC9"
+                    style={{ opacity: 0.8 }}
+                  />
+                </View>
+                <Text style={[styles.emptyTitle, { color: theme.text, fontSize: 20, marginBottom: 8 }]}>No matches found</Text>
+                <Text style={[styles.emptyText, { color: theme.textSecondary, maxWidth: 300, lineHeight: 22 }]}>
+                  We looked everywhere but couldn't find what you're looking for.
                 </Text>
               </View>
-            )
+            ) : null
           }
         />
+
+
+        <FilterModal
+          visible={filterModalVisible}
+          onClose={() => setFilterModalVisible(false)}
+          selectedFilter={selectedFilter}
+          setSelectedFilter={setSelectedFilter}
+          selectedSort={selectedSort}
+          setSelectedSort={setSelectedSort}
+          selectedMood={selectedMood}
+          setSelectedMood={setSelectedMood}
+          showAnonymousOnly={showAnonymousOnly}
+          setShowAnonymousOnly={setShowAnonymousOnly}
+        />
       </SafeAreaView>
-    </TabScreenWrapper>
+    </TabScreenWrapper >
   );
 }
 

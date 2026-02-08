@@ -6,13 +6,13 @@ import {
     ActivityIndicator,
     FlatList,
     Modal,
-    SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useTheme } from "../../context/ThemeContext";
