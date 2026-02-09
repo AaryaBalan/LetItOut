@@ -37,6 +37,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
+import CommentThread from "../../components/CommentThread";
 import Loading from "../../components/Loading";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
@@ -97,6 +98,8 @@ export default function PostDetail() {
     const [sharing, setSharing] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [replyingTo, setReplyingTo] = useState(null); // Track which comment is being replied to
+
 
     // Fetch post from Firebase or dummy data
     useEffect(() => {
@@ -488,10 +491,34 @@ export default function PostDetail() {
         return `${diffInDays}d ago`;
     };
 
+    // Helper function to build comment tree from flat array
+    const buildCommentTree = (flatComments) => {
+        const commentMap = {};
+        const rootComments = [];
+
+        // First pass: create a map of all comments
+        flatComments.forEach(comment => {
+            commentMap[comment.id] = { ...comment, replies: [] };
+        });
+
+        // Second pass: build the tree structure
+        flatComments.forEach(comment => {
+            if (comment.parentId && commentMap[comment.parentId]) {
+                // This is a reply, add it to parent's replies array
+                commentMap[comment.parentId].replies.push(commentMap[comment.id]);
+            } else {
+                // This is a root comment
+                rootComments.push(commentMap[comment.id]);
+            }
+        });
+
+        return rootComments;
+    };
+
     if (loading) {
         return (
             <SafeAreaView style={styles.errorContainer}>
-                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+                <StatusBar barStyle="light-content" backgroundColor="#000000" />
                 <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
                 <Text style={styles.errorText}>Loading...</Text>
             </SafeAreaView>
@@ -501,7 +528,7 @@ export default function PostDetail() {
     if (!post) {
         return (
             <SafeAreaView style={styles.errorContainer}>
-                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+                <StatusBar barStyle="light-content" backgroundColor="#000000" />
                 <Text style={styles.errorText}>Post not found</Text>
             </SafeAreaView>
         );
@@ -697,6 +724,7 @@ export default function PostDetail() {
                 timestamp: serverTimestamp(),
                 createdAt: new Date().toISOString(),
                 reactionCount: 0,
+                parentId: replyingTo ? replyingTo.id : null, // Add parentId for replies
             };
             console.log("Comment data to save:", commentData);
 
@@ -712,8 +740,19 @@ export default function PostDetail() {
                 loveSent: increment(1),
             });
 
-            // Create notification for post author
-            if (post && post.authorId) {
+            // Create notification for post author or parent comment author
+            if (replyingTo && replyingTo.commentorId) {
+                // Notify the parent comment author
+                await createCommentNotification(
+                    replyingTo.commentorId,
+                    String(id),
+                    post.title,
+                    user.uid,
+                    user.displayName || "Anonymous",
+                    commentText,
+                );
+            } else if (post && post.authorId) {
+                // Notify the post author
                 await createCommentNotification(
                     post.authorId,
                     String(id),
@@ -725,6 +764,7 @@ export default function PostDetail() {
             }
 
             setNewComment("");
+            setReplyingTo(null); // Clear reply state
             console.log("Comment added successfully");
         } catch (error) {
             console.error("Error adding comment:", error);
@@ -842,19 +882,40 @@ export default function PostDetail() {
 
     const totalHugs = hugCount + meTooCount + likeCount;
 
+    // Define Black Theme overrides for Dark Mode
+    const blackTheme = {
+        ...theme,
+        background: "#000000",
+        surface: "#000000",
+        card: "#000000",
+        input: "#000000",
+        border: "#333333",
+        text: "#FFFFFF",
+        textSecondary: "#BDBDBD",
+        textTertiary: "#757575",
+        placeholder: "#757575",
+        inputBorder: "#333333",
+        statusBar: "light-content",
+    };
+
+    const activeTheme = theme.isDark ? blackTheme : theme;
+
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-            <StatusBar barStyle={theme.statusBar} backgroundColor={theme.surface} />
+        <SafeAreaView style={[styles.container, { backgroundColor: activeTheme.background }]} edges={["top"]}>
+            <StatusBar
+                barStyle={theme.isDark ? "light-content" : "dark-content"}
+                backgroundColor={activeTheme.background}
+            />
 
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <View style={[styles.header, { backgroundColor: activeTheme.background, borderBottomColor: activeTheme.border }]}>
                 <TouchableOpacity
                     onPress={() => router.back()}
                     style={styles.backButton}
                 >
-                    <Ionicons name="chevron-back" size={28} color={theme.text} />
+                    <Ionicons name="chevron-back" size={28} color={activeTheme.text} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Post Detail</Text>
+                <Text style={[styles.headerTitle, { color: activeTheme.text }]}>Post Detail</Text>
                 <View style={styles.headerRight}>
                     <TouchableOpacity
                         style={styles.headerButton}
@@ -871,7 +932,7 @@ export default function PostDetail() {
                         style={styles.headerButton}
                         onPress={() => setShowShareModal(true)}
                     >
-                        <Ionicons name="paper-plane-outline" size={24} color="#9575cd" />
+                        <Ionicons name="paper-plane-outline" size={24} color={activeTheme.textSecondary} />
                     </TouchableOpacity>
                     {isAuthor && (
                         <TouchableOpacity
@@ -891,13 +952,13 @@ export default function PostDetail() {
                     keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
                 >
                     <ScrollView
-                        style={[styles.scrollView, { backgroundColor: theme.background }]}
-                        contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
+                        style={[styles.scrollView, { backgroundColor: activeTheme.background }]}
+                        contentContainerStyle={[styles.scrollContent, { backgroundColor: activeTheme.background }]}
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                     >
                         {/* Post Card */}
-                        <View style={[styles.postCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                        <View style={[styles.postCard, { backgroundColor: activeTheme.card }]}>
                             <View style={styles.postHeader}>
                                 <View
                                     style={[
@@ -905,11 +966,11 @@ export default function PostDetail() {
                                         { backgroundColor: getCategoryColor(post.category) },
                                     ]}
                                 >
-                                    <Text style={styles.categoryText}>
+                                    <Text style={[styles.categoryText, { color: "#212121" }]}>
                                         {getCategoryLabel(post.category)}
                                     </Text>
                                 </View>
-                                <Text style={styles.timestamp}>{post.timestamp}</Text>
+                                <Text style={[styles.timestamp, { color: activeTheme.textSecondary }]}>{getTimeAgo(post.createdAt?.toDate())}</Text>
                             </View>
 
                             {/* Author Section */}
@@ -930,7 +991,7 @@ export default function PostDetail() {
                                     !post.authorName ||
                                     post.authorName === "Anonymous" ||
                                     !authorProfileCode ? (
-                                    <View style={styles.avatarWrapper}>
+                                    <View style={[styles.avatarWrapper, { backgroundColor: activeTheme.border, borderRadius: 20 }]}>
                                         <Image
                                             source={require("../../assets/images/letitout_logo.png")}
                                             style={{ width: 40, height: 40, borderRadius: 20 }}
@@ -941,28 +1002,28 @@ export default function PostDetail() {
                                         <Avatar seed={authorProfileCode} size={40} />
                                     </View>
                                 )}
-                                <Text style={styles.authorName}>
+                                <Text style={[styles.authorName, { color: activeTheme.text }]}>
                                     {post.isAnonymous || !post.authorName
                                         ? "Anonymous"
                                         : post.authorName}
                                 </Text>
                             </TouchableOpacity>
 
-                            <Text style={[styles.postTitle, { color: theme.text, fontWeight: '700' }]}>{post.title}</Text>
-                            <Text style={[styles.postDescription, { color: theme.textSecondary }]}>{post.description}</Text>
+                            <Text style={[styles.postTitle, { color: activeTheme.text, fontWeight: '700' }]}>{post.title}</Text>
+                            <Text style={[styles.postDescription, { color: activeTheme.textSecondary }]}>{post.description}</Text>
 
                             {/* Hugs Sent */}
                             <View style={styles.hugsSentContainer}>
-                                <View style={styles.hugIcon}>
+                                <View style={[styles.hugIcon, { backgroundColor: activeTheme.surface, borderColor: activeTheme.border, borderWidth: 1 }]}>
                                     <Ionicons name="heart" size={16} color="#E57373" />
                                 </View>
-                                <View style={styles.hugIcon}>
+                                <View style={[styles.hugIcon, { backgroundColor: activeTheme.surface, borderColor: activeTheme.border, borderWidth: 1 }]}>
                                     <Ionicons name="hand-left" size={16} color="#FFB74D" />
                                 </View>
-                                <View style={styles.hugIcon}>
+                                <View style={[styles.hugIcon, { backgroundColor: activeTheme.surface, borderColor: activeTheme.border, borderWidth: 1 }]}>
                                     <Ionicons name="happy" size={16} color="#66BB6A" />
                                 </View>
-                                <Text style={styles.hugsSentText}>
+                                <Text style={[styles.hugsSentText, { color: activeTheme.textTertiary }]}>
                                     {likeCount + hugCount + meTooCount} reactions
                                 </Text>
                             </View>
@@ -973,6 +1034,7 @@ export default function PostDetail() {
                                     style={[
                                         styles.actionButton,
                                         likeActive && { backgroundColor: "#FFCDD2" }, // Red 100
+                                        !likeActive && { backgroundColor: activeTheme.border }
                                     ]}
                                     onPress={handleLike}
                                 >
@@ -985,6 +1047,7 @@ export default function PostDetail() {
                                         style={[
                                             styles.actionButtonText,
                                             likeActive && { color: "#C62828" }, // Red 800
+                                            !likeActive && { color: activeTheme.textSecondary }
                                         ]}
                                     >
                                         Like {likeCount > 0 && `(${likeCount})`}
@@ -995,6 +1058,7 @@ export default function PostDetail() {
                                     style={[
                                         styles.actionButton,
                                         hugActive && { backgroundColor: "#FFE0B2" }, // Orange 100
+                                        !hugActive && { backgroundColor: activeTheme.border }
                                     ]}
                                     onPress={handleHug}
                                 >
@@ -1008,6 +1072,7 @@ export default function PostDetail() {
                                         style={[
                                             styles.actionButtonText,
                                             hugActive && { color: "#EF6C00" }, // Orange 800
+                                            !hugActive && { color: activeTheme.textSecondary }
                                         ]}
                                     >
                                         Send Hug {hugCount > 0 && `(${hugCount})`}
@@ -1018,6 +1083,7 @@ export default function PostDetail() {
                                     style={[
                                         styles.actionButton,
                                         meTooActive && { backgroundColor: "#C8E6C9" }, // Green 100
+                                        !meTooActive && { backgroundColor: activeTheme.border }
                                     ]}
                                     onPress={handleMeToo}
                                 >
@@ -1030,23 +1096,20 @@ export default function PostDetail() {
                                         style={[
                                             styles.actionButtonText,
                                             meTooActive && { color: "#2E7D32" }, // Green 800
+                                            !meTooActive && { color: activeTheme.textSecondary }
                                         ]}
                                     >
                                         Me too {meTooCount > 0 && `(${meTooCount})`}
                                     </Text>
                                 </TouchableOpacity>
-
-
-
-
                             </View>
                         </View>
 
                         {/* Supportive Replies Section */}
-                        <View style={[styles.repliesSection, { backgroundColor: theme.background }]}>
-                            <View style={[styles.repliesHeader, { backgroundColor: theme.background }]}>
-                                <Text style={[styles.repliesTitle, { color: theme.text }]}>Supportive Replies</Text>
-                                <Text style={[styles.repliesCountText, { color: theme.textSecondary }]}>
+                        <View style={[styles.repliesSection, { backgroundColor: activeTheme.background, borderTopColor: activeTheme.border }]}>
+                            <View style={[styles.repliesHeader, { borderBottomColor: activeTheme.border }]}>
+                                <Text style={[styles.repliesTitle, { color: activeTheme.text }]}>Supportive Replies</Text>
+                                <Text style={[styles.repliesCountText, { color: activeTheme.textSecondary }]}>
                                     {comments.length} REPLIES
                                 </Text>
                             </View>
@@ -1059,59 +1122,28 @@ export default function PostDetail() {
                                 JSON.stringify(comments),
                             )}
                             {comments.length > 0 ? (
-                                <View style={[styles.commentsContainer, { backgroundColor: theme.background }]}>
-                                    {comments.map((comment, index) => (
-                                        <View
+                                <View style={[styles.commentsContainer, { backgroundColor: activeTheme.background }]}>
+                                    {/* Vertical line connecting all comments */}
+                                    <View style={[styles.commentsVerticalLine, { backgroundColor: '#9575cd' }]} />
+
+                                    {buildCommentTree(comments).map((comment, index) => (
+                                        <CommentThread
                                             key={comment.id || index}
-                                            style={[styles.commentItem, { backgroundColor: theme.background }]}
-                                        >
-                                            <View style={[styles.commentCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                                <View style={styles.commentHeaderSection}>
-                                                    {comment.commentorId && commentorProfiles[comment.commentorId] ? (
-                                                        <Avatar seed={commentorProfiles[comment.commentorId]} size={35} />
-                                                    ) : (
-                                                        <View style={styles.commentAvatarPlaceholder}>
-                                                            <Ionicons name="person" size={16} color="#9575cd" />
-                                                        </View>
-                                                    )}
-                                                    <View style={styles.commentHeaderContent}>
-                                                        <View style={styles.commentHeader}>
-                                                            <Text style={[styles.commentUsername, { color: theme.text }]}>
-                                                                {comment.username || `KindSoul_${index + 1}`}
-                                                            </Text>
-                                                            <Text style={[styles.commentTimestamp, { color: theme.textTertiary }]}>
-                                                                {comment.timestamp}
-                                                            </Text>
-                                                        </View>
-
-                                                        <Text style={[styles.commentText, { color: theme.textSecondary }]}>
-                                                            {comment.text}
-                                                        </Text>
-
-                                                        <View style={styles.commentActions}>
-                                                            <TouchableOpacity
-                                                                style={styles.supportButton}
-                                                                onPress={() => handleCommentSupport(comment.id)}
-                                                            >
-                                                                <Ionicons
-                                                                    name={userCommentSupports[comment.id] ? "heart" : "heart-outline"}
-                                                                    size={16}
-                                                                    color="#66BB6A"
-                                                                />
-                                                                <Text style={styles.supportText}>
-                                                                    {commentSupports[comment.id] || 0} SUPPORT
-                                                                </Text>
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                    </View>
-                                                </View>
-                                            </View>
-                                        </View>
+                                            comment={comment}
+                                            depth={0}
+                                            maxDepth={3}
+                                            onReply={(comment) => setReplyingTo(comment)}
+                                            onSupport={handleCommentSupport}
+                                            commentSupports={commentSupports}
+                                            userCommentSupports={userCommentSupports}
+                                            commentorProfiles={commentorProfiles}
+                                            themeOverride={activeTheme}
+                                        />
                                     ))}
                                 </View>
                             ) : (
-                                <View style={[styles.noCommentsContainer, { backgroundColor: theme.background }]}>
-                                    <Text style={[styles.noCommentsText, { color: theme.textSecondary }]}>
+                                <View style={[styles.noCommentsContainer, { backgroundColor: activeTheme.background }]}>
+                                    <Text style={[styles.noCommentsText, { color: activeTheme.textSecondary }]}>
                                         No comments yet. Be the first to share support!
                                     </Text>
                                 </View>
@@ -1121,24 +1153,39 @@ export default function PostDetail() {
                         {/* Report Button */}
                         <TouchableOpacity
                             onPress={handleReport}
-                            style={[styles.reportButton, { backgroundColor: theme.background }]}
+                            style={[styles.reportButton, { backgroundColor: activeTheme.background }]}
                         >
-                            <Ionicons name="flag-outline" size={16} color={theme.textTertiary} />
-                            <Text style={[styles.reportText, { color: theme.textTertiary }]}>REPORT CONTENT</Text>
+                            <Ionicons name="flag-outline" size={16} color={activeTheme.textTertiary} />
+                            <Text style={[styles.reportText, { color: activeTheme.textTertiary }]}>REPORT CONTENT</Text>
                         </TouchableOpacity>
                     </ScrollView>
 
+                    {/* Reply Indicator */}
+                    {replyingTo && (
+                        <View style={[styles.replyIndicator, { backgroundColor: activeTheme.surface, borderTopColor: activeTheme.border }]}>
+                            <View style={styles.replyIndicatorContent}>
+                                <Ionicons name="arrow-undo" size={16} color="#9575cd" />
+                                <Text style={[styles.replyingToText, { color: activeTheme.textSecondary }]}>
+                                    Replying to <Text style={{ color: '#9575cd', fontWeight: '600' }}>@{replyingTo.username || 'Anonymous'}</Text>
+                                </Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                                <Ionicons name="close-circle" size={20} color={activeTheme.textTertiary} />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                     {/* Bottom Input */}
-                    <View style={[styles.bottomInput, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+                    <View style={[styles.bottomInput, { backgroundColor: activeTheme.background, borderTopColor: activeTheme.border }]}>
                         <TextInput
-                            style={[styles.input, { backgroundColor: theme.input, color: theme.text, borderColor: theme.inputBorder }]}
+                            style={[styles.input, { backgroundColor: activeTheme.surface, color: activeTheme.text, borderColor: activeTheme.border }]}
                             placeholder="Type a message of support..."
-                            placeholderTextColor={theme.placeholder}
+                            placeholderTextColor={activeTheme.textTertiary}
                             value={newComment}
                             onChangeText={setNewComment}
                         />
                         <TouchableOpacity style={styles.emojiButton}>
-                            <Ionicons name="happy-outline" size={24} color={theme.textSecondary} />
+                            <Ionicons name="happy-outline" size={24} color={activeTheme.textSecondary} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.sendButton}
@@ -1166,18 +1213,18 @@ export default function PostDetail() {
                     style={styles.modalOverlay}
                     onPress={() => setShowShareModal(false)}
                 >
-                    <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={(e) => e.stopPropagation()}>
-                        <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                            <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
+                    <Pressable style={[styles.modalContent, { backgroundColor: activeTheme.surface }]} onPress={(e) => e.stopPropagation()}>
+                        <View style={[styles.modalHeader, { borderBottomColor: activeTheme.border }]}>
+                            <Text style={[styles.modalTitle, { color: activeTheme.text }]}>Share with Friends</Text>
                             <TouchableOpacity onPress={() => setShowShareModal(false)}>
-                                <Ionicons name="close" size={24} color={theme.textSecondary} />
+                                <Ionicons name="close" size={24} color={activeTheme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
                         {friends.length === 0 ? (
                             <View style={styles.emptyState}>
-                                <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
-                                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
+                                <Ionicons name="people-outline" size={48} color={activeTheme.textTertiary} />
+                                <Text style={[styles.emptyText, { color: activeTheme.textSecondary }]}>No friends to share with</Text>
                             </View>
                         ) : (
                             <FlatList
@@ -1185,18 +1232,18 @@ export default function PostDetail() {
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        style={[styles.friendItem, { borderBottomColor: theme.divider }]}
+                                        style={[styles.friendItem, { borderBottomColor: activeTheme.border }]}
                                         onPress={() => handleShare(item.id)}
                                         disabled={sharing}
                                     >
                                         {item.profileCode ? (
                                             <Avatar seed={item.profileCode} size={40} />
                                         ) : (
-                                            <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
+                                            <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#333333' : '#F3E5F5' }]}>
                                                 <Ionicons name="person" size={20} color="#9575cd" />
                                             </View>
                                         )}
-                                        <Text style={[styles.friendName, { color: theme.text }]}>{item.name}</Text>
+                                        <Text style={[styles.friendName, { color: activeTheme.text }]}>{item.name}</Text>
                                         <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
                                     </TouchableOpacity>
                                 )}
@@ -1212,7 +1259,6 @@ export default function PostDetail() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F5F5",
     },
     flex1: {
         flex: 1,
@@ -1221,11 +1267,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F5F5",
     },
     errorText: {
         fontSize: 16,
-        color: "#757575",
     },
     header: {
         flexDirection: "row",
@@ -1233,9 +1277,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: "#FFFFFF",
         borderBottomWidth: 1,
-        borderBottomColor: "#E0E0E0",
     },
     backButton: {
         width: 40,
@@ -1246,7 +1288,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: "700",
-        color: "#212121",
     },
     moreButton: {
         width: 40,
@@ -1261,7 +1302,6 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
     postCard: {
-        backgroundColor: "#FFFFFF",
         padding: 20,
         marginBottom: 16,
     },
@@ -1279,12 +1319,10 @@ const styles = StyleSheet.create({
     categoryText: {
         fontSize: 11,
         fontWeight: "700",
-        color: "#212121",
         letterSpacing: 0.5,
     },
     timestamp: {
         fontSize: 13,
-        color: "#BDBDBD",
     },
     authorSection: {
         flexDirection: "row",
@@ -1298,7 +1336,6 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: "#EFE8FF",
         justifyContent: "center",
         alignItems: "center",
         marginRight: 10,
@@ -1306,23 +1343,19 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#9575cd",
     },
     authorName: {
         fontSize: 15,
         fontWeight: "600",
-        color: "#9575cd",
     },
     postTitle: {
         fontSize: 20,
         fontWeight: "700",
-        color: "#212121",
         marginBottom: 12,
         lineHeight: 28,
     },
     postDescription: {
         fontSize: 15,
-        color: "#616161",
         lineHeight: 24,
         marginBottom: 20,
     },
@@ -1335,16 +1368,13 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         borderRadius: 14,
-        backgroundColor: "#F5F5F5",
         justifyContent: "center",
         alignItems: "center",
         marginRight: -8,
         borderWidth: 2,
-        borderColor: "#FFFFFF",
     },
     hugsSentText: {
         fontSize: 14,
-        color: "#757575",
         marginLeft: 16,
     },
     actionButtons: {
@@ -1358,24 +1388,22 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         paddingVertical: 12,
         borderRadius: 20,
-        backgroundColor: "#F3E5F5",
         gap: 6,
     },
     actionButtonActive: {
-        backgroundColor: "#E1BEE7",
+        backgroundColor: "#4A148C",
     },
     actionButtonText: {
         fontSize: 13,
         fontWeight: "600",
-        color: "#9575cd",
     },
     actionButtonTextActive: {
-        color: "#6A1B9A",
+        color: "#E1BEE7",
     },
     repliesSection: {
-        backgroundColor: "#FFFFFF",
         padding: 20,
-        marginBottom: 16,
+        marginTop: 0,
+        borderTopWidth: 1,
     },
     repliesHeader: {
         flexDirection: "row",
@@ -1384,21 +1412,28 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: "#F3F4F6",
     },
     repliesTitle: {
         fontSize: 18,
         fontWeight: "700",
-        color: "#212121",
     },
     repliesCountText: {
         fontSize: 13,
         fontWeight: "600",
-        color: "#9CA3AF",
         letterSpacing: 0.5,
     },
     commentsContainer: {
+        position: 'relative',
         gap: 16,
+        paddingLeft: 16, // Reduced from 27 to move tree left
+    },
+    commentsVerticalLine: {
+        position: 'absolute',
+        left: 0.5, // Moved to start from near edge
+        top: 0,
+        bottom: 0,
+        width: 1.5,
+        zIndex: 0,
     },
     commentItem: {
         paddingLeft: 0,
@@ -1456,6 +1491,7 @@ const styles = StyleSheet.create({
     commentActions: {
         flexDirection: "row",
         alignItems: "center",
+        marginTop: 8,
     },
     supportButton: {
         flexDirection: "row",
@@ -1463,7 +1499,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     supportText: {
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: "700",
         color: "#66BB6A",
         letterSpacing: 0.5,
@@ -1491,94 +1527,106 @@ const styles = StyleSheet.create({
         color: "#9E9E9E",
         letterSpacing: 0.5,
     },
+    replyIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderTopWidth: 1,
+    },
+    replyIndicatorContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    replyingToText: {
+        fontSize: 14,
+    },
     bottomInput: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderTopWidth: 1,
-        borderTopColor: "#E0E0E0",
-        gap: 12,
+        borderTopColor: "#333333",
     },
     input: {
         flex: 1,
-        backgroundColor: "#F5F5F5",
-        borderRadius: 24,
+        height: 40,
+        borderRadius: 20,
         paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 15,
-        color: "#212121",
+        fontSize: 14,
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: "#333333",
     },
     emojiButton: {
-        width: 40,
-        height: 40,
-        justifyContent: "center",
-        alignItems: "center",
+        padding: 8,
     },
     sendButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         backgroundColor: "#9575cd",
         justifyContent: "center",
         alignItems: "center",
+        marginLeft: 8,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        justifyContent: "flex-end",
     },
     modalContent: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        width: '85%',
-        maxHeight: '70%',
-        overflow: 'hidden',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingBottom: 40,
+        maxHeight: "80%",
     },
     modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        borderBottomColor: "#333333",
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: '700',
-        color: '#212121',
+        fontWeight: "700",
+        color: "#FFFFFF",
     },
     emptyState: {
         padding: 40,
-        alignItems: 'center',
-        gap: 12,
+        alignItems: "center",
+        gap: 16,
     },
     emptyText: {
-        fontSize: 14,
-        color: '#9E9E9E',
+        fontSize: 16,
+        color: "#BDBDBD",
+        textAlign: "center",
     },
     friendItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         padding: 16,
-        gap: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#F5F5F5',
+        borderBottomColor: "#333333",
+        gap: 12,
     },
     defaultAvatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#EFE8FF',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "#333333",
+        justifyContent: "center",
+        alignItems: "center",
     },
     friendName: {
         flex: 1,
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#212121',
+        fontSize: 16,
+        fontWeight: "500",
+        color: "#FFFFFF",
     },
 });
