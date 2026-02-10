@@ -682,21 +682,48 @@ export default function Profile() {
 
             {/* Stats */}
             <View style={styles.statsContainer}>
-              <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
-                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
-                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>LOVE SENT</Text>
+              {/* Love Sent Card */}
+              <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2A1A2E' : '#FCE4EC' }]}>
+                  <Ionicons name="heart" size={20} color="#EC4899" />
+                </View>
+                <View style={styles.statInfo}>
+                  <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
+                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Love Sent</Text>
+                </View>
               </View>
-              <View style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
-                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
-                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>STORIES</Text>
+
+              {/* Stories Card */}
+              <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
+                  <Ionicons name="book" size={20} color="#9575cd" />
+                </View>
+                <View style={styles.statInfo}>
+                  <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
+                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Stories</Text>
+                </View>
               </View>
-              <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('followers')}>
-                <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
-                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWERS</Text>
+
+              {/* Followers Card */}
+              <TouchableOpacity style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => handleOpenFriends('followers')}>
+                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1A2332' : '#E3F2FD' }]}>
+                  <Ionicons name="people" size={20} color="#3B82F6" />
+                </View>
+                <View style={styles.statInfo}>
+                  <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
+                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Followers</Text>
+                </View>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.statBox, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]} onPress={() => handleOpenFriends('following')}>
-                <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
-                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>FOLLOWING</Text>
+
+              {/* Following Card */}
+              <TouchableOpacity style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => handleOpenFriends('following')}>
+                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2E2416' : '#FFF3E0' }]}>
+                  <Ionicons name="person-add" size={20} color="#F59E0B" />
+                </View>
+                <View style={styles.statInfo}>
+                  <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
+                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Following</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -705,32 +732,28 @@ export default function Profile() {
           <View style={styles.cardsRow}>
             {/* My Stories Card */}
             <TouchableOpacity
-              style={[styles.squareCard, styles.storiesCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => setShowAllStoriesModal(true)}
               activeOpacity={0.7}
             >
-              <View style={styles.squareCardContent}>
-                <View style={[styles.squareIconContainer, styles.storiesIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EDE9FE' }]}>
-                  <Ionicons name="document-text" size={32} color="#7C3AED" />
-                </View>
-                <Text style={[styles.squareCount, { color: theme.text }]}>{userPosts.length}</Text>
-                <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>My Stories</Text>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
+                <Ionicons name="document-text" size={24} color="#9575cd" />
               </View>
+              <Text style={[styles.compactCount, { color: theme.text }]}>{userPosts.length}</Text>
+              <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>My Stories</Text>
             </TouchableOpacity>
 
             {/* Saved Posts Card */}
             <TouchableOpacity
-              style={[styles.squareCard, styles.savedCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => setShowAllSavedModal(true)}
               activeOpacity={0.7}
             >
-              <View style={styles.squareCardContent}>
-                <View style={[styles.squareIconContainer, styles.savedIconBg, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FEF3C7' }]}>
-                  <Ionicons name="bookmark" size={32} color="#F59E0B" />
-                </View>
-                <Text style={[styles.squareCount, { color: theme.text }]}>{savedPosts.length}</Text>
-                <Text style={[styles.squareLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2E2416' : '#FFF3E0' }]}>
+                <Ionicons name="bookmark" size={24} color="#F59E0B" />
               </View>
+              <Text style={[styles.compactCount, { color: theme.text }]}>{savedPosts.length}</Text>
+              <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
             </TouchableOpacity>
           </View>
 
@@ -1174,33 +1197,44 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    width: "100%",
     gap: 10,
+    marginTop: 16,
   },
-  statBox: {
-    width: "48%",
-    backgroundColor: "#F9F9F9",
-    borderRadius: 16,
-    padding: 16,
+  statCardHorizontal: {
+    flex: 1,
+    minWidth: "48%",
+    flexDirection: "row",
     alignItems: "center",
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 1,
+    elevation: 2,
+  },
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  statInfo: {
+    flex: 1,
   },
   statNumber: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "800",
-    color: "#9575cd",
-    marginBottom: 4,
+    marginBottom: 2,
+    letterSpacing: -0.5,
   },
   statLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#9E9E9E",
-    letterSpacing: 0.8,
-    textAlign: "center",
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
   section: {
     marginBottom: 12,
@@ -1534,62 +1568,45 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
   },
-  squareCard: {
+  compactCard: {
     flex: 1,
     aspectRatio: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  storiesCard: {
-    backgroundColor: "#F3E8FF",
-  },
-  savedCard: {
-    backgroundColor: "#FEF3C7",
-  },
-  squareCardContent: {
-    flex: 1,
+    padding: 16,
     alignItems: "center",
     justifyContent: "center",
-  },
-  squareIconContainer: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: "#F3E5F5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  storiesIconBg: {
-    backgroundColor: "#E9D5FF",
+  compactIconBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
   },
-  savedIconBg: {
-    backgroundColor: "#FDE68A",
-  },
-  squareCount: {
-    fontSize: 40,
+  compactCount: {
+    fontSize: 32,
     fontWeight: "800",
-    color: "#212121",
-    marginBottom: 6,
+    marginBottom: 4,
     letterSpacing: -1,
   },
-  squareLabel: {
-    fontSize: 14,
-    color: "#757575",
-    fontWeight: "700",
+  compactLabel: {
+    fontSize: 13,
+    fontWeight: "600",
     textAlign: "center",
+    letterSpacing: 0.2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
   },
 
 });
