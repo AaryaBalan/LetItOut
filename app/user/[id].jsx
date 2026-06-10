@@ -182,31 +182,6 @@ export default function UserProfile() {
             setFollowLoading(false);
         }
     };
-
-    const getUserRole = (user) => {
-        if (!user) return "MEMBER";
-        if (user.postCount >= 100) return "ALLY";
-        if (user.loveSent >= 500) return "LISTENER";
-        if (user.postCount >= 50) return "SUPPORTER";
-        if (user.loveSent >= 200) return "GUIDE";
-        if (user.loveSent >= 100) return "VOICE";
-        if (user.postCount >= 20) return "HEALER";
-        return "MEMBER";
-    };
-
-    const getRoleColor = (role) => {
-        const colors = {
-            "ALLY": "#B39DDB",
-            "LISTENER": "#FF8A65",
-            "SUPPORTER": "#81C784",
-            "GUIDE": "#4DD0E1",
-            "VOICE": "#F48FB1",
-            "HEALER": "#AED581",
-            "MEMBER": "#BDBDBD",
-        };
-        return colors[role] || "#BDBDBD";
-    };
-
     if (loading) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
@@ -232,9 +207,6 @@ export default function UserProfile() {
             </SafeAreaView>
         );
     }
-
-    const role = getUserRole(userProfile);
-    const roleColor = getRoleColor(role);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>

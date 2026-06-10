@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, doc, onSnapshot, query } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     Dimensions,
@@ -19,21 +19,37 @@ import Avatar from "../../components/Avatar";
 import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
-import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
+
+const getCategoryTheme = (category, isDark) => {
+  const themes = {
+    "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
+    "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
+    "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
+    "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
+    "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+    "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+  };
+  return themes[category] || themes["Other"];
+};
+
+const COMMUNITY_INFO = {
+    "Family": { desc: "Parenting, siblings, home issues & family stability.", members: "18.2k", active: "192" },
+    "Stress": { desc: "Handling workplace pressure, anxiety & finding inner peace.", members: "24.5k", active: "532" },
+    "Relationship": { desc: "Dating, love, breakups, marriage, and friendship talk.", members: "45.1k", active: "820" },
+    "Study": { desc: "School pressure, career choices, exams, and growth.", members: "12.8k", active: "140" },
+    "Mental Health": { desc: "Daily wellbeing, coping strategies, depression & self-care.", members: "54.0k", active: "1.2k" },
+    "Other": { desc: "Share anything else on your mind in a safe space.", members: "8.3k", active: "72" }
+};
 
 export default function Explore() {
     const router = useRouter();
-    const { user: currentUser } = useAuth();
     const { theme } = useTheme();
     const [searchQuery, setSearchQuery] = useState("");
     const [posts, setPosts] = useState([]);
     const [authorProfiles, setAuthorProfiles] = useState({});
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("posts"); // "posts" or "people"
 
     // Fetch posts
     useEffect(() => {
@@ -47,22 +63,6 @@ export default function Explore() {
                 commentCount: doc.data().commentCount || 0,
             }));
             setPosts(fetchedPosts);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, []);
-
-    // Fetch users
-    useEffect(() => {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef);
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const fetchedUsers = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-                loveSent: doc.data().loveSent || 0,
-            }));
-            setUsers(fetchedUsers);
         });
         return () => unsubscribe();
     }, []);
@@ -70,7 +70,6 @@ export default function Explore() {
     // Fetch author profile codes for top 10 posts
     useEffect(() => {
         const fetchAuthorProfiles = async () => {
-            const profiles = {};
             const top10 = [...posts]
                 .sort((a, b) => (b.reactionCount + b.commentCount) - (a.reactionCount + a.commentCount))
                 .slice(0, 10);
@@ -79,15 +78,14 @@ export default function Explore() {
                 if (post.authorId && !post.isAnonymous) {
                     try {
                         const userRef = doc(db, "users", post.authorId);
-                        const unsubscribe = onSnapshot(userRef, (docSnapshot) => {
-                            if (docSnapshot.exists()) {
-                                const userData = docSnapshot.data();
-                                setAuthorProfiles(prev => ({
-                                    ...prev,
-                                    [post.authorId]: userData.profileCode || userData.email || null
-                                }));
-                            }
-                        });
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                            const userData = userSnap.data();
+                            setAuthorProfiles(prev => ({
+                                ...prev,
+                                [post.authorId]: userData.profileCode || userData.email || null
+                            }));
+                        }
                     } catch (error) {
                         console.error("Error fetching profile:", error);
                     }
@@ -178,129 +176,47 @@ export default function Explore() {
                         </View>
                     ) : (
                         <>
-                            {/* Discovery - Bento Grid */}
-                            <View style={[styles.sectionHeader, { backgroundColor: theme.surface }]}>
-                                <Text style={[styles.sectionTitle, { color: theme.text }]}>DISCOVERY</Text>
+                            {/* Discovery - Communities */}
+                            <View style={[styles.sectionHeader, { backgroundColor: theme.surface, marginTop: 8 }]}>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>EXPLORE COMMUNITIES</Text>
                             </View>
 
-                            <View style={[styles.bentoGrid, { backgroundColor: theme.surface }]}>
-                                {/* Feed Card - Wide */}
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardFeed, theme.isDark && { backgroundColor: '#1A1A2E' }]}
-                                    onPress={() => router.push("/(tabs)/home")}
-                                >
-                                    <View style={styles.cardContentHorizontal}>
-                                        <View>
-                                            <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Your Feed</Text>
-                                            <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LATEST UPDATES</Text>
-                                        </View>
-                                        <View style={[styles.iconCircle, { backgroundColor: '#FFFFFF' }]}>
-                                            <Ionicons name="newspaper" size={24} color="#5C6BC0" />
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-
-                                {/* Row 1: Mental Health & Stress */}
-                                <View style={styles.bentoRow}>
-                                    <TouchableOpacity
-                                        style={[styles.bentoCard, styles.cardHealing, theme.isDark && { backgroundColor: '#2A2419' }]}
-                                        onPress={() => handleCategoryPress("Mental Health")}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            <Ionicons name="fitness" size={24} color="#C8A656" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Mental Health</Text>
-                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>DAILY WELLBEING</Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.bentoCard, styles.cardAnxiety, theme.isDark && { backgroundColor: '#1E1A2A' }]}
-                                        onPress={() => handleCategoryPress("Stress")}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            <Ionicons name="leaf" size={24} color="#7C6BA8" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Stress</Text>
-                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>FINDING PEACE</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Row 2: Relationship (Wide) */}
-                                <TouchableOpacity
-                                    style={[styles.bentoCard, styles.cardRelationships, theme.isDark && { backgroundColor: '#2A1E24' }]}
-                                    onPress={() => handleCategoryPress("Relationship")}
-                                >
-                                    <View style={styles.cardContentHorizontal}>
-                                        <View>
-                                            <Text style={[styles.bentoTitleBig, theme.isDark && { color: '#FFFFFF' }]}>Relationship</Text>
-                                            <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>LOVE & CONNECTION</Text>
-                                        </View>
-                                        <Ionicons name="heart" size={48} color="rgba(244, 143, 177, 0.5)" />
-                                    </View>
-                                </TouchableOpacity>
-
-                                {/* Row 3: Family & Study */}
-                                <View style={styles.bentoRow}>
-                                    <TouchableOpacity
-                                        style={[styles.bentoCard, styles.cardFamily, theme.isDark && { backgroundColor: '#2A1919' }]}
-                                        onPress={() => handleCategoryPress("Family")}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            <Ionicons name="home" size={24} color="#E57373" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Family</Text>
-                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>HOME SUPPORT</Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.bentoCard, styles.cardStudy, theme.isDark && { backgroundColor: '#19252A' }]}
-                                        onPress={() => handleCategoryPress("Study")}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            <Ionicons name="school" size={24} color="#5FA49C" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Study</Text>
-                                            <Text style={[styles.bentoSubtitle, theme.isDark && { color: '#B0BEC5' }]}>CAREER & GROWTH</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Row 4: Other & All Topics */}
-                                <View style={styles.bentoRow}>
-                                    <TouchableOpacity
-                                        style={[styles.bentoCard, styles.cardOther, theme.isDark && { backgroundColor: '#1F2228' }]}
-                                        onPress={() => handleCategoryPress("Other")}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            <Ionicons name="ellipsis-horizontal" size={24} color="#90A4AE" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.bentoTitleSerif, theme.isDark && { color: '#FFFFFF' }]}>Other</Text>
-                                            <Text style={[styles.bentoSubtitleDark, theme.isDark && { color: '#B0BEC5' }]}>SHARE YOUR STORY</Text>
-                                        </View>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={[styles.bentoCard, styles.cardAll, theme.isDark && { backgroundColor: '#1A1A1A' }]}
-                                        onPress={() => handleCategoryPress("All")}
-                                    >
-                                        <View style={[styles.iconCircle, { backgroundColor: '#37474F' }]}>
-                                            <Ionicons name="grid" size={24} color="#FFFFFF" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.bentoTitleSerif, { color: '#FFFFFF' }]}>All Topics</Text>
-                                            <Text style={[styles.bentoSubtitle, { color: '#B0BEC5' }]}>BROWSE ALL</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                style={{ backgroundColor: theme.surface }}
+                                contentContainerStyle={[styles.communitiesCarousel, { backgroundColor: theme.surface }]}
+                            >
+                                {Object.keys(COMMUNITY_INFO).map((cat) => {
+                                    const info = COMMUNITY_INFO[cat];
+                                    const catTheme = getCategoryTheme(cat, theme.isDark);
+                                    return (
+                                        <TouchableOpacity
+                                            key={cat}
+                                            style={[styles.communityCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                            onPress={() => handleCategoryPress(cat)}
+                                        >
+                                            {/* Banner */}
+                                            <View style={[styles.communityBanner, { backgroundColor: catTheme.bgColor }]}>
+                                                <Ionicons name={catTheme.icon} size={48} color={catTheme.color} style={styles.bannerIconWatermark} />
+                                            </View>
+                                            {/* Overlapping Icon */}
+                                            <View style={[styles.communityIconContainer, { backgroundColor: theme.card }]}>
+                                                <View style={[styles.communityIconInner, { backgroundColor: catTheme.bgColor }]}>
+                                                    <Ionicons name={catTheme.icon} size={20} color={catTheme.color} />
+                                                </View>
+                                            </View>
+                                            {/* Info */}
+                                            <View style={styles.communityCardContent}>
+                                                <Text style={[styles.communityName, { color: theme.text }]}>c/{cat}</Text>
+                                                <Text style={[styles.communityDesc, { color: theme.textSecondary, marginTop: 4 }]} numberOfLines={3}>
+                                                    {info.desc}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
 
                             {/* Top 10 Stories */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
@@ -525,7 +441,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
     },
     scrollContent: {
-        paddingBottom: 20,
+        paddingBottom: 80,
     },
     headerWrapper: {
         backgroundColor: "#FFFFFF",
@@ -608,9 +524,7 @@ const styles = StyleSheet.create({
         color: "#212121",
         fontWeight: "500",
     },
-    scrollContent: {
-        paddingBottom: 80,
-    },
+
     sectionHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -630,15 +544,6 @@ const styles = StyleSheet.create({
         color: "#D1D5DB",
     },
 
-    // Bento Grid
-    bentoGrid: {
-        paddingHorizontal: 24,
-        gap: 16,
-    },
-    bentoRow: {
-        flexDirection: "row",
-        gap: 16,
-    },
     // Bento Grid
     bentoGrid: {
         paddingHorizontal: 24,
@@ -938,5 +843,99 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#374151",
         letterSpacing: 1.5,
+    },
+    pulseBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 24,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        marginBottom: 16,
+        gap: 10,
+    },
+    pulseDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#4CAF50',
+    },
+    pulseText: {
+        fontSize: 12,
+        fontWeight: '600',
+        flex: 1,
+    },
+    communitiesCarousel: {
+        paddingHorizontal: 24,
+        paddingBottom: 16,
+    },
+    communityCard: {
+        width: 220,
+        borderRadius: 20,
+        borderWidth: 1,
+        marginRight: 16,
+        overflow: 'hidden',
+        position: 'relative',
+        paddingBottom: 16,
+    },
+    communityBanner: {
+        height: 70,
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        paddingRight: 16,
+    },
+    bannerIconWatermark: {
+        opacity: 0.15,
+        position: 'absolute',
+        bottom: -10,
+        right: -10,
+    },
+    communityIconContainer: {
+        width: 46,
+        height: 46,
+        borderRadius: 23,
+        padding: 3,
+        position: 'absolute',
+        top: 47,
+        left: 16,
+        zIndex: 10,
+    },
+    communityIconInner: {
+        flex: 1,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    communityCardContent: {
+        paddingTop: 30,
+        paddingHorizontal: 16,
+    },
+    communityName: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 2,
+    },
+    communityStats: {
+        fontSize: 10,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    communityDesc: {
+        fontSize: 12,
+        lineHeight: 16,
+        height: 48,
+        marginBottom: 4,
+    },
+    communityJoinBtn: {
+        paddingVertical: 8,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+    },
+    communityJoinText: {
+        fontSize: 12,
+        fontWeight: '700',
     },
 });

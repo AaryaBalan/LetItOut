@@ -21,7 +21,7 @@ export default function Index() {
         if (!loading && user) {
             router.replace("/(tabs)/home");
         }
-    }, [user, loading]);
+    }, [user, loading, router]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -117,7 +117,7 @@ export default function Index() {
                             <View style={styles.workContent}>
                                 <Text style={styles.workTitle}>Express</Text>
                                 <Text style={styles.workDescription}>
-                                    Write down what's on your mind. No names, no
+                                    Write down what&apos;s on your mind. No names, no
                                     profiles, just pure honesty.
                                 </Text>
                             </View>
@@ -170,8 +170,8 @@ export default function Index() {
                     <View style={styles.quoteContainer}>
                         <Ionicons name="chatbox-ellipses" size={40} color="#E0E0E0" />
                         <Text style={styles.quoteText}>
-                            "I finally felt like my feelings were valid. I didn't have
-                            to pretend to be okay here."
+                            &ldquo;I finally felt like my feelings were valid. I didn&apos;t have
+                            to pretend to be okay here.&rdquo;
                         </Text>
                         <View style={styles.quoteAuthor}>
                             <Ionicons name="person" size={14} color="#9575cd" />

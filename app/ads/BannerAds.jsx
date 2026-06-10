@@ -12,10 +12,12 @@ try {
     TestIds = ads.TestIds;
     useForeground = ads.useForeground;
     adsAvailable = true;
-} catch (e) {
+} catch (_e) {
     console.warn('Google Mobile Ads not available. This is expected in Expo Go. Use a development build to enable ads.');
     adsAvailable = false;
 }
+
+const safeUseForeground = useForeground || ((_callback) => {});
 
 const adUnitId = adsAvailable && __DEV__ ? TestIds?.ADAPTIVE_BANNER || '' : 'ca-app-pub-2512361520457456/4724013214';
 
@@ -23,16 +25,14 @@ function BannerAds() {
     const bannerRef = useRef(null);
     const [adFailed, setAdFailed] = useState(false);
 
+    // Call hook unconditionally at the top of the component
+    safeUseForeground(() => {
+        Platform.OS === 'ios' && bannerRef.current?.load();
+    });
+
     // If ads library not available, return empty (no crash)
     if (!adsAvailable || !BannerAd || !BannerAdSize) {
         return null;
-    }
-
-    // (iOS) WKWebView can terminate if app is in a "suspended state"
-    if (useForeground) {
-        useForeground(() => {
-            Platform.OS === 'ios' && bannerRef.current?.load();
-        });
     }
 
     if (adFailed) {

@@ -175,7 +175,6 @@ export default function Notifications() {
 
     // Get notification message
     const getNotificationMessage = (notification) => {
-        const userName = notification.fromUserName;
         switch (notification.type) {
             case "like":
                 return { text: "Liked your story", emoji: "❤️" };
@@ -493,7 +492,7 @@ export default function Notifications() {
                     />
                     <Text style={[styles.emptyTitle, { color: theme.text }]}>No Notifications</Text>
                     <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                        When people interact with your posts,{"\n"}you'll see
+                        When people interact with your posts,{"\n"}you&apos;ll see
                         notifications here
                     </Text>
                 </ScrollView>

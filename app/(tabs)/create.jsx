@@ -26,13 +26,16 @@ import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
 import { showInterstitialAd } from "../ads/InterstitialAds";
 
-const CATEGORY_DETAILS = {
-  "Family": { icon: "people", color: "#F48FB1", bgColor: "#FFE8EE" },
-  "Stress": { icon: "leaf", color: "#9B8BC9", bgColor: "#E8E4F3" },
-  "Relationship": { icon: "heart", color: "#F48FB1", bgColor: "#FFE8EE" },
-  "Study": { icon: "book", color: "#80CBC4", bgColor: "#E0F2F1" },
-  "Mental Health": { icon: "fitness", color: "#FFE082", bgColor: "#FFF9E6" },
-  "Other": { icon: "ellipsis-horizontal", color: "#B0BEC5", bgColor: "#ECEFF1" },
+const getCategoryTheme = (category, isDark) => {
+  const themes = {
+    "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
+    "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
+    "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
+    "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
+    "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+    "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+  };
+  return themes[category] || themes["Other"];
 };
 
 export default function CreatePost() {
@@ -233,18 +236,18 @@ export default function CreatePost() {
                 style={[
                   styles.flairPill,
                   {
-                    backgroundColor: CATEGORY_DETAILS[category]?.bgColor || "#EFE8FF",
-                    borderColor: CATEGORY_DETAILS[category]?.color || "#9575cd"
+                    backgroundColor: getCategoryTheme(category, theme.isDark).bgColor,
+                    borderColor: getCategoryTheme(category, theme.isDark).color
                   }
                 ]}
                 onPress={() => setShowCategoryModal(true)}
               >
                 <Ionicons
-                  name={CATEGORY_DETAILS[category]?.icon || "tag"}
+                  name={getCategoryTheme(category, theme.isDark).icon}
                   size={14}
-                  color={CATEGORY_DETAILS[category]?.color || "#9575cd"}
+                  color={getCategoryTheme(category, theme.isDark).color}
                 />
-                <Text style={[styles.flairText, { color: CATEGORY_DETAILS[category]?.color || "#9575cd" }]}>
+                <Text style={[styles.flairText, { color: getCategoryTheme(category, theme.isDark).color }]}>
                   {category}
                 </Text>
                 <TouchableOpacity
@@ -254,7 +257,7 @@ export default function CreatePost() {
                   }}
                   style={styles.flairClose}
                 >
-                  <Ionicons name="close-circle" size={16} color={CATEGORY_DETAILS[category]?.color || "#9575cd"} />
+                  <Ionicons name="close-circle" size={16} color={getCategoryTheme(category, theme.isDark).color} />
                 </TouchableOpacity>
               </TouchableOpacity>
             ) : (
@@ -386,7 +389,7 @@ export default function CreatePost() {
 
             <ScrollView contentContainerStyle={styles.modalScroll}>
               {categories.map((cat) => {
-                const details = CATEGORY_DETAILS[cat] || CATEGORY_DETAILS["Other"];
+                const details = getCategoryTheme(cat, theme.isDark);
                 const isSelected = category === cat;
                 return (
                   <TouchableOpacity
@@ -408,7 +411,7 @@ export default function CreatePost() {
                     <View
                       style={[
                         styles.categoryOptionIcon,
-                        { backgroundColor: isSelected ? "#FFFFFF" : details.bgColor }
+                        { backgroundColor: isSelected ? (theme.isDark ? "#121212" : "#FFFFFF") : details.bgColor }
                       ]}
                     >
                       <Ionicons name={details.icon} size={20} color={details.color} />

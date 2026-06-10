@@ -20,17 +20,17 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
-const getCategoryColor = (category) => {
+const getCategoryColors = (category, isDark) => {
+    const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
     const colors = {
-        Study: "#FFE082",
-        "Mental Health": "#B39DDB",
-        Mindfulness: "#FFE082",
-        Stress: "#EF9A9A",
-        Anxiety: "#B39DDB",
-        Relationship: "#F48FB1",
-        Family: "#80CBC4",
+        "Family": { bg: isDark ? "#174EA6" : "#E8F0FE", text: isDark ? "#8AB4F8" : "#1A73E8" },
+        "Stress": { bg: isDark ? "#C5221F" : "#FCE8E6", text: isDark ? "#F28B82" : "#D93025" },
+        "Relationship": { bg: isDark ? "#880E4F" : "#FCE4EC", text: isDark ? "#F8BBD0" : "#C2185B" },
+        "Study": { bg: isDark ? "#137333" : "#E6F4EA", text: isDark ? "#81C995" : "#188038" },
+        "Mental Health": { bg: isDark ? "#E37400" : "#FEF7E0", text: isDark ? "#FDD663" : "#B06000" },
+        "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
     };
-    return colors[category] || "#E0E0E0";
+    return colors[normalized] || colors["Other"];
 };
 
 const getCategoryLabel = (category) => {
@@ -78,7 +78,6 @@ export default function PostCard({ post, hideDescription = false }) {
     const [meTooCount, setMeTooCount] = useState(0);
     const [commentCount, setCommentCount] = useState(0);
     const [comments, setComments] = useState([]);
-    const [reactionCount, setReactionCount] = useState(post.reactionCount || 0);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
     const [commentorProfiles, setCommentorProfiles] = useState({});
     const [showShareModal, setShowShareModal] = useState(false);
@@ -181,11 +180,7 @@ export default function PostCard({ post, hideDescription = false }) {
         return () => unsubscribe();
     }, [post.id]);
 
-    // Calculate total reactionCount (reactions + comments)
-    useEffect(() => {
-        const total = likeCount + hugCount + meTooCount + commentCount;
-        setReactionCount(total);
-    }, [likeCount, hugCount, meTooCount, commentCount]);
+
 
     // Fetch friends list
     useEffect(() => {
@@ -291,16 +286,9 @@ export default function PostCard({ post, hideDescription = false }) {
     };
 
     return (
-        <View style={{
-            borderBottomWidth: 1,
-            borderBottomColor: theme.isDark ? '#333333' : '#E0E0E0',
-            paddingBottom: 12,
-            marginBottom: 16
-        }}>
+        <View style={[styles.cardContainer, { borderBottomColor: theme.isDark ? '#2D2D30' : '#E5E7EB' }]}>
             <Link href={`/post/${post.id}`} asChild>
-                <TouchableOpacity style={[styles.card, {
-                    backgroundColor: theme.card
-                }]}>
+                <TouchableOpacity style={styles.card} delayPressIn={0}>
                     {/* Author Section with Category Badge */}
                     <TouchableOpacity
                         style={styles.authorSection}
@@ -315,37 +303,40 @@ export default function PostCard({ post, hideDescription = false }) {
                             }
                         }}
                         disabled={post.isAnonymous || !post.authorId}
+                        delayPressIn={0}
                     >
-                        {post.isAnonymous ||
-                            !post.authorName ||
-                            post.authorName === "Anonymous" ||
-                            !authorProfileCode ? (
-                            <View style={styles.avatarWrapper}>
-                                <Image
-                                    source={require("../assets/images/letitout_logo.png")}
-                                    style={{ width: 40, height: 40, borderRadius: 20 }}
-                                />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                            {post.isAnonymous ||
+                                !post.authorName ||
+                                post.authorName === "Anonymous" ||
+                                !authorProfileCode ? (
+                                <View style={styles.avatarWrapper}>
+                                    <Image
+                                        source={require("../assets/images/letitout_logo.png")}
+                                        style={{ width: 36, height: 36, borderRadius: 18 }}
+                                    />
+                                </View>
+                            ) : (
+                                <View style={styles.avatarWrapper}>
+                                    <Avatar seed={authorProfileCode} size={36} />
+                                </View>
+                            )}
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.authorName, { color: theme.text }]} numberOfLines={1}>
+                                    {post.isAnonymous || !post.authorName
+                                        ? "Anonymous"
+                                        : post.authorName}
+                                </Text>
+                                <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
                             </View>
-                        ) : (
-                            <View style={styles.avatarWrapper}>
-                                <Avatar seed={authorProfileCode} size={40} />
-                            </View>
-                        )}
-                        <View style={{ flex: 1 }}>
-                            <Text style={[styles.authorName, { color: theme.text }]}>
-                                {post.isAnonymous || !post.authorName
-                                    ? "Anonymous"
-                                    : post.authorName}
-                            </Text>
-                            <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
                         </View>
                         <View
                             style={[
                                 styles.categoryBadge,
-                                { backgroundColor: getCategoryColor(post.category) },
+                                { backgroundColor: getCategoryColors(post.category, theme.isDark).bg },
                             ]}
                         >
-                            <Text style={styles.categoryText}>
+                            <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
                                 {getCategoryLabel(post.category)}
                             </Text>
                         </View>
@@ -361,12 +352,12 @@ export default function PostCard({ post, hideDescription = false }) {
 
                     {/* Comments Preview */}
                     {comments.length > 0 && (
-                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#0A0A0A' : '#F9F9F9', borderColor: theme.border }]}>
+                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#1F1F21' : '#F9F9FB', borderColor: theme.border }]}>
                             {comments.map((comment) => (
-                                <View key={comment.id} style={[styles.commentItem, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F5F5F5' }]}>
+                                <View key={comment.id} style={[styles.commentItem, { backgroundColor: 'transparent' }]}>
                                     <Avatar
                                         seed={commentorProfiles[comment.commentorId] || "anonymous"}
-                                        size={35}
+                                        size={30}
                                         style={styles.commentAvatar}
                                     />
                                     <View style={styles.commentTextContainer}>
@@ -384,40 +375,41 @@ export default function PostCard({ post, hideDescription = false }) {
 
                     <View style={styles.footer}>
                         <View style={styles.reactions}>
-                            <View style={styles.reactionButton}>
-                                <Ionicons name="heart" size={16} color="#E57373" />
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                                <Ionicons name="heart" size={14} color="#E57373" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
                             </View>
 
-                            <View style={styles.reactionButton}>
-                                <Ionicons name="hand-left" size={16} color="#FFB74D" />
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
                             </View>
 
-                            <View style={styles.reactionButton}>
-                                <Ionicons name="happy" size={16} color="#66BB6A" />
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                                <Ionicons name="happy" size={14} color="#66BB6A" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
                             </View>
                         </View>
 
                         <View style={styles.rightFooter}>
                             <TouchableOpacity
-                                style={styles.shareButton}
+                                style={[styles.actionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}
+                                delayPressIn={0}
                                 onPress={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     setShowShareModal(true);
                                 }}
                             >
-                                <Ionicons name="paper-plane-outline" size={20} color="#9F8BFF" />
+                                <Ionicons name="paper-plane-outline" size={14} color="#9F8BFF" />
                                 <Text style={styles.sendText}>Send</Text>
                             </TouchableOpacity>
 
-                            <View style={styles.commentSection}>
+                            <View style={[styles.actionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
                                 <Ionicons
                                     name="chatbubble-outline"
-                                    size={18}
-                                    color={theme.textTertiary}
+                                    size={14}
+                                    color={theme.textSecondary}
                                 />
                                 <Text style={[styles.commentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
                             </View>
@@ -428,17 +420,20 @@ export default function PostCard({ post, hideDescription = false }) {
                     <Modal
                         visible={showShareModal}
                         transparent={true}
-                        animationType="fade"
+                        animationType="slide"
                         onRequestClose={() => setShowShareModal(false)}
                     >
                         <Pressable
-                            style={[styles.modalOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]}
+                            style={styles.modalOverlay}
                             onPress={() => setShowShareModal(false)}
                         >
-                            <Pressable style={[styles.modalContent, { backgroundColor: theme.isDark ? '#1A1A1A' : theme.surface }]} onPress={(e) => e.stopPropagation()}>
-                                <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                                    <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
-                                    <TouchableOpacity onPress={() => setShowShareModal(false)}>
+                            <Pressable style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} onPress={(e) => e.stopPropagation()}>
+                                <View style={[styles.modalHeader, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <Ionicons name="share-social-outline" size={22} color={theme.text} />
+                                        <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
+                                    </View>
+                                    <TouchableOpacity onPress={() => setShowShareModal(false)} style={styles.modalCloseBtn} delayPressIn={0}>
                                         <Ionicons name="close" size={24} color={theme.textSecondary} />
                                     </TouchableOpacity>
                                 </View>
@@ -452,21 +447,23 @@ export default function PostCard({ post, hideDescription = false }) {
                                     <FlatList
                                         data={friends}
                                         keyExtractor={(item) => item.id}
+                                        showsVerticalScrollIndicator={false}
                                         renderItem={({ item }) => (
                                             <TouchableOpacity
-                                                style={[styles.friendItem, { borderBottomColor: theme.divider }]}
+                                                style={[styles.friendItem, { borderBottomColor: theme.border }]}
                                                 onPress={() => handleShare(item.id)}
                                                 disabled={sharing}
+                                                delayPressIn={0}
                                             >
                                                 {item.profileCode ? (
                                                     <Avatar seed={item.profileCode} size={40} />
                                                 ) : (
-                                                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
+                                                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#2D2D2D' : '#EFE8FF' }]}>
                                                         <Ionicons name="person" size={20} color="#9575cd" />
                                                     </View>
                                                 )}
                                                 <Text style={[styles.friendName, { color: theme.text }]}>{item.name}</Text>
-                                                <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
+                                                <Ionicons name="paper-plane" size={18} color="#9F8BFF" />
                                             </TouchableOpacity>
                                         )}
                                     />
@@ -481,80 +478,64 @@ export default function PostCard({ post, hideDescription = false }) {
 }
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 20,
+    cardContainer: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#e0e0e02f",
+        paddingBottom: 5,
+        marginBottom: 5,
     },
-    cardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
+    card: {
+        paddingVertical: 12,
+        paddingHorizontal: 5,
     },
     categoryBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
     },
     categoryText: {
         fontSize: 9,
-        fontWeight: "700",
-        color: "#212121",
-        letterSpacing: 0.3,
+        fontWeight: "800",
+        letterSpacing: 0.5,
     },
     timestamp: {
         fontSize: 11,
-        color: "#BDBDBD",
+        marginTop: 2,
     },
     authorSection: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 10,
+        marginBottom: 12,
     },
     avatarWrapper: {
-        marginRight: 8,
-    },
-    avatarContainer: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: "#EFE8FF",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 8,
-    },
-    avatarText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#9575cd",
+        marginRight: 2,
     },
     authorName: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#9575cd",
+        fontSize: 14,
+        fontWeight: "700",
     },
     title: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: "700",
-        marginBottom: 6,
-        lineHeight: 20,
+        marginBottom: 8,
+        lineHeight: 22,
     },
     preview: {
         fontSize: 13,
-        color: "#757575",
-        lineHeight: 18,
+        lineHeight: 19,
         marginBottom: 14,
     },
     commentsPreview: {
-        marginBottom: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        padding: 10,
         gap: 8,
+        marginBottom: 14,
     },
     commentItem: {
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
         borderRadius: 8,
         flexDirection: "row",
         gap: 10,
@@ -568,12 +549,10 @@ const styles = StyleSheet.create({
     },
     commentUsername: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#212121",
+        fontWeight: "700",
     },
     commentText: {
         fontSize: 12,
-        color: "#616161",
         lineHeight: 16,
     },
     footer: {
@@ -583,93 +562,94 @@ const styles = StyleSheet.create({
     },
     reactions: {
         flexDirection: "row",
-        gap: 16,
+        gap: 8,
     },
-    reactionButton: {
+    reactionPill: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    actionPill: {
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'transparent',
     },
     reactionCount: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#757575",
-    },
-    reactionActive: {
-        color: "#E57373",
-    },
-    reactionActiveHug: {
-        color: "#FFB74D",
-    },
-    commentSection: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
+        fontWeight: "700",
     },
     commentCount: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#757575",
-    },
-    shareButton: {
-        padding: 4,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
+        fontWeight: "700",
     },
     sendText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontWeight: "700",
         color: "#9F8BFF",
+    },
+    rightFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "flex-end",
     },
     modalContent: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        width: '85%',
-        maxHeight: '70%',
-        overflow: 'hidden',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingTop: 20,
+        paddingBottom: 40,
+        paddingHorizontal: 20,
+        maxHeight: "80%",
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        paddingBottom: 16,
+        marginBottom: 16,
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: '700',
-        color: '#212121',
+        fontWeight: '800',
+        letterSpacing: -0.5,
+    },
+    modalCloseBtn: {
+        padding: 4,
     },
     emptyState: {
-        padding: 40,
+        paddingVertical: 40,
         alignItems: 'center',
         gap: 12,
     },
     emptyText: {
         fontSize: 14,
-        color: '#9E9E9E',
     },
     friendItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingVertical: 14,
+        paddingHorizontal: 8,
         gap: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#F5F5F5',
     },
     defaultAvatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#EFE8FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -677,11 +657,5 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 15,
         fontWeight: '600',
-        color: '#212121',
-    },
-    rightFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
     },
 });

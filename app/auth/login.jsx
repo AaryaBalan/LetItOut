@@ -262,7 +262,7 @@ export default function Login() {
 
                         <View style={styles.footer}>
                             <Text style={styles.footerText}>
-                                Don't have an account?{" "}
+                                Don&apos;t have an account?{" "}
                             </Text>
                             <TouchableOpacity
                                 onPress={() => router.push("/auth/signin")}

@@ -536,10 +536,6 @@ export default function PostDetail() {
 
 
 
-    const handleSupport = () => {
-        setSupportActive(!supportActive);
-        setSupportCount(supportActive ? supportCount - 1 : supportCount + 1);
-    };
 
     const handleHug = async () => {
         if (!user) {
@@ -880,7 +876,6 @@ export default function PostDetail() {
         );
     };
 
-    const totalHugs = hugCount + meTooCount + likeCount;
 
     // Define Black Theme overrides for Dark Mode
     const blackTheme = {

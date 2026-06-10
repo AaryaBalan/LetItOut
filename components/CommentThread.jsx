@@ -20,7 +20,6 @@ const CommentThread = ({
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const hasReplies = comment.replies && comment.replies.length > 0;
-    const shouldIndent = depth > 0;
     const canReply = depth < maxDepth;
 
     // Calculate indentation and line color based on depth

@@ -38,10 +38,8 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const { theme } = useTheme();
   const [userPosts, setUserPosts] = useState([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
   const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
   const [showAllHistoryModal, setShowAllHistoryModal] = useState(false);
-  const [postReactions, setPostReactions] = useState({});
   const [supportiveHistory, setSupportiveHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -57,7 +55,6 @@ export default function Profile() {
   const [friendsList, setFriendsList] = useState([]);
   const [isLoadingFriends, setIsLoadingFriends] = useState(false);
   const [savedPosts, setSavedPosts] = useState([]);
-  const [loadingSavedPosts, setLoadingSavedPosts] = useState(true);
   const [showAllSavedModal, setShowAllSavedModal] = useState(false);
 
   // Listen to user profile changes in real-time
@@ -155,7 +152,6 @@ export default function Profile() {
   // Fetch user's posts from Firebase
   useEffect(() => {
     if (!user) {
-      setLoadingPosts(false);
       return;
     }
 
@@ -178,48 +174,14 @@ export default function Profile() {
           };
         });
         setUserPosts(fetchedPosts);
-        setLoadingPosts(false);
       },
       (error) => {
         console.error("Error fetching user posts:", error);
-        setLoadingPosts(false);
       },
     );
 
     return () => unsubscribe();
   }, [user]);
-
-  // Fetch reaction counts for user's posts in real-time
-  useEffect(() => {
-    if (!user || userPosts.length === 0) return;
-
-    const postIds = userPosts.map((p) => String(p.id));
-    const reactionsRef = collection(db, "reactions");
-
-    // Create listeners for each post's reactions
-    const unsubscribes = postIds.map((postId) => {
-      const q = query(reactionsRef, where("postId", "==", postId));
-
-      return onSnapshot(q, (snapshot) => {
-        const counts = { like: 0, hug: 0, metoo: 0 };
-        snapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          if (data.type === "like") counts.like++;
-          else if (data.type === "hug") counts.hug++;
-          else if (data.type === "metoo") counts.metoo++;
-        });
-
-        setPostReactions((prev) => ({
-          ...prev,
-          [postId]: counts,
-        }));
-      });
-    });
-
-    return () => {
-      unsubscribes.forEach((unsub) => unsub());
-    };
-  }, [user, userPosts.map((p) => p.id).join(",")]);
 
   // Fetch user's supportive history (reactions and comments) in real-time
   useEffect(() => {
@@ -429,7 +391,6 @@ export default function Profile() {
   useEffect(() => {
     const fetchSavedPosts = async () => {
       if (!user) {
-        setLoadingSavedPosts(false);
         return;
       }
 
@@ -441,7 +402,6 @@ export default function Profile() {
 
           if (savedPostIds.length === 0) {
             setSavedPosts([]);
-            setLoadingSavedPosts(false);
             return;
           }
 
@@ -460,8 +420,6 @@ export default function Profile() {
         }
       } catch (error) {
         console.error("Error fetching saved posts:", error);
-      } finally {
-        setLoadingSavedPosts(false);
       }
     };
 
@@ -843,11 +801,6 @@ export default function Profile() {
 
               <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
                 {userPosts.map((post) => {
-                  const reactions = postReactions[post.id] || {
-                    like: 0,
-                    hug: 0,
-                    metoo: 0,
-                  };
                   const postData = {
                     ...post,
                     timestamp: getTimeAgo(post.createdAt),
@@ -957,7 +910,7 @@ export default function Profile() {
                     </Text>
                     {item.type === "comment" ? (
                       <Text style={[styles.historyText, { color: theme.textSecondary }]}>
-                        "{item.comment}" in "{item.postTitle}"
+                        &ldquo;{item.comment}&rdquo; in &ldquo;{item.postTitle}&rdquo;
                       </Text>
                     ) : (
                       <Text style={[styles.historyText, { color: theme.textSecondary }]}>
@@ -1514,14 +1467,6 @@ const styles = StyleSheet.create({
   friendBio: {
     fontSize: 13,
     color: "#9E9E9E",
-  },
-  emptyState: {
-    padding: 40,
-    alignItems: "center",
-  },
-  emptyStateText: {
-    color: "#9E9E9E",
-    fontSize: 14,
   },
   summaryCard: {
     backgroundColor: "#FFFFFF",
