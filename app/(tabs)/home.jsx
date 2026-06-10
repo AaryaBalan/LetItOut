@@ -215,9 +215,9 @@ export default function Home() {
     // 4. Filter by Mood
     let matchesMood = true;
     if (selectedMood === "depression") {
-      matchesMood = (post.feelPercentage ?? 50) < 50;
+      matchesMood = (post.feelPercentage ?? 0) < 0;
     } else if (selectedMood === "happiness") {
-      matchesMood = (post.feelPercentage ?? 50) >= 50;
+      matchesMood = (post.feelPercentage ?? 0) >= 0;
     }
 
     return matchesCategory && matchesSearch && matchesAnonymous && matchesMood;

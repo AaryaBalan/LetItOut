@@ -121,7 +121,7 @@ export default function CommunityDetail() {
                     commentCount: data.commentCount || 0,
                     reactionCount: data.reactionCount || 0,
                     helpNeeded: data.helpNeeded || false,
-                    feelPercentage: data.feelPercentage ?? 50,
+                    feelPercentage: data.feelPercentage ?? 0,
                 };
             });
             setPosts(fetched);
@@ -145,11 +145,11 @@ export default function CommunityDetail() {
         // Filter by mood if selected
         if (selectedMood === "depression") {
             filtered = filtered.filter((p) => {
-                const feel = p.feelPercentage ?? 50;
-                return feel < 50;
+                const feel = p.feelPercentage ?? 0;
+                return feel < 0;
             });
         } else if (selectedMood === "happiness") {
-            filtered = filtered.filter((p) => (p.feelPercentage ?? 50) >= 50);
+            filtered = filtered.filter((p) => (p.feelPercentage ?? 0) >= 0);
         }
 
         // Handle different sort options
