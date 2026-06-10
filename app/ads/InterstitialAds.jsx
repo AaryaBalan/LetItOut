@@ -1,14 +1,33 @@
-import {
-    AdEventType,
-    InterstitialAd,
-    TestIds,
-} from 'react-native-google-mobile-ads';
+let AdEventType, InterstitialAd, TestIds;
+let isAdsAvailable = false;
 
-const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-2512361520457456/1362953981';
+try {
+    const ads = require('react-native-google-mobile-ads');
+    AdEventType = ads.AdEventType;
+    InterstitialAd = ads.InterstitialAd;
+    TestIds = ads.TestIds;
+    isAdsAvailable = true;
+} catch (e) {
+    // react-native-google-mobile-ads not available (e.g. Expo Go)
+}
 
-const interstitial = InterstitialAd.createForAdRequest(adUnitId);
+let interstitial = null;
+
+if (isAdsAvailable && InterstitialAd && TestIds) {
+    try {
+        const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-2512361520457456/1362953981';
+        interstitial = InterstitialAd.createForAdRequest(adUnitId);
+    } catch (e) {
+        // ignore
+    }
+}
 
 export const showInterstitialAd = (onFinished) => {
+    if (!isAdsAvailable || !interstitial) {
+        if (onFinished) onFinished();
+        return;
+    }
+
     // Load the ad
     interstitial.load();
 

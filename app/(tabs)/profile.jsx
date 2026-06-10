@@ -549,20 +549,20 @@ export default function Profile() {
   // If user is not logged in, show login prompt
   if (!user) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
-        <View style={styles.notLoggedInContainer}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+        <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
+        <View style={[styles.notLoggedInContainer, { backgroundColor: theme.background }]}>
           <Ionicons
             name="person-circle-outline"
             size={80}
-            color="#BDBDBD"
+            color={theme.textTertiary}
           />
-          <Text style={styles.notLoggedInTitle}>Not Logged In</Text>
-          <Text style={styles.notLoggedInText}>
+          <Text style={[styles.notLoggedInTitle, { color: theme.text }]}>Not Logged In</Text>
+          <Text style={[styles.notLoggedInText, { color: theme.textSecondary }]}>
             Please log in to view your profile
           </Text>
           <TouchableOpacity
-            style={styles.loginButton}
+            style={[styles.loginButton, { backgroundColor: theme.primary }]}
             onPress={() => router.push("/auth/login")}
           >
             <Text style={styles.loginButtonText}>Go to Login</Text>

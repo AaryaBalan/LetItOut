@@ -5,8 +5,30 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "../context/AuthContext";
-import { ThemeProvider } from "../context/ThemeContext";
+import { ThemeProvider, useTheme } from "../context/ThemeContext";
 import "../global.css";
+
+function RootLayoutContent() {
+    const { isDark } = useTheme();
+
+    return (
+        <AuthProvider>
+            <Stack
+                screenOptions={{
+                    headerShown: false,
+                }}
+            >
+                <Stack.Screen name="index" />
+                <Stack.Screen name="welcome" />
+                <Stack.Screen name="auth/signin" />
+                <Stack.Screen name="auth/login" />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="post/[id]" />
+            </Stack>
+            <StatusBar style={isDark ? "light" : "dark"} />
+        </AuthProvider>
+    );
+}
 
 export default function RootLayout() {
     useEffect(() => {
@@ -18,21 +40,7 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <ThemeProvider>
-                <AuthProvider>
-                    <Stack
-                        screenOptions={{
-                            headerShown: false,
-                        }}
-                    >
-                        <Stack.Screen name="index" />
-                        <Stack.Screen name="welcome" />
-                        <Stack.Screen name="auth/signin" />
-                        <Stack.Screen name="auth/login" />
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="post/[id]" />
-                    </Stack>
-                    <StatusBar style="dark" />
-                </AuthProvider>
+                <RootLayoutContent />
             </ThemeProvider>
         </SafeAreaProvider>
     );

@@ -517,19 +517,19 @@ export default function PostDetail() {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.errorContainer}>
-                <StatusBar barStyle="light-content" backgroundColor="#000000" />
+            <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+                <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
                 <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
-                <Text style={styles.errorText}>Loading...</Text>
+                <Text style={[styles.errorText, { color: theme.textSecondary }]}>Loading...</Text>
             </SafeAreaView>
         );
     }
 
     if (!post) {
         return (
-            <SafeAreaView style={styles.errorContainer}>
-                <StatusBar barStyle="light-content" backgroundColor="#000000" />
-                <Text style={styles.errorText}>Post not found</Text>
+            <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+                <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
+                <Text style={[styles.errorText, { color: theme.textSecondary }]}>Post not found</Text>
             </SafeAreaView>
         );
     }

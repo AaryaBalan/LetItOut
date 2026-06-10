@@ -57,10 +57,10 @@ export default function TabsLayout() {
                 name="home"
                 options={{
                     title: "Feed",
-                    tabBarIcon: ({ color, size, focused }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "home" : "home-outline"}
-                            size={26}
+                            size={28}
                             color={color}
                         />
                     ),
@@ -70,10 +70,10 @@ export default function TabsLayout() {
                 name="explore"
                 options={{
                     title: "Explore",
-                    tabBarIcon: ({ color, size, focused }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "compass" : "compass-outline"}
-                            size={26}
+                            size={28}
                             color={color}
                         />
                     ),
@@ -82,11 +82,13 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="create"
                 options={{
-                    title: "",
-                    tabBarIcon: ({ color, size }) => (
-                        <View style={styles.createButton}>
-                            <Ionicons name="add" size={32} color="#FFFFFF" />
-                        </View>
+                    title: "Create",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "add-circle" : "add-circle-outline"}
+                            size={28}
+                            color={color}
+                        />
                     ),
                 }}
             />
@@ -94,11 +96,11 @@ export default function TabsLayout() {
                 name="chat"
                 options={{
                     title: "Chat",
-                    tabBarIcon: ({ color, size, focused }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <View>
                             <Ionicons
                                 name={focused ? "chatbubbles" : "chatbubbles-outline"}
-                                size={26}
+                                size={28}
                                 color={color}
                             />
                             {unreadChatCount > 0 && (
@@ -116,10 +118,10 @@ export default function TabsLayout() {
                 name="profile"
                 options={{
                     title: "Profile",
-                    tabBarIcon: ({ color, size, focused }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "person" : "person-outline"}
-                            size={26}
+                            size={28}
                             color={color}
                         />
                     ),
@@ -130,20 +132,6 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-    createButton: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: "#9575cd",
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: -20,
-        shadowColor: "#9575cd",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
-    },
     badge: {
         position: "absolute",
         top: -4,
