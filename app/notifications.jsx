@@ -62,7 +62,7 @@ export default function Notifications() {
                         ...docSnap.data(),
                     }))
                     .filter((n) =>
-                        ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted"].includes(n.type)
+                        ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted", "perspective_change"].includes(n.type)
                     );
                 setNotifications(fetchedNotifications);
 
@@ -164,6 +164,12 @@ export default function Notifications() {
                     color: "#66BB6A",
                     bgColor: "#E8F5E9",
                 };
+            case "perspective_change":
+                return {
+                    name: "trending-up",
+                    color: "#9575cd",
+                    bgColor: "#EFE8FF",
+                };
             default:
                 return {
                     name: "notifications",
@@ -194,6 +200,13 @@ export default function Notifications() {
                 return { text: "Sent you a friend request", emoji: "👋" };
             case "friend_request_accepted":
                 return { text: "Accepted your friend request", emoji: "✅" };
+            case "perspective_change":
+                const deltaVal = notification.rating ?? 0;
+                if (deltaVal > 0) {
+                    return { text: `benefited from your comment by +${deltaVal}`, emoji: "✨" };
+                } else {
+                    return { text: `shifted their perspective by ${deltaVal} because of your comment`, emoji: "💧" };
+                }
             default:
                 return { text: "New notification", emoji: "" };
         }

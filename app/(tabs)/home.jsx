@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   Animated,
   FlatList,
+  Modal,
   Platform,
   RefreshControl,
   ScrollView,
@@ -15,6 +16,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
 import FilterModal from "../../components/FilterModal";
 import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
@@ -38,9 +40,10 @@ const getCategoryTheme = (category, isDark) => {
 };
 
 export default function Home() {
-  const { user } = useAuth();
-  const { theme } = useTheme();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
   const router = useRouter();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
@@ -141,7 +144,7 @@ export default function Home() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allowedTypes = ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted"];
+      const allowedTypes = ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted", "perspective_change"];
       const filteredCount = snapshot.docs.filter(doc => allowedTypes.includes(doc.data().type)).length;
       setUnreadCount(filteredCount);
     });
@@ -246,7 +249,11 @@ export default function Home() {
               return (
                 <View style={[styles.header, { backgroundColor: theme.background }]}>
                   <View style={styles.headerLeft}>
-                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]} delayPressIn={0}>
+                    <TouchableOpacity
+                      style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                      onPress={() => setIsDrawerOpen(true)}
+                      delayPressIn={0}
+                    >
                       <Ionicons name="menu-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
                   </View>
@@ -483,6 +490,119 @@ export default function Home() {
           showAnonymousOnly={showAnonymousOnly}
           setShowAnonymousOnly={setShowAnonymousOnly}
         />
+
+        {/* Side Drawer Modal */}
+        <Modal
+          animationType="none"
+          transparent={true}
+          visible={isDrawerOpen}
+          onRequestClose={() => setIsDrawerOpen(false)}
+        >
+          <View style={styles.drawerOverlay}>
+            <TouchableOpacity
+              style={styles.drawerBackdrop}
+              activeOpacity={1}
+              onPress={() => setIsDrawerOpen(false)}
+            />
+            <View style={[styles.drawerContent, { backgroundColor: theme.surface }]}>
+              {/* Drawer Header */}
+              <View style={[styles.drawerHeader, { borderBottomColor: theme.divider }]}>
+                {user ? (
+                  <>
+                    <View style={styles.drawerAvatarContainer}>
+                      <Avatar seed={user.profileCode || "anonymous"} size={50} />
+                    </View>
+                    <Text style={[styles.drawerName, { color: theme.text }]} numberOfLines={1}>
+                      {user.displayName || "Anonymous"}
+                    </Text>
+                    <Text style={[styles.drawerEmail, { color: theme.textSecondary }]} numberOfLines={1}>
+                      {user.email}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <View style={[styles.drawerAvatarContainer, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' }]}>
+                      <Ionicons name="person" size={28} color={theme.textSecondary} />
+                    </View>
+                    <Text style={[styles.drawerName, { color: theme.text }]}>Welcome Guest</Text>
+                  </>
+                )}
+              </View>
+
+              {/* Drawer Menu Options */}
+              <ScrollView style={styles.drawerMenu} showsVerticalScrollIndicator={false}>
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                  }}
+                >
+                  <Ionicons name="home-outline" size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>Home</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                    router.push("/my-center");
+                  }}
+                >
+                  <Ionicons name="heart-half-outline" size={22} color="#9575cd" />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>My Center</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                    router.push("/(tabs)/explore");
+                  }}
+                >
+                  <Ionicons name="compass-outline" size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>Explore</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                    router.push("/notifications");
+                  }}
+                >
+                  <Ionicons name="notifications-outline" size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>Notifications</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={toggleTheme}
+                >
+                  <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>
+                    {isDark ? "Light Mode" : "Dark Mode"}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+
+              {/* Drawer Footer */}
+              {user && (
+                <View style={[styles.drawerFooter, { borderTopColor: theme.divider }]}>
+                  <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={async () => {
+                      setIsDrawerOpen(false);
+                      await logout();
+                    }}
+                  >
+                    <Ionicons name="log-out-outline" size={22} color="#E57373" />
+                    <Text style={styles.logoutText}>Logout</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </TabScreenWrapper >
   );
@@ -630,5 +750,74 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontSize: 13,
+  },
+  drawerOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  drawerBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  drawerContent: {
+    width: '75%',
+    maxWidth: 300,
+    height: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 10,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+  },
+  drawerHeader: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+  },
+  drawerAvatarContainer: {
+    marginBottom: 12,
+  },
+  drawerName: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  drawerEmail: {
+    fontSize: 13,
+  },
+  drawerMenu: {
+    flex: 1,
+    paddingVertical: 16,
+  },
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 16,
+  },
+  drawerItemText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  drawerFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#E57373',
   },
 });
