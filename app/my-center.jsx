@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -14,6 +13,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import Loading from "../components/Loading";
 import { db } from "../config/firebase";
@@ -31,6 +31,7 @@ export default function MyCenter() {
   const [activeTab, setActiveTab] = useState("posts"); // "posts" or "comments"
   const [selectedPost, setSelectedPost] = useState(null); // Selected post for comments detail view
   const [ratingFeedback, setRatingFeedback] = useState({}); // Track saved status: { [commentId]: 'Saved!' }
+  const [expandedCommentId, setExpandedCommentId] = useState(null);
 
   // 1. Fetch current user's posts
   useEffect(() => {
@@ -161,6 +162,55 @@ export default function MyCenter() {
     if (mood < 0) return "#7986CB"; // Sad
     if (mood > 0) return "#FFB74D"; // Happy
     return "#9E9E9E"; // Neutral
+  };
+
+  const getCategoryColors = (category, isDark) => {
+    const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
+    const colors = {
+      "Family": { bg: isDark ? "#174EA6" : "#E8F0FE", text: isDark ? "#8AB4F8" : "#1A73E8" },
+      "Stress": { bg: isDark ? "#C5221F" : "#FCE8E6", text: isDark ? "#F28B82" : "#D93025" },
+      "Relationship": { bg: isDark ? "#880E4F" : "#FCE4EC", text: isDark ? "#F8BBD0" : "#C2185B" },
+      "Study": { bg: isDark ? "#137333" : "#E6F4EA", text: isDark ? "#81C995" : "#188038" },
+      "Mental Health": { bg: isDark ? "#E37400" : "#FEF7E0", text: isDark ? "#FDD663" : "#B06000" },
+      "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
+    };
+    return colors[normalized] || colors["Other"];
+  };
+
+  const getCategoryLabel = (category) => {
+    const labels = {
+      Study: "STUDY SUPPORT",
+      "Mental Health": "MENTAL HEALTH",
+      Mindfulness: "MINDFULNESS",
+    };
+    return labels[category] || (category ? category.toUpperCase() : "OTHER");
+  };
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "Just now";
+
+    // If timestamp is already a formatted string (like "5m ago"), return it
+    if (typeof timestamp === 'string' && (timestamp.includes('ago') || timestamp === 'Just now')) {
+      return timestamp;
+    }
+
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return "Just now";
+
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   // Calculate cumulative score: starting mood + sum of all comment deltas relative to starting mood
@@ -342,12 +392,22 @@ export default function MyCenter() {
       {selectedPost ? (
         // --- 1. SINGLE POST COMMENTS DETAIL VIEW ---
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Post Info Summary */}
-          <View style={[styles.selectedPostContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.selectedPostContainer, { borderBottomColor: theme.divider }]}>
             <View style={styles.postHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.postTitleLarge, { color: theme.text }]}>{selectedPost.title}</Text>
-                <Text style={[styles.postCategory, { color: theme.textSecondary }]}>{selectedPost.category}</Text>
+                <Text style={[styles.postTitleLarge, { color: getCategoryColors(selectedPost.category, theme.isDark).text }]}>
+                  {selectedPost.title}
+                </Text>
+                <View style={{ flexDirection: 'row', marginTop: 4, alignItems: 'center', gap: 8 }}>
+                  <View style={[styles.categoryBadge, { backgroundColor: getCategoryColors(selectedPost.category, theme.isDark).bg }]}>
+                    <Text style={[styles.categoryText, { color: getCategoryColors(selectedPost.category, theme.isDark).text }]}>
+                      {getCategoryLabel(selectedPost.category)}
+                    </Text>
+                  </View>
+                  <Text style={{ fontSize: 11, color: theme.textTertiary }}>
+                    {formatTimestamp(selectedPost.createdAt)}
+                  </Text>
+                </View>
               </View>
               <View style={[styles.moodBadge, { backgroundColor: getMoodColor(selectedPost.feelPercentage) + "22" }]}>
                 <Text style={[styles.moodText, { color: getMoodColor(selectedPost.feelPercentage) }]}>
@@ -358,8 +418,6 @@ export default function MyCenter() {
             <Text style={[styles.postDescriptionLarge, { color: theme.textSecondary }]}>
               {selectedPost.description}
             </Text>
-
-            <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
             {/* Mood Shift Track Visualizer */}
             {renderMoodShiftTrack(selectedPost)}
@@ -381,58 +439,86 @@ export default function MyCenter() {
               const baselineVal = selectedPost.feelPercentage ?? 0;
               const currentVal = comment.perspectiveRating !== undefined ? comment.perspectiveRating : baselineVal;
               return (
-                <View key={comment.id} style={[styles.commentItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <View style={styles.commentHeader}>
-                    <Avatar seed={comment.commentorAvatar || comment.commentorName} size={28} />
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text style={[styles.commentorName, { color: theme.text }]}>
-                        {comment.commentorName}
-                      </Text>
+                <TouchableOpacity 
+                  key={comment.id} 
+                  activeOpacity={0.9}
+                  onPress={() => setExpandedCommentId(prev => prev === comment.id ? null : comment.id)}
+                  style={styles.timelineCommentItem}
+                >
+                  <View style={styles.timelineLeftColumn}>
+                    <Avatar seed={comment.commentorAvatar || comment.commentorName} size={32} />
+                    <View style={[styles.timelineVerticalLine, { backgroundColor: theme.divider }]} />
+                  </View>
+
+                  <View style={styles.timelineRightColumn}>
+                    <View style={styles.commentHeader}>
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.commentorName, { color: theme.text }]}>
+                          {comment.commentorName}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>
+                          • {formatTimestamp(comment.createdAt)}
+                        </Text>
+                      </View>
+                      {ratingFeedback[comment.id] && (
+                        <View style={styles.savedBadge}>
+                          <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
+                        </View>
+                      )}
+                      <Ionicons 
+                        name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"} 
+                        size={18} 
+                        color={theme.textTertiary} 
+                      />
                     </View>
-                    {ratingFeedback[comment.id] && (
-                      <View style={styles.savedBadge}>
-                        <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
+
+                    <Text style={[styles.commentText, { color: theme.textSecondary }]}>
+                      {comment.text}
+                    </Text>
+
+                    {expandedCommentId === comment.id && (
+                      <View style={styles.ratingSection}>
+                        <View style={[styles.reflectionNote, { backgroundColor: theme.isDark ? '#2C2A3A' : '#F3E5F5', borderColor: theme.border }]}>
+                          <Ionicons name="bulb-outline" size={16} color="#9575cd" style={{ marginRight: 6 }} />
+                          <Text style={[styles.reflectionNoteText, { color: theme.textSecondary }]}>
+                            How did this comment shift your perspective or state of mind? Adjust the slider below.
+                          </Text>
+                        </View>
+
+                        <View style={styles.ratingLabelRow}>
+                          <Text style={[styles.ratingLabel, { color: theme.textSecondary }]}>
+                            Perspective:
+                          </Text>
+                          <Text style={[styles.ratingValue, { color: getMoodColor(currentVal) }]}>
+                            {currentVal === 0
+                              ? "Neutral (0)"
+                              : currentVal < 0
+                              ? `Negative (${currentVal})`
+                              : `Positive (+${currentVal})`}
+                          </Text>
+                        </View>
+
+                        <Slider
+                          style={styles.slider}
+                          minimumValue={-100}
+                          maximumValue={100}
+                          step={5}
+                          value={currentVal}
+                          onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
+                          minimumTrackTintColor="#7986CB"
+                          maximumTrackTintColor="#FFB74D"
+                          thumbTintColor="#9575cd"
+                        />
+
+                        <View style={styles.ticksRow}>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
+                        </View>
                       </View>
                     )}
                   </View>
-
-                  <Text style={[styles.commentText, { color: theme.textSecondary }]}>
-                    {comment.text}
-                  </Text>
-
-                  <View style={styles.ratingSection}>
-                    <View style={styles.ratingLabelRow}>
-                      <Text style={[styles.ratingLabel, { color: theme.textSecondary }]}>
-                        Perspective:
-                      </Text>
-                      <Text style={[styles.ratingValue, { color: getMoodColor(currentVal) }]}>
-                        {currentVal === 0
-                          ? "Neutral (0)"
-                          : currentVal < 0
-                          ? `Negative (${currentVal})`
-                          : `Positive (+${currentVal})`}
-                      </Text>
-                    </View>
-
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={-100}
-                      maximumValue={100}
-                      step={5}
-                      value={currentVal}
-                      onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
-                      minimumTrackTintColor="#7986CB"
-                      maximumTrackTintColor="#FFB74D"
-                      thumbTintColor="#9575cd"
-                    />
-
-                    <View style={styles.ticksRow}>
-                      <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
-                      <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
-                      <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
-                    </View>
-                  </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}
@@ -456,18 +542,25 @@ export default function MyCenter() {
               return (
                 <TouchableOpacity
                   key={post.id}
-                  style={[styles.postCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  style={[styles.postCard, { borderBottomColor: theme.divider }]}
                   onPress={() => setSelectedPost(post)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.postHeader}>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
+                      <Text style={[styles.postTitle, { color: getCategoryColors(post.category, theme.isDark).text }]} numberOfLines={1}>
                         {post.title}
                       </Text>
-                      <Text style={[styles.postCategory, { color: theme.textSecondary }]}>
-                        {post.category}
-                      </Text>
+                      <View style={{ flexDirection: 'row', marginTop: 4, alignItems: 'center', gap: 8 }}>
+                        <View style={[styles.categoryBadge, { backgroundColor: getCategoryColors(post.category, theme.isDark).bg }]}>
+                          <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
+                            {getCategoryLabel(post.category)}
+                          </Text>
+                        </View>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>
+                          {formatTimestamp(post.createdAt)}
+                        </Text>
+                      </View>
                     </View>
                     <View style={styles.metaItem}>
                       <Ionicons name="chatbubbles-outline" size={16} color={theme.textTertiary} style={{ marginRight: 4 }} />
@@ -480,8 +573,6 @@ export default function MyCenter() {
                   <Text style={[styles.postDescription, { color: theme.textSecondary }]} numberOfLines={2}>
                     {post.description}
                   </Text>
-
-                  <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
                   {/* MINI MOOD SHIFT TRACK */}
                   {renderMoodShiftTrack(post, true)}
@@ -509,68 +600,96 @@ export default function MyCenter() {
               const baselineVal = matchingPost ? (matchingPost.feelPercentage ?? 0) : 0;
               const currentVal = comment.perspectiveRating !== undefined ? comment.perspectiveRating : baselineVal;
               return (
-                <View key={comment.id} style={[styles.commentItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  {/* Context note about which post this comment was sent to */}
-                  <View style={[styles.postContextRow, { backgroundColor: theme.isDark ? '#1C1C1E' : '#F2F2F7' }]}>
-                    <Text style={[styles.postContextText, { color: theme.textSecondary }]} numberOfLines={1}>
-                      On: <Text style={{ fontWeight: "700", color: theme.text }}>{comment.postTitle}</Text>
-                    </Text>
+                <TouchableOpacity 
+                  key={comment.id} 
+                  activeOpacity={0.9}
+                  onPress={() => setExpandedCommentId(prev => prev === comment.id ? null : comment.id)}
+                  style={styles.timelineCommentItem}
+                >
+                  <View style={styles.timelineLeftColumn}>
+                    <Avatar seed={comment.commentorAvatar || comment.commentorName} size={32} />
+                    <View style={[styles.timelineVerticalLine, { backgroundColor: theme.divider }]} />
                   </View>
 
-                  <View style={styles.commentHeader}>
-                    <Avatar seed={comment.commentorAvatar || comment.commentorName} size={28} />
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text style={[styles.commentorName, { color: theme.text }]}>
-                        {comment.commentorName}
+                  <View style={styles.timelineRightColumn}>
+                    {/* Context note about which post this comment was sent to */}
+                    <View style={[styles.postContextRow, { backgroundColor: theme.isDark ? '#1C1C1E' : '#F2F2F7', marginBottom: 8 }]}>
+                      <Text style={[styles.postContextText, { color: theme.textSecondary }]} numberOfLines={1}>
+                        On: <Text style={{ fontWeight: "700", color: theme.text }}>{comment.postTitle}</Text>
                       </Text>
                     </View>
-                    {ratingFeedback[comment.id] && (
-                      <View style={styles.savedBadge}>
-                        <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
+
+                    <View style={styles.commentHeader}>
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.commentorName, { color: theme.text }]}>
+                          {comment.commentorName}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>
+                          • {formatTimestamp(comment.createdAt)}
+                        </Text>
+                      </View>
+                      {ratingFeedback[comment.id] && (
+                        <View style={styles.savedBadge}>
+                          <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
+                        </View>
+                      )}
+                      <Ionicons 
+                        name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"} 
+                        size={18} 
+                        color={theme.textTertiary} 
+                      />
+                    </View>
+
+                    <Text style={[styles.commentText, { color: theme.textSecondary }]}>
+                      {comment.text}
+                    </Text>
+
+                    {expandedCommentId === comment.id && (
+                      <View style={styles.ratingSection}>
+                        <View style={[styles.reflectionNote, { backgroundColor: theme.isDark ? '#2C2A3A' : '#F3E5F5', borderColor: theme.border }]}>
+                          <Ionicons name="bulb-outline" size={16} color="#9575cd" style={{ marginRight: 6 }} />
+                          <Text style={[styles.reflectionNoteText, { color: theme.textSecondary }]}>
+                            How did this comment shift your perspective or state of mind? Adjust the slider below.
+                          </Text>
+                        </View>
+
+                        <View style={styles.ratingLabelRow}>
+                          <Text style={[styles.ratingLabel, { color: theme.textSecondary }]}>
+                            Perspective:
+                          </Text>
+                          <Text style={[styles.ratingValue, { color: getMoodColor(currentVal) }]}>
+                            {currentVal === 0
+                              ? "Neutral (0)"
+                              : currentVal < 0
+                              ? `Negative (${currentVal})`
+                              : `Positive (+${currentVal})`}
+                          </Text>
+                        </View>
+
+                        <Slider
+                          style={styles.slider}
+                          minimumValue={-100}
+                          maximumValue={100}
+                          step={5}
+                          value={currentVal}
+                          onSlidingComplete={(val) => {
+                            const postObj = matchingPost || { id: comment.postId, title: comment.postTitle, feelPercentage: 0 };
+                            handleRatingChange(postObj, comment, val);
+                          }}
+                          minimumTrackTintColor="#7986CB"
+                          maximumTrackTintColor="#FFB74D"
+                          thumbTintColor="#9575cd"
+                        />
+
+                        <View style={styles.ticksRow}>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
+                        </View>
                       </View>
                     )}
                   </View>
-
-                  <Text style={[styles.commentText, { color: theme.textSecondary }]}>
-                    {comment.text}
-                  </Text>
-
-                  <View style={styles.ratingSection}>
-                    <View style={styles.ratingLabelRow}>
-                      <Text style={[styles.ratingLabel, { color: theme.textSecondary }]}>
-                        Perspective:
-                      </Text>
-                      <Text style={[styles.ratingValue, { color: getMoodColor(currentVal) }]}>
-                        {currentVal === 0
-                          ? "Neutral (0)"
-                          : currentVal < 0
-                          ? `Negative (${currentVal})`
-                          : `Positive (+${currentVal})`}
-                      </Text>
-                    </View>
-
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={-100}
-                      maximumValue={100}
-                      step={5}
-                      value={currentVal}
-                      onSlidingComplete={(val) => {
-                        const postObj = matchingPost || { id: comment.postId, title: comment.postTitle, feelPercentage: 0 };
-                        handleRatingChange(postObj, comment, val);
-                      }}
-                      minimumTrackTintColor="#7986CB"
-                      maximumTrackTintColor="#FFB74D"
-                      thumbTintColor="#9575cd"
-                    />
-
-                    <View style={styles.ticksRow}>
-                      <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
-                      <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
-                      <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
-                    </View>
-                  </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}
@@ -634,20 +753,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingTop: 16,
     paddingBottom: 40,
   },
   selectedPostContainer: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    marginBottom: 16,
   },
   postHeader: {
     flexDirection: "row",
@@ -699,6 +813,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginBottom: 12,
     letterSpacing: -0.2,
+    paddingHorizontal: 16,
   },
   emptyCommentsBox: {
     paddingVertical: 20,
@@ -808,15 +923,30 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   postCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+  },
+  timelineCommentItem: {
+    flexDirection: 'row',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  timelineLeftColumn: {
+    alignItems: 'center',
+    marginRight: 14,
+    width: 36,
+  },
+  timelineVerticalLine: {
+    width: 2,
+    flex: 1,
+    marginTop: 8,
+    alignSelf: 'center',
+    borderRadius: 1,
+  },
+  timelineRightColumn: {
+    flex: 1,
   },
   metaItem: {
     flexDirection: "row",
@@ -825,6 +955,17 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
     fontWeight: "700",
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  categoryText: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   postContextRow: {
     borderRadius: 8,
@@ -920,5 +1061,19 @@ const styles = StyleSheet.create({
   miniTrackText: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  reflectionNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  reflectionNoteText: {
+    fontSize: 11,
+    fontWeight: "600",
+    flex: 1,
+    lineHeight: 16,
   },
 });

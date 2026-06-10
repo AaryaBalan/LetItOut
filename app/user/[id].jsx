@@ -18,6 +18,7 @@ import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import Svg, { Path, Circle, Line, G, Text as SvgText } from "react-native-svg";
 import { createFriendRequestNotification } from "../../utils/notifications";
 
 export default function UserProfile() {
@@ -30,6 +31,7 @@ export default function UserProfile() {
     const [loading, setLoading] = useState(true);
     const [followStatus, setFollowStatus] = useState(null); // null (not following), 0 (requested), 1 (following), -1 (rejected)
     const [followLoading, setFollowLoading] = useState(false);
+    const [perspectiveShifts, setPerspectiveShifts] = useState([]);
 
     // Format timestamp to "2h ago" style
     const formatTimeAgo = (timestamp) => {
@@ -103,6 +105,42 @@ export default function UserProfile() {
         fetchUserAndPosts();
         fetchUserAndPosts();
     }, [id]);
+
+    // Fetch perspective changes for this user to display in the graph
+    useEffect(() => {
+        if (!id || !currentUser) return;
+
+        const q = query(
+            collection(db, "notifications"),
+            where("toUserId", "==", currentUser.uid),
+            where("fromUserId", "==", id),
+            where("type", "==", "perspective_change")
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const shifts = snapshot.docs.map((docSnap) => {
+                const data = docSnap.data();
+                return {
+                    id: docSnap.id,
+                    rating: data.rating ?? 0,
+                    createdAt: data.createdAt,
+                };
+            });
+
+            // Sort in memory by createdAt ascending
+            shifts.sort((a, b) => {
+                const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return aTime - bTime;
+            });
+
+            setPerspectiveShifts(shifts);
+        }, (error) => {
+            console.error("Error fetching perspective shifts:", error);
+        });
+
+        return () => unsubscribe();
+    }, [id, currentUser]);
 
     // Check if current user is following this user
     useEffect(() => {
@@ -208,6 +246,133 @@ export default function UserProfile() {
         );
     }
 
+    const renderPerspectiveChart = () => {
+        if (perspectiveShifts.length === 0) {
+            return null;
+        }
+
+        // Find max absolute value to scale y-axis
+        const maxAbsValue = Math.max(...perspectiveShifts.map((s) => Math.abs(s.rating)), 10);
+        
+        const spacing = 65;
+        const paddingLeft = 30;
+        const chartHeight = 160;
+        const baselineY = 80;
+        
+        // Map data to coordinates (x, y)
+        const points = perspectiveShifts.map((shift, idx) => {
+            const x = paddingLeft + idx * spacing;
+            const y = baselineY - (shift.rating / maxAbsValue) * 55;
+            return { x, y, rating: shift.rating, id: shift.id };
+        });
+        
+        const svgWidth = Math.max(300, points.length * spacing + paddingLeft + 20);
+
+        // Path for the line
+        const linePath = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+        
+        // Path for the filled area under the line
+        let areaPath = "";
+        if (points.length > 0) {
+            areaPath = `M ${points[0].x} ${baselineY} ` +
+                       points.map((p) => `L ${p.x} ${p.y}`).join(" ") +
+                       ` L ${points[points.length - 1].x} ${baselineY} Z`;
+        }
+
+        return (
+            <View style={[styles.chartContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Text style={[styles.chartTitle, { color: theme.text }]}>Support Impact Timeline</Text>
+                <Text style={[styles.chartSubtitle, { color: theme.textSecondary }]}>
+                    Mood change caused by your support comments on their stories
+                </Text>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chartScroll}>
+                    <View style={{ width: svgWidth, height: chartHeight }}>
+                        <Svg width={svgWidth} height={chartHeight}>
+                            {/* Zero Baseline */}
+                            <Line
+                                x1={0}
+                                y1={baselineY}
+                                x2={svgWidth}
+                                y2={baselineY}
+                                stroke={theme.divider}
+                                strokeWidth={1}
+                                strokeDasharray="4 4"
+                            />
+
+                            {/* Filled Area */}
+                            {areaPath ? (
+                                <Path
+                                    d={areaPath}
+                                    fill={theme.isDark ? "rgba(149, 117, 205, 0.15)" : "rgba(149, 117, 205, 0.08)"}
+                                />
+                            ) : null}
+
+                            {/* Continuous Line */}
+                            {linePath ? (
+                                <Path
+                                    d={linePath}
+                                    fill="none"
+                                    stroke="#9575cd"
+                                    strokeWidth={3}
+                                />
+                            ) : null}
+
+                            {/* Grid/Baseline markers */}
+                            <SvgText
+                                x={10}
+                                y={baselineY - 4}
+                                fontSize="9"
+                                fontWeight="700"
+                                fill={theme.textTertiary}
+                            >
+                                0
+                            </SvgText>
+
+                            {/* Points, values and sequence labels */}
+                            {points.map((p, idx) => (
+                                <G key={p.id || idx}>
+                                    {/* Line down/up to baseline for visual guide */}
+                                    <Line
+                                        x1={p.x}
+                                        y1={baselineY}
+                                        x2={p.x}
+                                        y2={p.y}
+                                        stroke={p.rating >= 0 ? "rgba(102, 187, 106, 0.4)" : "rgba(229, 115, 115, 0.4)"}
+                                        strokeWidth={1}
+                                        strokeDasharray="2 2"
+                                    />
+                                    
+                                    {/* Data Dot */}
+                                    <Circle
+                                        cx={p.x}
+                                        cy={p.y}
+                                        r={5}
+                                        fill={p.rating >= 0 ? "#66BB6A" : "#E57373"}
+                                        stroke={theme.surface}
+                                        strokeWidth={2}
+                                    />
+
+                                    {/* Rating Value Text */}
+                                    <SvgText
+                                        x={p.x}
+                                        y={p.y + (p.rating >= 0 ? -10 : 16)}
+                                        fontSize="10"
+                                        fontWeight="800"
+                                        textAnchor="middle"
+                                        fill={p.rating >= 0 ? "#66BB6A" : "#E57373"}
+                                    >
+                                        {p.rating >= 0 ? `+${p.rating}` : p.rating}
+                                    </SvgText>
+                                </G>
+                            ))}
+                        </Svg>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
@@ -286,6 +451,9 @@ export default function UserProfile() {
                         </View>
                     </View>
                 </View>
+
+                {/* Perspective Shift Chart */}
+                {renderPerspectiveChart()}
 
                 {/* Posts Section */}
                 <View style={styles.postsSection}>
@@ -476,5 +644,74 @@ const styles = StyleSheet.create({
     },
     errorText: {
         fontSize: 16,
-    }
+    },
+    chartContainer: {
+        margin: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        padding: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+        elevation: 1,
+    },
+    chartTitle: {
+        fontSize: 15,
+        fontWeight: "800",
+        letterSpacing: -0.2,
+        marginBottom: 4,
+    },
+    chartSubtitle: {
+        fontSize: 12,
+        marginBottom: 16,
+    },
+    emptyChartText: {
+        fontSize: 13,
+        fontStyle: "italic",
+        textAlign: "center",
+        paddingVertical: 20,
+    },
+    chartScroll: {
+        paddingVertical: 10,
+    },
+    chartWrapper: {
+        height: 120,
+        flexDirection: "row",
+        alignItems: "flex-end",
+        position: "relative",
+        paddingHorizontal: 10,
+        gap: 16,
+    },
+    zeroBaseline: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 50,
+        height: 1,
+        opacity: 0.5,
+    },
+    chartCol: {
+        width: 32,
+        alignItems: "center",
+        height: "100%",
+        position: "relative",
+    },
+    chartBar: {
+        width: 14,
+        position: "absolute",
+    },
+    barValueText: {
+        fontSize: 10,
+        fontWeight: "700",
+        position: "absolute",
+        width: 40,
+        textAlign: "center",
+    },
+    chartColLabel: {
+        fontSize: 9,
+        fontWeight: "600",
+        position: "absolute",
+        bottom: 0,
+    },
 });
