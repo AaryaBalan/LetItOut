@@ -130,22 +130,18 @@ export default function Explore() {
                             {/* Top Row */}
                             <View style={styles.headerTop}>
                                 <View style={styles.headerLeft}>
-                                    <View style={[styles.logoContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#E1D5F4' }]}>
-                                        <Ionicons name="compass" size={28} color="#9575cd" />
-                                    </View>
+                                    <TouchableOpacity
+                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
+                                        onPress={() => router.back()}
+                                    >
+                                        <Ionicons name="arrow-back" size={24} color={theme.text} />
+                                    </TouchableOpacity>
                                     <View>
                                         <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
                                         <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
                                     </View>
                                 </View>
-                                <View style={styles.headerRight}>
-                                    <TouchableOpacity
-                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                                        onPress={() => router.push("/(tabs)/notifications")}
-                                    >
-                                        <Ionicons name="notifications-outline" size={24} color={theme.text} />
-                                    </TouchableOpacity>
-                                </View>
+                                <View style={styles.headerRight} />
                             </View>
 
                             {/* Enhanced Search Bar */}
