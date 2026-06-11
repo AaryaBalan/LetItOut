@@ -31,12 +31,20 @@ import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function Profile() {
   const router = useRouter();
+  const { showTabBar } = useTabBar();
   const { user, logout } = useAuth();
   const { theme } = useTheme();
+
+  // Ensure tab bar is shown when entering the profile screen
+  useEffect(() => {
+    showTabBar();
+  }, [showTabBar]);
+
   const [userPosts, setUserPosts] = useState([]);
   const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
   const [showAllHistoryModal, setShowAllHistoryModal] = useState(false);
@@ -560,7 +568,7 @@ export default function Profile() {
 
         <ScrollView
           style={[styles.scrollView, { backgroundColor: theme.background }]}
-          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
+          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background, paddingBottom: 80 }]}
           showsVerticalScrollIndicator={false}
         >
           {/* Profile Card */}

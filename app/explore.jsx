@@ -15,11 +15,11 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Avatar from "../../components/Avatar";
-import PostCard from "../../components/PostCard";
-import TabScreenWrapper from "../../components/TabScreenWrapper";
-import { db } from "../../config/firebase";
-import { useTheme } from "../../context/ThemeContext";
+import Avatar from "../components/Avatar";
+import PostCard from "../components/PostCard";
+import TabScreenWrapper from "../components/TabScreenWrapper";
+import { db } from "../config/firebase";
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -141,7 +141,7 @@ export default function Explore() {
                                 <View style={styles.headerRight}>
                                     <TouchableOpacity
                                         style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                                        onPress={() => router.push("/notifications")}
+                                        onPress={() => router.push("/(tabs)/notifications")}
                                     >
                                         <Ionicons name="notifications-outline" size={24} color={theme.text} />
                                     </TouchableOpacity>
@@ -247,7 +247,7 @@ export default function Explore() {
                                         {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
                                             <View style={[styles.top10ProfilePic, { backgroundColor: 'transparent' }]}>
                                                 <Image
-                                                    source={require("../../assets/images/letitout_logo.png")}
+                                                    source={require("../assets/images/letitout_logo.png")}
                                                     style={{ width: 48, height: 48, borderRadius: 24 }}
                                                 />
                                             </View>
@@ -336,7 +336,7 @@ export default function Explore() {
                                         {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
                                             <View style={[styles.top10ProfilePic, { backgroundColor: 'transparent' }]}>
                                                 <Image
-                                                    source={require("../../assets/images/letitout_logo.png")}
+                                                    source={require("../assets/images/letitout_logo.png")}
                                                     style={{ width: 48, height: 48, borderRadius: 24 }}
                                                 />
                                             </View>

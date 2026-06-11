@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
 import { showInterstitialAd } from "../ads/InterstitialAds";
@@ -42,6 +43,13 @@ export default function CreatePost() {
   const router = useRouter();
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { showTabBar } = useTabBar();
+
+  // Ensure tab bar is shown when entering the Create screen
+  useEffect(() => {
+    showTabBar();
+  }, [showTabBar]);
+
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -289,77 +297,77 @@ export default function CreatePost() {
           <Text style={[styles.characterCount, { color: theme.textTertiary }]}>
             {characterCount} / {maxCharacters}
           </Text>
-        </ScrollView>
 
-        {/* Bottom Card for Mood and Options */}
-        <View style={[styles.bottomCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          {/* Mood Slider Section */}
-          <View style={styles.moodSection}>
-            <View style={styles.moodHeader}>
-              <Ionicons
-                name={moodLevel < 0 ? "sad-outline" : moodLevel > 0 ? "happy-outline" : "ellipse-outline"}
-                size={20}
-                color={moodLevel < 0 ? "#7986CB" : moodLevel > 0 ? "#FFB74D" : "#9E9E9E"}
-              />
-              <Text style={[styles.moodLabel, { color: theme.text }]}>How are you feeling?</Text>
-              <Text style={[styles.moodValue, { color: moodLevel < 0 ? "#5C6BC0" : moodLevel > 0 ? "#FFA726" : theme.textSecondary }]}>
-                {moodLevel === 0 ? "Neutral (0)" : moodLevel < 0 ? `Sad (${moodLevel})` : `Happy (+${moodLevel})`}
-              </Text>
-            </View>
-
-            <Slider
-              style={styles.slider}
-              minimumValue={-100}
-              maximumValue={100}
-              step={1}
-              value={moodLevel}
-              onValueChange={setMoodLevel}
-              minimumTrackTintColor="#7986CB"
-              maximumTrackTintColor="#FFB74D"
-              thumbTintColor="#9575cd"
-            />
-
-            <View style={styles.sliderTicks}>
-              <Text style={styles.tickText}>Sad (-100)</Text>
-              <Text style={styles.tickText}>Neutral (0)</Text>
-              <Text style={styles.tickText}>Happy (+100)</Text>
-            </View>
-          </View>
-
-          <View style={[styles.separator, { backgroundColor: theme.divider }]} />
-
-          {/* Help Needed Toggle */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleTextContainer}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Ionicons name="hand-left-outline" size={20} color="#FFB74D" />
-                <Text style={[styles.toggleTitle, { color: theme.text }]}>Help Needed</Text>
+          {/* Bottom Card for Mood and Options */}
+          <View style={[styles.bottomCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            {/* Mood Slider Section */}
+            <View style={styles.moodSection}>
+              <View style={styles.moodHeader}>
+                <Ionicons
+                  name={moodLevel < 0 ? "sad-outline" : moodLevel > 0 ? "happy-outline" : "ellipse-outline"}
+                  size={20}
+                  color={moodLevel < 0 ? "#7986CB" : moodLevel > 0 ? "#FFB74D" : "#9E9E9E"}
+                />
+                <Text style={[styles.moodLabel, { color: theme.text }]}>How are you feeling?</Text>
+                <Text style={[styles.moodValue, { color: moodLevel < 0 ? "#5C6BC0" : moodLevel > 0 ? "#FFA726" : theme.textSecondary }]}>
+                  {moodLevel === 0 ? "Neutral (0)" : moodLevel < 0 ? `Sad (${moodLevel})` : `Happy (+${moodLevel})`}
+                </Text>
               </View>
-              <Text style={[styles.toggleSubtitle, { color: theme.textSecondary }]}>
-                Looking for support, advice, or validation
+
+              <Slider
+                style={styles.slider}
+                minimumValue={-100}
+                maximumValue={100}
+                step={1}
+                value={moodLevel}
+                onValueChange={setMoodLevel}
+                minimumTrackTintColor="#7986CB"
+                maximumTrackTintColor="#FFB74D"
+                thumbTintColor="#9575cd"
+              />
+
+              <View style={styles.sliderTicks}>
+                <Text style={styles.tickText}>Sad (-100)</Text>
+                <Text style={styles.tickText}>Neutral (0)</Text>
+                <Text style={styles.tickText}>Happy (+100)</Text>
+              </View>
+            </View>
+
+            <View style={[styles.separator, { backgroundColor: theme.divider }]} />
+
+            {/* Help Needed Toggle */}
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleTextContainer}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Ionicons name="hand-left-outline" size={20} color="#FFB74D" />
+                  <Text style={[styles.toggleTitle, { color: theme.text }]}>Help Needed</Text>
+                </View>
+                <Text style={[styles.toggleSubtitle, { color: theme.textSecondary }]}>
+                  Looking for support, advice, or validation
+                </Text>
+              </View>
+              <Switch
+                value={helpNeeded}
+                onValueChange={handleHelpNeededToggle}
+                trackColor={{ false: theme.isDark ? "#3E3E3E" : "#E0E0E0", true: "#FFB74D" }}
+                thumbColor={helpNeeded ? "#FF9800" : "#F5F5F5"}
+                ios_backgroundColor="#E0E0E0"
+              />
+            </View>
+
+            {/* Info Message */}
+            <View style={[styles.infoBox, { backgroundColor: theme.isDark ? "#2E2A3A" : "#F3E5F5" }]}>
+              <Ionicons
+                name="information-circle"
+                size={18}
+                color={theme.isDark ? "#B39DDB" : "#7B1FA2"}
+              />
+              <Text style={[styles.infoText, { color: theme.isDark ? "#D1C4E9" : "#7B1FA2" }]}>
+                Posts are shared with the community. Please be kind and respectful.
               </Text>
             </View>
-            <Switch
-              value={helpNeeded}
-              onValueChange={handleHelpNeededToggle}
-              trackColor={{ false: theme.isDark ? "#3E3E3E" : "#E0E0E0", true: "#FFB74D" }}
-              thumbColor={helpNeeded ? "#FF9800" : "#F5F5F5"}
-              ios_backgroundColor="#E0E0E0"
-            />
           </View>
-
-          {/* Info Message */}
-          <View style={[styles.infoBox, { backgroundColor: theme.isDark ? "#2E2A3A" : "#F3E5F5" }]}>
-            <Ionicons
-              name="information-circle"
-              size={18}
-              color={theme.isDark ? "#B39DDB" : "#7B1FA2"}
-            />
-            <Text style={[styles.infoText, { color: theme.isDark ? "#D1C4E9" : "#7B1FA2" }]}>
-              Posts are shared with the community. Please be kind and respectful.
-            </Text>
-          </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
 
       {/* Category Selection Modal */}
@@ -484,7 +492,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 100,
     flexGrow: 1,
   },
   identityRow: {

@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     },
     card: {
         paddingVertical: 12,
-        paddingHorizontal: 5,
+        paddingHorizontal: 12,
     },
     categoryBadge: {
         paddingHorizontal: 10,
@@ -529,8 +529,7 @@ const styles = StyleSheet.create({
     commentsPreview: {
         borderRadius: 12,
         borderWidth: 1,
-        padding: 10,
-        gap: 8,
+        padding: 1,
         marginBottom: 14,
     },
     commentItem: {

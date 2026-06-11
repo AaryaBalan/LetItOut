@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -23,6 +23,7 @@ import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 import { posts as dummyPosts } from "../../data/dummyData";
 
@@ -43,6 +44,8 @@ export default function Home() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const router = useRouter();
+  const lastOffsetY = useRef(0);
+  const { showTabBar, hideTabBar } = useTabBar();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
@@ -238,6 +241,19 @@ export default function Home() {
     <TabScreenWrapper>
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
         <FlatList
+          onScroll={(event) => {
+            const currentOffsetY = event.nativeEvent.contentOffset.y;
+            const diff = currentOffsetY - lastOffsetY.current;
+            if (currentOffsetY <= 0) {
+              showTabBar();
+            } else if (diff > 15) {
+              hideTabBar();
+            } else if (diff < -15) {
+              showTabBar();
+            }
+            lastOffsetY.current = currentOffsetY;
+          }}
+          scrollEventThrottle={16}
           data={[
             { id: 'header' },
             { id: 'sticky-categories' },
@@ -265,7 +281,7 @@ export default function Home() {
                   <View style={styles.headerRight}>
                     <TouchableOpacity
                       style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
-                      onPress={() => router.push("/notifications")}
+                      onPress={() => router.push("/(tabs)/notifications")}
                       delayPressIn={0}
                     >
                       <View style={styles.notificationIconContainer}>
@@ -556,7 +572,7 @@ export default function Home() {
                   style={styles.drawerItem}
                   onPress={() => {
                     setIsDrawerOpen(false);
-                    router.push("/(tabs)/explore");
+                    router.push("/explore");
                   }}
                 >
                   <Ionicons name="compass-outline" size={22} color={theme.text} />
@@ -567,7 +583,7 @@ export default function Home() {
                   style={styles.drawerItem}
                   onPress={() => {
                     setIsDrawerOpen(false);
-                    router.push("/notifications");
+                    router.push("/(tabs)/notifications");
                   }}
                 >
                   <Ionicons name="notifications-outline" size={22} color={theme.text} />
@@ -733,7 +749,7 @@ const styles = StyleSheet.create({
   },
   feedContent: {
     paddingTop: 8,
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   emptyContainer: {
     justifyContent: "center",

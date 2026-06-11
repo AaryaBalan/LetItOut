@@ -17,12 +17,20 @@ import Loading from "../../components/Loading";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function ChatTab() {
     const { user } = useAuth();
     const { theme } = useTheme();
+    const { showTabBar } = useTabBar();
     const router = useRouter();
+
+    // Ensure tab bar is shown when entering the Chat screen
+    useEffect(() => {
+        showTabBar();
+    }, [showTabBar]);
+
     const [friends, setFriends] = useState([]);
     const [chats, setChats] = useState({});
     const [loading, setLoading] = useState(true);
@@ -286,7 +294,7 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     listContent: {
-        paddingBottom: 24,
+        paddingBottom: 90,
     },
     friendCard: {
         flexDirection: "row",

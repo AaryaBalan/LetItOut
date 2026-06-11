@@ -23,17 +23,19 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Avatar from "../components/Avatar";
-import Loading from "../components/Loading";
-import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import { createFriendRequestAcceptedNotification } from "../utils/notifications";
+import Avatar from "../../components/Avatar";
+import Loading from "../../components/Loading";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
+import { useTheme } from "../../context/ThemeContext";
+import { createFriendRequestAcceptedNotification } from "../../utils/notifications";
 
 export default function Notifications() {
     const { user } = useAuth();
     const { theme } = useTheme();
     const router = useRouter();
+    const { showTabBar } = useTabBar();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -41,6 +43,7 @@ export default function Notifications() {
 
     // Fetch notifications in real-time
     useEffect(() => {
+        showTabBar();
         if (!user) {
             setLoading(false);
             return;
@@ -99,7 +102,7 @@ export default function Notifications() {
         );
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user, showTabBar]);
 
     // Get time ago string
     const getTimeAgo = (timestamp) => {
@@ -440,10 +443,7 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Inbox</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -462,10 +462,7 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Inbox</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -481,10 +478,7 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                     <TouchableOpacity style={styles.settingsButton}>
                         <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -520,10 +514,7 @@ export default function Notifications() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={28} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                 <TouchableOpacity style={styles.settingsButton}>
                     <Ionicons name="settings-outline" size={24} color={theme.text} />
                 </TouchableOpacity>
@@ -531,6 +522,7 @@ export default function Notifications() {
 
             <ScrollView
                 style={styles.scrollView}
+                contentContainerStyle={{ paddingBottom: 80 }}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

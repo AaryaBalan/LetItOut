@@ -1,15 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { TabBarProvider, useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 
-export default function TabsLayout() {
+function TabsLayoutInner() {
     const { user } = useAuth();
     const { theme } = useTheme();
+    const { translateY } = useTabBar();
     const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     // Fetch total unread chats count
@@ -34,6 +37,17 @@ export default function TabsLayout() {
 
     return (
         <Tabs
+            tabBar={(props) => (
+                <Animated.View style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    transform: [{ translateY }],
+                }}>
+                    <BottomTabBar {...props} />
+                </Animated.View>
+            )}
             screenOptions={{
                 headerShown: false,
                 tabBarShowLabel: false,
@@ -67,32 +81,6 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
-                name="explore"
-                options={{
-                    title: "Explore",
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "compass" : "compass-outline"}
-                            size={28}
-                            color={color}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="create"
-                options={{
-                    title: "Create",
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "add-circle" : "add-circle-outline"}
-                            size={28}
-                            color={color}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
                 name="chat"
                 options={{
                     title: "Chat",
@@ -115,6 +103,32 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
+                name="create"
+                options={{
+                    title: "Create",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "add-circle" : "add-circle-outline"}
+                            size={28}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="notifications"
+                options={{
+                    title: "Notifications",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "notifications" : "notifications-outline"}
+                            size={28}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+            <Tabs.Screen
                 name="profile"
                 options={{
                     title: "Profile",
@@ -128,6 +142,14 @@ export default function TabsLayout() {
                 }}
             />
         </Tabs>
+    );
+}
+
+export default function TabsLayout() {
+    return (
+        <TabBarProvider>
+            <TabsLayoutInner />
+        </TabBarProvider>
     );
 }
 
