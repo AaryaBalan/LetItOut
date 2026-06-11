@@ -678,8 +678,8 @@ const styles = StyleSheet.create({
   categoryOption: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     borderRadius: 14,
     borderWidth: 1,
     gap: 12,

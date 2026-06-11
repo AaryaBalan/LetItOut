@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
 import FilterModal from "../../components/FilterModal";
 import Loading from "../../components/Loading";
@@ -46,13 +46,35 @@ export default function Home() {
   const router = useRouter();
   const lastOffsetY = useRef(0);
   const { showTabBar, hideTabBar } = useTabBar();
+  const insets = useSafeAreaInsets();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const translateYHeader = useRef(new Animated.Value(0)).current;
+  const headerHidden = useRef(false);
+
+  const showHeader = useCallback(() => {
+    if (!headerHidden.current) return;
+    headerHidden.current = false;
+    Animated.timing(translateYHeader, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [translateYHeader]);
+
+  const hideHeader = useCallback(() => {
+    if (headerHidden.current) return;
+    headerHidden.current = true;
+    Animated.timing(translateYHeader, {
+      toValue: -220,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [translateYHeader]);
 
   // Filter States
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -136,43 +158,21 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch Unread Notifications Count
+  // Ensure header and tab bar are visible on mount
   useEffect(() => {
-    if (!user) return;
+    showHeader();
+    showTabBar();
+  }, [showHeader, showTabBar]);
 
-    const q = query(
-      collection(db, "notifications"),
-      where("toUserId", "==", user.uid),
-      where("read", "==", false),
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allowedTypes = ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted", "perspective_change"];
-      const filteredCount = snapshot.docs.filter(doc => allowedTypes.includes(doc.data().type)).length;
-      setUnreadCount(filteredCount);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Fetch Unread Chats Count for Chat icon badge
+  // Show header and tab bar if search is expanded
   useEffect(() => {
-    if (!user) return;
+    if (isSearchExpanded) {
+      showHeader();
+      showTabBar();
+    }
+  }, [isSearchExpanded, showHeader, showTabBar]);
 
-    const chatsRef = collection(db, "chats");
-    const q = query(chatsRef, where("participants", "array-contains", user.uid));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let totalUnread = 0;
-      snapshot.docs.forEach(doc => {
-        const data = doc.data();
-        totalUnread += (data[`unreadCount_${user.uid}`] || 0);
-      });
-      setUnreadCount(prev => prev + totalUnread);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
 
   // Helper function to calculate time ago
   const getTimeAgo = (timestamp) => {
@@ -239,203 +239,201 @@ export default function Home() {
 
   return (
     <TabScreenWrapper>
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            transform: [{ translateY: translateYHeader }],
+            backgroundColor: theme.background,
+            borderBottomWidth: isSearchExpanded ? 1 : 0,
+            borderBottomColor: theme.border,
+            paddingTop: insets.top,
+          }}
+        >
+          <View style={[styles.header, { backgroundColor: theme.background }]}>
+            {isSearchExpanded ? (
+              <View style={styles.expandedWrapper}>
+                <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: theme.border }]}>
+                  <Ionicons name="search" size={18} color={theme.textSecondary} />
+                  <TextInput
+                    style={[styles.expandedSearchInput, { color: theme.text }]}
+                    placeholder="Search feed..."
+                    placeholderTextColor={theme.placeholder}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoFocus
+                  />
+                </View>
+                
+                <TouchableOpacity
+                  style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                  onPress={() => setFilterModalVisible(true)}
+                  delayPressIn={0}
+                >
+                  <Ionicons name="options-outline" size={18} color={theme.text} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setSearchQuery("");
+                    setIsSearchExpanded(false);
+                  }}
+                  delayPressIn={0}
+                >
+                  <Text style={[styles.cancelText, { color: theme.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <View style={styles.headerLeft}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                    onPress={() => setIsDrawerOpen(true)}
+                    delayPressIn={0}
+                  >
+                    <Ionicons name="menu-outline" size={24} color={theme.text} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.logoContainerCenter}>
+                  <Text style={[styles.logo, { color: theme.text }]}>Let It Out</Text>
+                </View>
+
+                <View style={styles.headerRight}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                    onPress={() => setIsSearchExpanded(true)}
+                    delayPressIn={0}
+                  >
+                    <Ionicons
+                      name="search-outline"
+                      size={22}
+                      color={theme.text}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Categories Row inside sticky header item */}
+          {isSearchExpanded && (
+            <View style={{ paddingBottom: 12, paddingTop: 4, backgroundColor: theme.background }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesContent}
+                keyboardShouldPersistTaps="always"
+              >
+                {(selectedSort !== "recent" ||
+                  selectedFilter !== "latest" ||
+                  selectedMood !== null ||
+                  showAnonymousOnly) && (
+                    <TouchableOpacity
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 12,
+                        height: 36,
+                        borderRadius: 18,
+                        backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
+                        gap: 6,
+                        borderWidth: 1,
+                        borderColor: '#9575cd',
+                        marginRight: 6,
+                        marginLeft: 16,
+                      }}
+                      onPress={() => {
+                        setSelectedSort("recent");
+                        setSelectedFilter("latest");
+                        setSelectedMood(null);
+                        setShowAnonymousOnly(false);
+                      }}
+                      delayPressIn={0}
+                    >
+                      <Ionicons name="close-circle" size={16} color="#9575cd" />
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#9575cd" }}>
+                        Clear
+                      </Text>
+                    </TouchableOpacity>
+                )}
+
+                {categories.map((category) => {
+                  const catTheme = getCategoryTheme(category, theme.isDark);
+                  const isActive = selectedCategory === category;
+                  const isFirst = category === categories[0];
+                  const hasActiveFilters = (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly);
+                  return (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.categoryChip,
+                        { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: 'transparent', borderWidth: 1 },
+                        isFirst && !hasActiveFilters && { marginLeft: 16 },
+                        isActive && {
+                          backgroundColor: catTheme.bgColor,
+                          borderColor: catTheme.color,
+                        },
+                      ]}
+                      onPress={() => setSelectedCategory(category)}
+                      delayPressIn={0}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          { color: theme.textSecondary },
+                          isActive && {
+                            color: catTheme.color,
+                            fontWeight: "800",
+                          },
+                        ]}
+                      >
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+        </Animated.View>
+
         <FlatList
           onScroll={(event) => {
             const currentOffsetY = event.nativeEvent.contentOffset.y;
             const diff = currentOffsetY - lastOffsetY.current;
             if (currentOffsetY <= 0) {
               showTabBar();
-            } else if (diff > 15) {
-              hideTabBar();
-            } else if (diff < -15) {
+              showHeader();
+            } else if (!isSearchExpanded) {
+              if (diff > 15) {
+                hideTabBar();
+                hideHeader();
+              } else if (diff < -15) {
+                showTabBar();
+                showHeader();
+              }
+            } else {
               showTabBar();
+              showHeader();
             }
             lastOffsetY.current = currentOffsetY;
           }}
           scrollEventThrottle={16}
-          data={[
-            { id: 'header' },
-            { id: 'sticky-categories' },
-            ...filteredPosts
-          ]}
+          data={filteredPosts}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => {
-            if (item.id === 'header') {
-              return (
-                <View style={[styles.header, { backgroundColor: theme.background }]}>
-                  <View style={styles.headerLeft}>
-                    <TouchableOpacity
-                      style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
-                      onPress={() => setIsDrawerOpen(true)}
-                      delayPressIn={0}
-                    >
-                      <Ionicons name="menu-outline" size={24} color={theme.text} />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.logoContainerCenter}>
-                    <Text style={[styles.logo, { color: theme.text }]}>Let It Out</Text>
-                  </View>
-
-                  <View style={styles.headerRight}>
-                    <TouchableOpacity
-                      style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
-                      onPress={() => router.push("/(tabs)/notifications")}
-                      delayPressIn={0}
-                    >
-                      <View style={styles.notificationIconContainer}>
-                        <Ionicons
-                          key={theme.isDark ? 'dark' : 'light'}
-                          name="notifications-outline"
-                          size={22}
-                          color={theme.text}
-                        />
-                        {unreadCount > 0 && (
-                          <View style={styles.badge} />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            }
-            if (item.id === 'sticky-categories') {
-              return (
-                <View style={[styles.stickyContainer, { backgroundColor: theme.background }]}>
-                  {isSearchExpanded ? (
-                    <View style={styles.expandedWrapper}>
-                      <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: theme.border }]}>
-                        <Ionicons name="search" size={18} color={theme.textSecondary} />
-                        <TextInput
-                          style={[styles.expandedSearchInput, { color: theme.text }]}
-                          placeholder="Search feed..."
-                          placeholderTextColor={theme.placeholder}
-                          value={searchQuery}
-                          onChangeText={setSearchQuery}
-                          autoFocus
-                        />
-                      </View>
-                      <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={() => {
-                          setSearchQuery("");
-                          setIsSearchExpanded(false);
-                        }}
-                        delayPressIn={0}
-                      >
-                        <Text style={[styles.cancelText, { color: theme.textSecondary }]}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <View style={styles.categoriesRow}>
-                      <View style={{ flexDirection: 'row', gap: 6 }}>
-                        <TouchableOpacity
-                          style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
-                          onPress={() => setIsSearchExpanded(true)}
-                          delayPressIn={0}
-                        >
-                          <Ionicons name="search" size={18} color={theme.text} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
-                          onPress={() => setFilterModalVisible(true)}
-                          delayPressIn={0}
-                        >
-                          <Ionicons name="options-outline" size={18} color={theme.text} />
-                        </TouchableOpacity>
-                      </View>
-
-                      {/* Active Filters Display & Clear Button */}
-                      {(selectedSort !== "recent" ||
-                        selectedFilter !== "latest" ||
-                        selectedMood !== null ||
-                        showAnonymousOnly) && (
-                          <View style={{ marginRight: 4 }}>
-                            <TouchableOpacity
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                paddingHorizontal: 12,
-                                height: 36,
-                                borderRadius: 18,
-                                backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
-                                gap: 6,
-                                borderWidth: 1,
-                                borderColor: '#9575cd',
-                              }}
-                              onPress={() => {
-                                setSelectedSort("recent");
-                                setSelectedFilter("latest");
-                                setSelectedMood(null);
-                                setShowAnonymousOnly(false);
-                              }}
-                              delayPressIn={0}
-                            >
-                              <Ionicons name="close-circle" size={16} color="#9575cd" />
-                              <Text
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: "700",
-                                  color: "#9575cd",
-                                }}
-                              >
-                                Clear
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        )}
-
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.categoriesContent}
-                        keyboardShouldPersistTaps="always"
-                      >
-                        {categories.map((category) => {
-                          const catTheme = getCategoryTheme(category, theme.isDark);
-                          const isActive = selectedCategory === category;
-                          return (
-                            <TouchableOpacity
-                              key={category}
-                              style={[
-                                styles.categoryChip,
-                                { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: 'transparent', borderWidth: 1 },
-                                isActive && {
-                                  backgroundColor: catTheme.bgColor,
-                                  borderColor: catTheme.color,
-                                },
-                              ]}
-                              onPress={() => setSelectedCategory(category)}
-                              delayPressIn={0}
-                            >
-                              <Text
-                                style={[
-                                  styles.categoryChipText,
-                                  { color: theme.textSecondary },
-                                  isActive && {
-                                    color: catTheme.color,
-                                    fontWeight: "800",
-                                  },
-                                ]}
-                              >
-                                {category}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </ScrollView>
-                    </View>
-                  )}
-                </View>
-              );
-            }
-            return <PostCard post={item} />;
-          }}
+          renderItem={({ item }) => <PostCard post={item} />}
           contentContainerStyle={styles.feedContent}
           showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[1]}
+          ListHeaderComponent={
+            <View style={{ height: (isSearchExpanded ? 116 : 64) + insets.top }} />
+          }
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
@@ -619,7 +617,7 @@ export default function Home() {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </View>
     </TabScreenWrapper >
   );
 }

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -24,10 +24,10 @@ function TabsLayoutInner() {
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             let totalUnread = 0;
-            snapshot.docs.forEach(doc => {
-                const data = doc.data();
-                const count = data[`unreadCount_${user.uid}`] || 0;
-                totalUnread += count;
+            snapshot.docs.forEach((docSnap) => {
+                const data = docSnap.data();
+                const unreadCount = data.unreadCount || {};
+                totalUnread += unreadCount[user.uid] || 0;
             });
             setUnreadChatCount(totalUnread);
         });
@@ -38,13 +38,14 @@ function TabsLayoutInner() {
     return (
         <Tabs
             tabBar={(props) => (
-                <Animated.View style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    transform: [{ translateY }],
-                }}>
+                <Animated.View
+                    style={[
+                        styles.animatedTabBarContainer,
+                        {
+                            transform: [{ translateY }],
+                        },
+                    ]}
+                >
                     <BottomTabBar {...props} />
                 </Animated.View>
             )}
@@ -54,8 +55,11 @@ function TabsLayoutInner() {
                 tabBarActiveTintColor: "#9575cd",
                 tabBarInactiveTintColor: theme.textTertiary,
                 tabBarStyle: {
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     backgroundColor: theme.surface,
-                    borderTopWidth: 1,
                     borderTopColor: theme.border,
                     height: 65,
                     paddingBottom: 10,
@@ -71,10 +75,10 @@ function TabsLayoutInner() {
                 name="home"
                 options={{
                     title: "Feed",
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "home" : "home-outline"}
-                            size={28}
+                    tabBarIcon: ({ color }) => (
+                        <Feather
+                            name="home"
+                            size={24}
                             color={color}
                         />
                     ),
@@ -87,8 +91,8 @@ function TabsLayoutInner() {
                     tabBarIcon: ({ color, focused }) => (
                         <View>
                             <Ionicons
-                                name={focused ? "chatbubbles" : "chatbubbles-outline"}
-                                size={28}
+                                name={focused ? "chatbubble" : "chatbubble-outline"}
+                                size={26}
                                 color={color}
                             />
                             {unreadChatCount > 0 && (
@@ -108,8 +112,8 @@ function TabsLayoutInner() {
                     title: "Create",
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
-                            name={focused ? "add-circle" : "add-circle-outline"}
-                            size={28}
+                            name={focused ? "create" : "create-outline"}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -121,8 +125,8 @@ function TabsLayoutInner() {
                     title: "Notifications",
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
-                            name={focused ? "notifications" : "notifications-outline"}
-                            size={28}
+                            name={focused ? "heart" : "heart-outline"}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -135,7 +139,7 @@ function TabsLayoutInner() {
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "person" : "person-outline"}
-                            size={28}
+                            size={26}
                             color={color}
                         />
                     ),
