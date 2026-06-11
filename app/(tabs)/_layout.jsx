@@ -1,4 +1,4 @@
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -75,10 +75,10 @@ function TabsLayoutInner() {
                 name="home"
                 options={{
                     title: "Feed",
-                    tabBarIcon: ({ color }) => (
-                        <Feather
-                            name="home"
-                            size={24}
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons
+                            name={focused ? "home" : "home-outline"}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -158,6 +158,15 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+    animatedTabBarContainer: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 65,
+        zIndex: 1000,
+        elevation: 10,
+    },
     badge: {
         position: "absolute",
         top: -4,

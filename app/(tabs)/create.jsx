@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -58,6 +58,7 @@ export default function CreatePost() {
   const [moodLevel, setMoodLevel] = useState(0); // Range: -100 to 100
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const submittingRef = useRef(false);
 
   // Handle help needed toggle with interstitial ad
   const handleHelpNeededToggle = (value) => {
@@ -80,6 +81,8 @@ export default function CreatePost() {
   const isFormValid = title.trim() !== "" && category !== "" && description.trim() !== "";
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+
     if (!title.trim() || !category || !description.trim()) {
       Alert.alert("Missing Information", "Please fill in all fields.");
       return;
@@ -91,6 +94,7 @@ export default function CreatePost() {
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -153,6 +157,7 @@ export default function CreatePost() {
         "Failed to share your thought. Please try again.",
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -395,7 +400,7 @@ export default function CreatePost() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.modalScroll}>
+            <View style={styles.modalScroll}>
               {categories.map((cat) => {
                 const details = getCategoryTheme(cat, theme.isDark);
                 const isSelected = category === cat;
@@ -416,14 +421,7 @@ export default function CreatePost() {
                       setShowCategoryModal(false);
                     }}
                   >
-                    <View
-                      style={[
-                        styles.categoryOptionIcon,
-                        { backgroundColor: isSelected ? (theme.isDark ? "#121212" : "#FFFFFF") : details.bgColor }
-                      ]}
-                    >
-                      <Ionicons name={details.icon} size={20} color={details.color} />
-                    </View>
+                    <Ionicons name={details.icon} size={18} color={details.color} />
                     <Text
                       style={[
                         styles.categoryOptionText,
@@ -437,16 +435,15 @@ export default function CreatePost() {
                     </Text>
                     {isSelected && (
                       <Ionicons
-                        name="checkmark-circle"
-                        size={22}
+                        name="checkmark"
+                        size={16}
                         color={details.color}
-                        style={{ marginLeft: "auto" }}
                       />
                     )}
                   </TouchableOpacity>
                 );
               })}
-            </ScrollView>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -657,7 +654,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 40,
-    maxHeight: "60%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -672,17 +668,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   modalScroll: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
     paddingBottom: 20,
   },
   categoryOption: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    borderRadius: 14,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: 12,
+    gap: 6,
+    flexGrow: 1,
+    minWidth: "28%",
   },
   categoryOptionIcon: {
     width: 36,
@@ -692,6 +693,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   categoryOptionText: {
-    fontSize: 15,
+    fontSize: 13,
   },
 });

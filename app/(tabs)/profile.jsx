@@ -50,6 +50,9 @@ export default function Profile() {
   const [showAllHistoryModal, setShowAllHistoryModal] = useState(false);
   const [supportiveHistory, setSupportiveHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingSaved, setLoadingSaved] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [profileCode, setProfileCode] = useState(
@@ -67,7 +70,10 @@ export default function Profile() {
 
   // Listen to user profile changes in real-time
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoadingProfile(false);
+      return;
+    }
 
     setProfileCode(user.profileCode || user.email || "");
 
@@ -79,9 +85,11 @@ export default function Profile() {
         if (docSnap.exists()) {
           setUserProfile(docSnap.data());
         }
+        setLoadingProfile(false);
       },
       (error) => {
         console.error("Error listening to user profile:", error);
+        setLoadingProfile(false);
       }
     );
 
@@ -160,6 +168,7 @@ export default function Profile() {
   // Fetch user's posts from Firebase
   useEffect(() => {
     if (!user) {
+      setLoadingPosts(false);
       return;
     }
 
@@ -182,9 +191,11 @@ export default function Profile() {
           };
         });
         setUserPosts(fetchedPosts);
+        setLoadingPosts(false);
       },
       (error) => {
         console.error("Error fetching user posts:", error);
+        setLoadingPosts(false);
       },
     );
 
@@ -399,6 +410,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchSavedPosts = async () => {
       if (!user) {
+        setLoadingSaved(false);
         return;
       }
 
@@ -410,6 +422,7 @@ export default function Profile() {
 
           if (savedPostIds.length === 0) {
             setSavedPosts([]);
+            setLoadingSaved(false);
             return;
           }
 
@@ -425,9 +438,13 @@ export default function Profile() {
           const posts = await Promise.all(postsPromises);
           const validPosts = posts.filter(post => post !== null);
           setSavedPosts(validPosts);
+        } else {
+          setSavedPosts([]);
         }
       } catch (error) {
         console.error("Error fetching saved posts:", error);
+      } finally {
+        setLoadingSaved(false);
       }
     };
 
@@ -537,7 +554,21 @@ export default function Profile() {
       </SafeAreaView>
     );
   }
+  const isPageLoading = loadingProfile || loadingPosts || loadingHistory || loadingSaved;
 
+  if (isPageLoading) {
+    return (
+      <TabScreenWrapper>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
+          <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
+          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+          <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontWeight: '600' }}>
+            Loading Profile...
+          </Text>
+        </SafeAreaView>
+      </TabScreenWrapper>
+    );
+  }
   const joinDate = user.metadata?.creationTime
     ? formatJoinDate(user.metadata.creationTime)
     : user.createdAt

@@ -1,37 +1,83 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet } from 'react-native';
 
 const Loading = ({ size = 'large', color = '#9575cd', style }) => {
     const rotateAnim = useRef(new Animated.Value(0)).current;
+    const counterRotateAnim = useRef(new Animated.Value(0)).current;
+    const pulseAnim = useRef(new Animated.Value(0)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        const startRotation = () => {
-            Animated.loop(
-                Animated.timing(rotateAnim, {
+        // Fade in entire component on mount
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+        }).start();
+
+        // Clockwise rotation (Inner ring)
+        Animated.loop(
+            Animated.timing(rotateAnim, {
+                toValue: 1,
+                duration: 1200,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                useNativeDriver: true,
+            })
+        ).start();
+
+        // Counter-clockwise rotation (Outer ring)
+        Animated.loop(
+            Animated.timing(counterRotateAnim, {
+                toValue: 1,
+                duration: 1800,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                useNativeDriver: true,
+            })
+        ).start();
+
+        // Pulsing logo
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
                     toValue: 1,
-                    duration: 1500,
-                    easing: Easing.linear,
+                    duration: 800,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: 0,
+                    duration: 800,
+                    easing: Easing.inOut(Easing.ease),
                     useNativeDriver: true,
                 })
-            ).start();
-        };
-
-        startRotation();
-    }, [rotateAnim]);
+            ])
+        ).start();
+    }, [rotateAnim, counterRotateAnim, pulseAnim, fadeAnim]);
 
     const spin = rotateAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '360deg'],
     });
 
+    const spinCounter = counterRotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['360deg', '0deg'],
+    });
+
+    const logoScale = pulseAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.9, 1.1],
+    });
+
     // Determine dimensions based on size prop
-    const containerSize = size === 'large' ? 60 : 30;
-    const logoSize = size === 'large' ? 40 : 20;
-    const borderWidth = size === 'large' ? 3 : 2;
+    const containerSize = size === 'large' ? 68 : 36;
+    const innerRingSize = size === 'large' ? 54 : 28;
+    const logoSize = size === 'large' ? 38 : 20;
+    const borderWidth = size === 'large' ? 2.5 : 1.5;
 
     return (
-        <View style={[styles.container, { width: containerSize, height: containerSize }, style]}>
-            {/* Rotating Ring */}
+        <Animated.View style={[styles.container, { width: containerSize, height: containerSize, opacity: fadeAnim }, style]}>
+            {/* Outer Counter-Rotating Ring */}
             <Animated.View
                 style={[
                     styles.ring,
@@ -41,14 +87,33 @@ const Loading = ({ size = 'large', color = '#9575cd', style }) => {
                         borderRadius: containerSize / 2,
                         borderWidth: borderWidth,
                         borderColor: color,
-                        borderTopColor: 'transparent', // Create the gap for rotation effect
+                        borderTopColor: 'transparent',
+                        borderBottomColor: 'transparent',
+                        opacity: 0.4,
+                        transform: [{ rotate: spinCounter }],
+                    },
+                ]}
+            />
+
+            {/* Inner Main Rotating Ring */}
+            <Animated.View
+                style={[
+                    styles.ring,
+                    {
+                        width: innerRingSize,
+                        height: innerRingSize,
+                        borderRadius: innerRingSize / 2,
+                        borderWidth: borderWidth,
+                        borderColor: color,
+                        borderLeftColor: 'transparent',
+                        borderRightColor: 'transparent',
                         transform: [{ rotate: spin }],
                     },
                 ]}
             />
 
-            {/* Centered Logo */}
-            <View style={[styles.logoContainer, { width: logoSize, height: logoSize, borderRadius: logoSize / 2 }]}>
+            {/* Centered Pulsing Logo */}
+            <Animated.View style={[styles.logoContainer, { width: logoSize, height: logoSize, borderRadius: logoSize / 2, transform: [{ scale: logoScale }] }]}>
                 <Image
                     source={require('../assets/images/letitout_logo.png')}
                     style={{
@@ -58,8 +123,8 @@ const Loading = ({ size = 'large', color = '#9575cd', style }) => {
                     }}
                     resizeMode="cover"
                 />
-            </View>
-        </View>
+            </Animated.View>
+        </Animated.View>
     );
 };
 
@@ -67,6 +132,7 @@ const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         alignItems: 'center',
+        position: 'relative',
     },
     ring: {
         position: 'absolute',
@@ -75,7 +141,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
-        backgroundColor: 'transparent', // Optional: background for the logo
+        backgroundColor: 'transparent',
     },
 });
 

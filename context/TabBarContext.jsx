@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef } from "react";
-import { Animated } from "react-native";
+import { Animated, Easing } from "react-native";
 
 const TabBarContext = createContext({
   translateY: new Animated.Value(0),
@@ -17,6 +17,7 @@ export const TabBarProvider = ({ children }) => {
     Animated.timing(translateY, {
       toValue: 0,
       duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: true,
     }).start();
   };
@@ -27,6 +28,7 @@ export const TabBarProvider = ({ children }) => {
     Animated.timing(translateY, {
       toValue: 100, // Safe buffer to slide completely below the screen
       duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: true,
     }).start();
   };

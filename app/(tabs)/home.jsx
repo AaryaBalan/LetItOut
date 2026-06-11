@@ -13,7 +13,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Easing
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -61,7 +62,8 @@ export default function Home() {
     headerHidden.current = false;
     Animated.timing(translateYHeader, {
       toValue: 0,
-      duration: 200,
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: true,
     }).start();
   }, [translateYHeader]);
@@ -71,7 +73,8 @@ export default function Home() {
     headerHidden.current = true;
     Animated.timing(translateYHeader, {
       toValue: -220,
-      duration: 200,
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: true,
     }).start();
   }, [translateYHeader]);
