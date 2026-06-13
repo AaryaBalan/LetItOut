@@ -7,7 +7,7 @@ try {
     InterstitialAd = ads.InterstitialAd;
     TestIds = ads.TestIds;
     isAdsAvailable = true;
-} catch (e) {
+} catch (_e) {
     // react-native-google-mobile-ads not available (e.g. Expo Go)
 }
 
@@ -17,7 +17,7 @@ if (isAdsAvailable && InterstitialAd && TestIds) {
     try {
         const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-2512361520457456/1362953981';
         interstitial = InterstitialAd.createForAdRequest(adUnitId);
-    } catch (e) {
+    } catch (_e) {
         // ignore
     }
 }

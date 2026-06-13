@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     Alert,
     Modal,
@@ -22,14 +22,7 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (visible && user) {
-            // Fetch latest user data
-            fetchUserData();
-        }
-    }, [visible, user]);
-
-    const fetchUserData = async () => {
+    const fetchUserData = useCallback(async () => {
         try {
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
@@ -43,7 +36,14 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
         } catch (error) {
             console.error("Error fetching user data:", error);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        if (visible && user) {
+            // Fetch latest user data
+            fetchUserData();
+        }
+    }, [visible, user, fetchUserData]);
 
     const handleSave = async () => {
         if (!displayName.trim()) {

@@ -23,17 +23,19 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Avatar from "../components/Avatar";
-import Loading from "../components/Loading";
-import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import { createFriendRequestAcceptedNotification } from "../utils/notifications";
+import Avatar from "../../components/Avatar";
+import Loading from "../../components/Loading";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
+import { useTheme } from "../../context/ThemeContext";
+import { createFriendRequestAcceptedNotification } from "../../utils/notifications";
 
 export default function Notifications() {
     const { user } = useAuth();
     const { theme } = useTheme();
     const router = useRouter();
+    const { showTabBar } = useTabBar();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -41,6 +43,7 @@ export default function Notifications() {
 
     // Fetch notifications in real-time
     useEffect(() => {
+        showTabBar();
         if (!user) {
             setLoading(false);
             return;
@@ -62,7 +65,7 @@ export default function Notifications() {
                         ...docSnap.data(),
                     }))
                     .filter((n) =>
-                        ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted"].includes(n.type)
+                        ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted", "perspective_change"].includes(n.type)
                     );
                 setNotifications(fetchedNotifications);
 
@@ -99,24 +102,53 @@ export default function Notifications() {
         );
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user, showTabBar]);
 
     // Get time ago string
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return "Just now";
+
+        if (typeof timestamp === 'string') {
+            if (timestamp === 'Just now') return timestamp;
+            const match = timestamp.match(/^(\d+)d ago$/);
+            if (match) {
+                const days = parseInt(match[1], 10);
+                if (days >= 7) {
+                    const weeks = Math.floor(days / 7);
+                    const months = Math.floor(days / 30);
+                    const years = Math.floor(days / 365);
+                    if (days < 30) return `${weeks}w ago`;
+                    if (days < 365) return `${months}mon ago`;
+                    return `${years}yr ago`;
+                }
+            }
+            const parsedDate = new Date(timestamp);
+            if (isNaN(parsedDate.getTime())) {
+                return timestamp;
+            }
+            timestamp = parsedDate;
+        }
+
+        const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+        if (isNaN(postDate.getTime())) return "Just now";
+
         const now = new Date();
-        const notifDate = new Date(timestamp);
-        const diffInMs = now - notifDate;
+        const diffInMs = now - postDate;
         const diffInMinutes = Math.floor(diffInMs / 60000);
         const diffInHours = Math.floor(diffInMinutes / 60);
         const diffInDays = Math.floor(diffInHours / 24);
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        const diffInMonths = Math.floor(diffInDays / 30);
+        const diffInYears = Math.floor(diffInDays / 365);
 
         if (diffInMinutes < 1) return "Just now";
         if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
         if (diffInHours < 24) return `${diffInHours}h ago`;
-        if (diffInDays === 1) return "Yesterday";
         if (diffInDays < 7) return `${diffInDays}d ago`;
-        return `${Math.floor(diffInDays / 7)}w ago`;
+        if (diffInDays < 30) return `${diffInWeeks}w ago`;
+        if (diffInDays < 365) return `${diffInMonths}mon ago`;
+        return `${diffInYears}yr ago`;
     };
 
     // Get notification icon and color
@@ -164,6 +196,12 @@ export default function Notifications() {
                     color: "#66BB6A",
                     bgColor: "#E8F5E9",
                 };
+            case "perspective_change":
+                return {
+                    name: "trending-up",
+                    color: "#9575cd",
+                    bgColor: "#EFE8FF",
+                };
             default:
                 return {
                     name: "notifications",
@@ -175,7 +213,6 @@ export default function Notifications() {
 
     // Get notification message
     const getNotificationMessage = (notification) => {
-        const userName = notification.fromUserName;
         switch (notification.type) {
             case "like":
                 return { text: "Liked your story", emoji: "❤️" };
@@ -195,6 +232,13 @@ export default function Notifications() {
                 return { text: "Sent you a friend request", emoji: "👋" };
             case "friend_request_accepted":
                 return { text: "Accepted your friend request", emoji: "✅" };
+            case "perspective_change":
+                const deltaVal = notification.rating ?? 0;
+                if (deltaVal > 0) {
+                    return { text: `benefited from your comment by +${deltaVal}`, emoji: "✨" };
+                } else {
+                    return { text: `shifted their perspective by ${deltaVal} because of your comment`, emoji: "💧" };
+                }
             default:
                 return { text: "New notification", emoji: "" };
         }
@@ -428,10 +472,7 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Inbox</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -450,10 +491,7 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Inbox</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -469,10 +507,7 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                     <TouchableOpacity style={styles.settingsButton}>
                         <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -493,7 +528,7 @@ export default function Notifications() {
                     />
                     <Text style={[styles.emptyTitle, { color: theme.text }]}>No Notifications</Text>
                     <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                        When people interact with your posts,{"\n"}you'll see
+                        When people interact with your posts,{"\n"}you&apos;ll see
                         notifications here
                     </Text>
                 </ScrollView>
@@ -508,10 +543,7 @@ export default function Notifications() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={28} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
                 <TouchableOpacity style={styles.settingsButton}>
                     <Ionicons name="settings-outline" size={24} color={theme.text} />
                 </TouchableOpacity>
@@ -519,6 +551,7 @@ export default function Notifications() {
 
             <ScrollView
                 style={styles.scrollView}
+                contentContainerStyle={{ paddingBottom: 80 }}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
+  Modal,
   Platform,
   RefreshControl,
   ScrollView,
@@ -12,44 +13,71 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Easing
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Avatar from "../../components/Avatar";
+import FilterModal from "../../components/FilterModal";
 import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 import { posts as dummyPosts } from "../../data/dummyData";
 
-const getCategoryColor = (category) => {
-  const colors = {
-    "All Feed": "#000000",
-    "Stress": "#B39DDB",
-    "Anxiety": "#7C6BA8",
-    "Self-Care": "#FFE082",
-    "Mental Health": "#FFE082",
-    "Mindfulness": "#B2DFDB",
-    "Study": "#B2DFDB",
-    "Relationship": "#F48FB1",
-    "Family": "#FFCDD2",
+const getCategoryTheme = (category, isDark) => {
+  const themes = {
+    "All Feed": { color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" },
+    "Family": { color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
+    "Stress": { color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
+    "Relationship": { color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
+    "Study": { color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
+    "Mental Health": { color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+    "Other": { color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
   };
-  return colors[category] || "#B39DDB";
+  return themes[category] || themes["Other"];
 };
 
-import FilterModal from "../../components/FilterModal";
-
 export default function Home() {
-  const { user } = useAuth();
-  const { theme } = useTheme();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
   const router = useRouter();
+  const lastOffsetY = useRef(0);
+  const { showTabBar, hideTabBar } = useTabBar();
+  const insets = useSafeAreaInsets();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const translateYHeader = useRef(new Animated.Value(0)).current;
+  const headerHidden = useRef(false);
+
+  const showHeader = useCallback(() => {
+    if (!headerHidden.current) return;
+    headerHidden.current = false;
+    Animated.timing(translateYHeader, {
+      toValue: 0,
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true,
+    }).start();
+  }, [translateYHeader]);
+
+  const hideHeader = useCallback(() => {
+    if (headerHidden.current) return;
+    headerHidden.current = true;
+    Animated.timing(translateYHeader, {
+      toValue: -220,
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true,
+    }).start();
+  }, [translateYHeader]);
 
   // Filter States
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -71,7 +99,7 @@ export default function Home() {
         tension: 40,
       }).start();
     }
-  }, [refreshing]);
+  }, [refreshing, slideAnim]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -117,6 +145,8 @@ export default function Home() {
             isAnonymous: data.isAnonymous,
             authorName: data.authorName || "Anonymous",
             authorId: data.authorId,
+            feelPercentage: data.feelPercentage,
+            helpNeeded: data.helpNeeded,
           };
         });
         setFirebasePosts(fetchedPosts);
@@ -131,66 +161,67 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch Unread Notifications Count
+  // Ensure header and tab bar are visible on mount
   useEffect(() => {
-    if (!user) return;
+    showHeader();
+    showTabBar();
+  }, [showHeader, showTabBar]);
 
-    const q = query(
-      collection(db, "notifications"),
-      where("toUserId", "==", user.uid),
-      where("read", "==", false),
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allowedTypes = ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted"];
-      const filteredCount = snapshot.docs.filter(doc => allowedTypes.includes(doc.data().type)).length;
-      setUnreadCount(filteredCount);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Fetch Unread Chats Count for Chat icon badge (optional, but good for UX)
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  // Show header and tab bar if search is expanded
   useEffect(() => {
-    if (!user) return;
+    if (isSearchExpanded) {
+      showHeader();
+      showTabBar();
+    }
+  }, [isSearchExpanded, showHeader, showTabBar]);
 
-    // Simple listener for chat unreads if we had a way (requires iterating all chats or a user field)
-    // For now, leaving chat badge fetch out to keep it simple or we can re-use the logic from Tab Layout if we moved it
-  }, [user]);
 
-  // Fetch Unread Count
-  useEffect(() => {
-    if (!user) return;
-
-    const chatsRef = collection(db, "chats");
-    const q = query(chatsRef, where("participants", "array-contains", user.uid));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let totalUnread = 0;
-      snapshot.docs.forEach(doc => {
-        const data = doc.data();
-        totalUnread += (data[`unreadCount_${user.uid}`] || 0);
-      });
-      setUnreadCount(totalUnread);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
 
   // Helper function to calculate time ago
   const getTimeAgo = (timestamp) => {
+    if (!timestamp) return "Just now";
+
+    if (typeof timestamp === 'string') {
+      if (timestamp === 'Just now') return timestamp;
+      const match = timestamp.match(/^(\d+)d ago$/);
+      if (match) {
+        const days = parseInt(match[1], 10);
+        if (days >= 7) {
+          const weeks = Math.floor(days / 7);
+          const months = Math.floor(days / 30);
+          const years = Math.floor(days / 365);
+          if (days < 30) return `${weeks}w ago`;
+          if (days < 365) return `${months}mon ago`;
+          return `${years}yr ago`;
+        }
+      }
+      const parsedDate = new Date(timestamp);
+      if (isNaN(parsedDate.getTime())) {
+        return timestamp;
+      }
+      timestamp = parsedDate;
+    }
+
+    const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+    if (isNaN(postDate.getTime())) return "Just now";
+
     const now = new Date();
-    const postDate = new Date(timestamp);
     const diffInMs = now - postDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    const diffInYears = Math.floor(diffInDays / 365);
 
     if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    return `${diffInDays}d ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInDays < 30) return `${diffInWeeks}w ago`;
+    if (diffInDays < 365) return `${diffInMonths}mon ago`;
+    return `${diffInYears}yr ago`;
   };
 
   // Combine Firebase posts with dummy data
@@ -215,16 +246,15 @@ export default function Home() {
     // 4. Filter by Mood
     let matchesMood = true;
     if (selectedMood === "depression") {
-      matchesMood = (post.feelPercentage ?? 50) < 50;
+      matchesMood = (post.feelPercentage ?? 0) < 0;
     } else if (selectedMood === "happiness") {
-      matchesMood = (post.feelPercentage ?? 50) >= 50;
+      matchesMood = (post.feelPercentage ?? 0) >= 0;
     }
 
     return matchesCategory && matchesSearch && matchesAnonymous && matchesMood;
   }).sort((a, b) => {
-    // 5. Handling "Help Needed" Filter (special case of sorting/filtering)
+    // 5. Handling "Help Needed" Filter
     if (selectedFilter === "help") {
-      // Primary sort: Help Needed
       if (a.helpNeeded && !b.helpNeeded) return -1;
       if (!a.helpNeeded && b.helpNeeded) return 1;
     }
@@ -244,202 +274,227 @@ export default function Home() {
 
   return (
     <TabScreenWrapper>
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-        <FlatList
-          data={[
-            { id: 'header' }, // Just header now, no search
-            { id: 'sticky-categories' },
-            ...filteredPosts
-          ]}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => {
-            if (item.id === 'header') {
-              return (
-                <View style={[styles.header, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
-                  <View style={styles.headerLeft}>
-                    <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}>
-                      <Ionicons name="menu-outline" size={24} color={theme.isDark ? '#FFFFFF' : theme.text} />
-                    </TouchableOpacity>
-                  </View>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
 
-                  <View style={styles.logoContainerCenter}>
-                    <Text style={[styles.logo, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Let It Out</Text>
-                  </View>
-
-                  <View style={styles.headerRight}>
-                    <TouchableOpacity
-                      style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FAFAFA' }]}
-                      onPress={() => router.push("/notifications")}
-                    >
-                      <View style={styles.notificationIconContainer}>
-                        <Ionicons
-                          key={theme.isDark ? 'dark' : 'light'}
-                          name="notifications-outline"
-                          size={24}
-                          color={theme.isDark ? '#FFFFFF' : '#000000'}
-                        />
-                        {unreadCount > 0 && (
-                          <View style={styles.badge} />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            }
-            if (item.id === 'sticky-categories') {
-              return (
-                <View style={[styles.stickyContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface, borderBottomColor: theme.divider }]}>
-                  {isSearchExpanded ? (
-                    <View style={styles.expandedWrapper}>
-                      <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#2A2A2A' : theme.input, borderColor: theme.inputBorder }]}>
-                        <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : theme.text} />
-                        <TextInput
-                          style={[styles.expandedSearchInput, { color: theme.isDark ? '#FFFFFF' : theme.text }]}
-                          placeholder="Search..."
-                          placeholderTextColor={theme.placeholder}
-                          value={searchQuery}
-                          onChangeText={setSearchQuery}
-                          autoFocus
-                        />
-                      </View>
-                      <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={() => {
-                          setSearchQuery("");
-                          setIsSearchExpanded(false);
-                        }}
-                      >
-                        <Text style={[styles.cancelText, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <View style={styles.categoriesRow}>
-                      <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <TouchableOpacity
-                          style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                          onPress={() => setIsSearchExpanded(true)}
-                        >
-                          <Ionicons name="search" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
-                          onPress={() => setFilterModalVisible(true)}
-                        >
-                          <Ionicons name="options-outline" size={20} color={theme.isDark ? '#FFFFFF' : '#212121'} />
-                        </TouchableOpacity>
-                      </View>
-
-                      {/* Active Filters Display & Clear Button */}
-                      {(selectedSort !== "recent" ||
-                        selectedFilter !== "latest" ||
-                        selectedMood !== null ||
-                        showAnonymousOnly) && (
-                          <View style={{ marginBottom: 4, marginLeft: 8 }}>
-                            <TouchableOpacity
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                paddingHorizontal: 16,
-                                height: 40,
-                                borderRadius: 20,
-                                backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F0FF',
-                                gap: 8,
-                                borderWidth: 1,
-                                borderColor: theme.isDark ? 'transparent' : '#E8E4F3',
-                              }}
-                              onPress={() => {
-                                setSelectedSort("recent");
-                                setSelectedFilter("latest");
-                                setSelectedMood(null);
-                                setShowAnonymousOnly(false);
-                              }}
-                            >
-                              <Ionicons name="close-circle" size={18} color="#9B8BC9" />
-                              <Text
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: "600",
-                                  color: "#9B8BC9",
-                                }}
-                              >
-                                Clear
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        )}
-
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.categoriesContent}
-                      >
-                        {categories.map((category) => (
-                          <TouchableOpacity
-                            key={category}
-                            style={[
-                              styles.categoryChip,
-                              { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' },
-                              selectedCategory === category && {
-                                backgroundColor: getCategoryColor(category),
-                                borderColor: getCategoryColor(category),
-                                shadowColor: getCategoryColor(category),
-                                shadowOpacity: 0.3,
-                              },
-                            ]}
-                            onPress={() => setSelectedCategory(category)}
-                          >
-                            <Text
-                              style={[
-                                styles.categoryText,
-                                { color: theme.isDark ? '#AAAAAA' : '#757575' },
-                                selectedCategory === category &&
-                                styles.categoryTextActive,
-                              ]}
-                            >
-                              {category}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  )}
-                </View>
-              );
-            }
-            return <PostCard post={item} />;
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            transform: [{ translateY: translateYHeader }],
+            backgroundColor: theme.background,
+            borderBottomWidth: isSearchExpanded ? 1 : 0,
+            borderBottomColor: theme.border,
+            paddingTop: insets.top,
           }}
+        >
+          <View style={[styles.header, { backgroundColor: theme.background }]}>
+            {isSearchExpanded ? (
+              <View style={styles.expandedWrapper}>
+                <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: theme.border }]}>
+                  <Ionicons name="search" size={18} color={theme.textSecondary} />
+                  <TextInput
+                    style={[styles.expandedSearchInput, { color: theme.text }]}
+                    placeholder="Search feed..."
+                    placeholderTextColor={theme.placeholder}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoFocus
+                  />
+                </View>
+                
+                <TouchableOpacity
+                  style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                  onPress={() => setFilterModalVisible(true)}
+                  delayPressIn={0}
+                >
+                  <Ionicons name="options-outline" size={18} color={theme.text} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setSearchQuery("");
+                    setIsSearchExpanded(false);
+                  }}
+                  delayPressIn={0}
+                >
+                  <Text style={[styles.cancelText, { color: theme.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <View style={styles.headerLeft}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                    onPress={() => setIsDrawerOpen(true)}
+                    delayPressIn={0}
+                  >
+                    <Ionicons name="menu-outline" size={24} color={theme.text} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.logoContainerCenter}>
+                  <Text style={[styles.logo, { color: theme.text }]}>Let It Out</Text>
+                </View>
+
+                <View style={styles.headerRight}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                    onPress={() => setIsSearchExpanded(true)}
+                    delayPressIn={0}
+                  >
+                    <Ionicons
+                      name="search-outline"
+                      size={22}
+                      color={theme.text}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Categories Row inside sticky header item */}
+          {isSearchExpanded && (
+            <View style={{ paddingBottom: 12, paddingTop: 4, backgroundColor: theme.background }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesContent}
+                keyboardShouldPersistTaps="always"
+              >
+                {(selectedSort !== "recent" ||
+                  selectedFilter !== "latest" ||
+                  selectedMood !== null ||
+                  showAnonymousOnly) && (
+                    <TouchableOpacity
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 12,
+                        height: 36,
+                        borderRadius: 18,
+                        backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
+                        gap: 6,
+                        borderWidth: 1,
+                        borderColor: '#9575cd',
+                        marginRight: 6,
+                        marginLeft: 16,
+                      }}
+                      onPress={() => {
+                        setSelectedSort("recent");
+                        setSelectedFilter("latest");
+                        setSelectedMood(null);
+                        setShowAnonymousOnly(false);
+                      }}
+                      delayPressIn={0}
+                    >
+                      <Ionicons name="close-circle" size={16} color="#9575cd" />
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#9575cd" }}>
+                        Clear
+                      </Text>
+                    </TouchableOpacity>
+                )}
+
+                {categories.map((category) => {
+                  const catTheme = getCategoryTheme(category, theme.isDark);
+                  const isActive = selectedCategory === category;
+                  const isFirst = category === categories[0];
+                  const hasActiveFilters = (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly);
+                  return (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.categoryChip,
+                        { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: 'transparent', borderWidth: 1 },
+                        isFirst && !hasActiveFilters && { marginLeft: 16 },
+                        isActive && {
+                          backgroundColor: catTheme.bgColor,
+                          borderColor: catTheme.color,
+                        },
+                      ]}
+                      onPress={() => setSelectedCategory(category)}
+                      delayPressIn={0}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          { color: theme.textSecondary },
+                          isActive && {
+                            color: catTheme.color,
+                            fontWeight: "800",
+                          },
+                        ]}
+                      >
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+        </Animated.View>
+
+        <FlatList
+          onScroll={(event) => {
+            const currentOffsetY = event.nativeEvent.contentOffset.y;
+            const diff = currentOffsetY - lastOffsetY.current;
+            if (currentOffsetY <= 0) {
+              showTabBar();
+              showHeader();
+            } else if (!isSearchExpanded) {
+              if (diff > 15) {
+                hideTabBar();
+                hideHeader();
+              } else if (diff < -15) {
+                showTabBar();
+                showHeader();
+              }
+            } else {
+              showTabBar();
+              showHeader();
+            }
+            lastOffsetY.current = currentOffsetY;
+          }}
+          scrollEventThrottle={16}
+          data={filteredPosts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => <PostCard post={item} />}
           contentContainerStyle={styles.feedContent}
           showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[1]} // Make only the categories (index 1) sticky
+          ListHeaderComponent={
+            <View style={{ height: (isSearchExpanded ? 116 : 64) + insets.top }} />
+          }
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
-                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                <Loading size="large" color="#9575cd" />
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
               </View>
             ) : filteredPosts.length === 0 ? (
               <View style={[styles.emptyContainer, { marginTop: 60 }]}>
                 <View style={{
-                  width: 120,
-                  height: 120,
-                  backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB',
-                  borderRadius: 60,
+                  width: 100,
+                  height: 100,
+                  backgroundColor: theme.isDark ? '#222' : '#F5F5F5',
+                  borderRadius: 50,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 24,
+                  marginBottom: 20,
                 }}>
                   <Ionicons
                     name="telescope-outline"
-                    size={64}
-                    color="#9B8BC9"
-                    style={{ opacity: 0.8 }}
+                    size={48}
+                    color="#9575cd"
                   />
                 </View>
-                <Text style={[styles.emptyTitle, { color: theme.text, fontSize: 20, marginBottom: 8 }]}>No matches found</Text>
-                <Text style={[styles.emptyText, { color: theme.textSecondary, maxWidth: 300, lineHeight: 22 }]}>
-                  We looked everywhere but couldn't find what you're looking for.
+                <Text style={[styles.emptyTitle, { color: theme.text, fontSize: 18, fontWeight: '800', marginBottom: 8 }]}>No matches found</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textSecondary, maxWidth: 280, textAlign: 'center', lineHeight: 20 }]}>
+                  We looked everywhere but couldn&apos;t find what you&apos;re looking for.
                 </Text>
               </View>
             ) : null
@@ -448,10 +503,10 @@ export default function Home() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#00000000']} // Fully transparent hex for Android
+              colors={['#00000000']}
               tintColor="transparent"
               progressBackgroundColor="#00000000"
-              progressViewOffset={-1000} // Push native spinner far off-screen
+              progressViewOffset={-1000}
               style={{ backgroundColor: 'transparent', opacity: 0 }}
             />
           }
@@ -460,7 +515,7 @@ export default function Home() {
         {refreshing && (
           <Animated.View style={{
             position: 'absolute',
-            top: 0,
+            top: 60,
             left: 0,
             right: 0,
             alignItems: 'center',
@@ -468,7 +523,7 @@ export default function Home() {
             elevation: 9999,
             transform: [{ translateY: slideAnim }],
           }}>
-            <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+            <Loading size="large" color="#9575cd" />
           </Animated.View>
         )}
 
@@ -484,7 +539,120 @@ export default function Home() {
           showAnonymousOnly={showAnonymousOnly}
           setShowAnonymousOnly={setShowAnonymousOnly}
         />
-      </SafeAreaView>
+
+        {/* Side Drawer Modal */}
+        <Modal
+          animationType="none"
+          transparent={true}
+          visible={isDrawerOpen}
+          onRequestClose={() => setIsDrawerOpen(false)}
+        >
+          <View style={styles.drawerOverlay}>
+            <TouchableOpacity
+              style={styles.drawerBackdrop}
+              activeOpacity={1}
+              onPress={() => setIsDrawerOpen(false)}
+            />
+            <View style={[styles.drawerContent, { backgroundColor: theme.surface }]}>
+              {/* Drawer Header */}
+              <View style={[styles.drawerHeader, { borderBottomColor: theme.divider }]}>
+                {user ? (
+                  <>
+                    <View style={styles.drawerAvatarContainer}>
+                      <Avatar seed={user.profileCode || "anonymous"} size={50} />
+                    </View>
+                    <Text style={[styles.drawerName, { color: theme.text }]} numberOfLines={1}>
+                      {user.displayName || "Anonymous"}
+                    </Text>
+                    <Text style={[styles.drawerEmail, { color: theme.textSecondary }]} numberOfLines={1}>
+                      {user.email}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <View style={[styles.drawerAvatarContainer, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' }]}>
+                      <Ionicons name="person" size={28} color={theme.textSecondary} />
+                    </View>
+                    <Text style={[styles.drawerName, { color: theme.text }]}>Welcome Guest</Text>
+                  </>
+                )}
+              </View>
+
+              {/* Drawer Menu Options */}
+              <ScrollView style={styles.drawerMenu} showsVerticalScrollIndicator={false}>
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                  }}
+                >
+                  <Ionicons name="home-outline" size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>Home</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                    router.push("/my-center");
+                  }}
+                >
+                  <Ionicons name="heart-half-outline" size={22} color="#9575cd" />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>My Center</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                    router.push("/explore");
+                  }}
+                >
+                  <Ionicons name="compass-outline" size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>Explore</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setIsDrawerOpen(false);
+                    router.push("/(tabs)/notifications");
+                  }}
+                >
+                  <Ionicons name="notifications-outline" size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>Notifications</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.drawerItem}
+                  onPress={toggleTheme}
+                >
+                  <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={22} color={theme.text} />
+                  <Text style={[styles.drawerItemText, { color: theme.text }]}>
+                    {isDark ? "Light Mode" : "Dark Mode"}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+
+              {/* Drawer Footer */}
+              {user && (
+                <View style={[styles.drawerFooter, { borderTopColor: theme.divider }]}>
+                  <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={async () => {
+                      setIsDrawerOpen(false);
+                      await logout();
+                    }}
+                  >
+                    <Ionicons name="log-out-outline" size={22} color="#E57373" />
+                    <Text style={styles.logoutText}>Logout</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
+      </View>
     </TabScreenWrapper >
   );
 }
@@ -497,16 +665,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 0,
+    paddingHorizontal: 10,
     paddingVertical: 12,
     position: 'relative',
   },
   headerLeft: {
-    width: 56,
+    width: 40,
     alignItems: 'flex-start',
   },
   headerRight: {
-    width: 56,
+    width: 40,
     alignItems: 'flex-end',
   },
   logoContainerCenter: {
@@ -517,23 +685,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     pointerEvents: 'none',
   },
-  logoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   logo: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#212121",
+    fontSize: 20,
+    fontWeight: "800",
     letterSpacing: -0.5,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   iconButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 20,
+    borderRadius: 18,
   },
   notificationIconContainer: {
     position: 'relative',
@@ -544,78 +707,52 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 0,
-    right: 2,
+    top: 1,
+    right: 1,
     backgroundColor: '#FF5252',
     borderRadius: 4,
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderWidth: 1,
     borderColor: '#FFFFFF',
   },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 30,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-    // Premium Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: "#FAFAFA",
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: "#212121",
-    fontWeight: "500",
-  },
   stickyContainer: {
     paddingVertical: 8,
+    paddingHorizontal: 5,
+    marginBottom: 6,
   },
   categoriesRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    height: 40, // Enforce fixed height
+    gap: 8,
+    height: 38,
   },
   searchIconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
   expandedWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
     width: '100%',
   },
   expandedSearchBar: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 18,
     paddingHorizontal: 12,
-    height: 40,
+    height: 36,
     gap: 8,
+    borderWidth: 1,
   },
   expandedSearchInput: {
     flex: 1,
-    fontSize: 15,
-    color: "#212121",
+    fontSize: 14,
     fontWeight: "500",
     padding: 0,
     height: '100%',
@@ -624,56 +761,112 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   cancelText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#212121",
-  },
-  categoriesContainer: {
-    backgroundColor: "transparent",
   },
   categoriesContent: {
-    paddingRight: 16,
-    gap: 10,
-    alignItems: 'center', // Center vertically
+    gap: 8,
+    alignItems: 'center',
   },
   categoryChip: {
-    paddingHorizontal: 20,
-    height: 40,
+    paddingHorizontal: 14,
+    height: 36,
     justifyContent: 'center',
-    borderRadius: 20,
+    borderRadius: 18,
   },
-  categoryChipActive: {
-    backgroundColor: "#9F8BFF", // Re-add active style helper if lost?
-    // No, logic is inline. But style name exists?
-  },
-  categoryText: {
+  categoryChipText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#757575",
-    letterSpacing: 0.5,
     textTransform: "uppercase",
-  },
-  categoryTextActive: {
-    color: "#FFFFFF",
+    letterSpacing: 0.5,
   },
   feedContent: {
-    paddingTop: 12,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 100,
   },
   emptyContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "600",
-    marginTop: 16,
+    marginTop: 12,
+  },
+  emptyTitle: {
+    textAlign: 'center',
   },
   emptySubtext: {
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: 13,
+  },
+  drawerOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  drawerBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  drawerContent: {
+    width: '75%',
+    maxWidth: 300,
+    height: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 10,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+  },
+  drawerHeader: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+  },
+  drawerAvatarContainer: {
+    marginBottom: 12,
+  },
+  drawerName: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  drawerEmail: {
+    fontSize: 13,
+  },
+  drawerMenu: {
+    flex: 1,
+    paddingVertical: 16,
+  },
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 16,
+  },
+  drawerItemText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  drawerFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#E57373',
   },
 });

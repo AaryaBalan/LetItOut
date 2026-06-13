@@ -46,7 +46,7 @@ export default function Welcome() {
                     <Text style={styles.logo}>Let It Out</Text>
                     <Text style={styles.title}>Welcome!</Text>
                     <Text style={styles.subtitle}>
-                        Choose how you'd like to get started
+                        Choose how you&apos;d like to get started
                     </Text>
                 </View>
 

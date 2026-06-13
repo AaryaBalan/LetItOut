@@ -1,36 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import {
-    addDoc,
     collection,
     doc,
     getDoc,
-    getDocs,
-    increment,
     onSnapshot,
     query,
-    serverTimestamp,
-    setDoc,
     where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Alert, FlatList, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
-const getCategoryColor = (category) => {
+const getCategoryColors = (category, isDark) => {
+    const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
     const colors = {
-        Study: "#FFE082",
-        "Mental Health": "#B39DDB",
-        Mindfulness: "#FFE082",
-        Stress: "#EF9A9A",
-        Anxiety: "#B39DDB",
-        Relationship: "#F48FB1",
-        Family: "#80CBC4",
+        "Family": { bg: isDark ? "#174EA6" : "#E8F0FE", text: isDark ? "#8AB4F8" : "#1A73E8" },
+        "Stress": { bg: isDark ? "#C5221F" : "#FCE8E6", text: isDark ? "#F28B82" : "#D93025" },
+        "Relationship": { bg: isDark ? "#880E4F" : "#FCE4EC", text: isDark ? "#F8BBD0" : "#C2185B" },
+        "Study": { bg: isDark ? "#137333" : "#E6F4EA", text: isDark ? "#81C995" : "#188038" },
+        "Mental Health": { bg: isDark ? "#E37400" : "#FEF7E0", text: isDark ? "#FDD663" : "#B06000" },
+        "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
     };
-    return colors[category] || "#E0E0E0";
+    return colors[normalized] || colors["Other"];
 };
 
 const getCategoryLabel = (category) => {
@@ -45,14 +40,29 @@ const getCategoryLabel = (category) => {
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Just now";
 
-    // If timestamp is already a formatted string (like "5m ago"), return it
-    if (typeof timestamp === 'string' && (timestamp.includes('ago') || timestamp === 'Just now')) {
-        return timestamp;
+    if (typeof timestamp === 'string') {
+        if (timestamp === 'Just now') return timestamp;
+        const match = timestamp.match(/^(\d+)d ago$/);
+        if (match) {
+            const days = parseInt(match[1], 10);
+            if (days >= 7) {
+                const weeks = Math.floor(days / 7);
+                const months = Math.floor(days / 30);
+                const years = Math.floor(days / 365);
+                if (days < 30) return `${weeks}w ago`;
+                if (days < 365) return `${months}mon ago`;
+                return `${years}yr ago`;
+            }
+        }
+        const parsedDate = new Date(timestamp);
+        if (isNaN(parsedDate.getTime())) {
+            return timestamp;
+        }
+        timestamp = parsedDate;
     }
 
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
 
-    // Check if date is valid
     if (isNaN(date.getTime())) return "Just now";
 
     const now = new Date();
@@ -60,13 +70,17 @@ const formatTimestamp = (timestamp) => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
 
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (diffDays < 30) return `${diffWeeks}w ago`;
+    if (diffDays < 365) return `${diffMonths}mon ago`;
+    return `${diffYears}yr ago`;
 };
 
 export default function PostCard({ post, hideDescription = false }) {
@@ -78,12 +92,9 @@ export default function PostCard({ post, hideDescription = false }) {
     const [meTooCount, setMeTooCount] = useState(0);
     const [commentCount, setCommentCount] = useState(0);
     const [comments, setComments] = useState([]);
-    const [reactionCount, setReactionCount] = useState(post.reactionCount || 0);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
     const [commentorProfiles, setCommentorProfiles] = useState({});
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [friends, setFriends] = useState([]);
-    const [sharing, setSharing] = useState(false);
+
 
     // Fetch author profile code with real-time updates
     useEffect(() => {
@@ -181,126 +192,11 @@ export default function PostCard({ post, hideDescription = false }) {
         return () => unsubscribe();
     }, [post.id]);
 
-    // Calculate total reactionCount (reactions + comments)
-    useEffect(() => {
-        const total = likeCount + hugCount + meTooCount + commentCount;
-        setReactionCount(total);
-    }, [likeCount, hugCount, meTooCount, commentCount]);
-
-    // Fetch friends list
-    useEffect(() => {
-        if (!user || !showShareModal) return;
-
-        const fetchFriendsList = async () => {
-            try {
-                // Get people following the current user (Accepted)
-                const followersQuery = query(
-                    collection(db, "friends"),
-                    where("followingId", "==", user.uid),
-                    where("status", "==", 1)
-                );
-
-                // Get people the current user is following (Accepted)
-                const followingQuery = query(
-                    collection(db, "friends"),
-                    where("followerId", "==", user.uid),
-                    where("status", "==", 1)
-                );
-
-                const [followersSnap, followingSnap] = await Promise.all([
-                    getDocs(followersQuery),
-                    getDocs(followingQuery)
-                ]);
-
-                // Collect unique User IDs
-                const friendIds = new Set();
-                followersSnap.forEach(doc => friendIds.add(doc.data().followerId));
-                followingSnap.forEach(doc => friendIds.add(doc.data().followingId));
-
-                const ids = Array.from(friendIds);
-
-                // Fetch user profiles
-                const friendsList = [];
-                for (const friendId of ids) {
-                    if (friendId === user.uid) continue;
-
-                    const userDoc = await getDoc(doc(db, "users", friendId));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        friendsList.push({
-                            id: friendId,
-                            name: userData.displayName || "Anonymous",
-                            profileCode: userData.profileCode || userData.email || null,
-                        });
-                    }
-                }
-
-                setFriends(friendsList);
-            } catch (error) {
-                console.error("Error fetching friends:", error);
-            }
-        };
-
-        fetchFriendsList();
-    }, [user, showShareModal]);
-
-    const handleShare = async (friendId) => {
-        if (!user || sharing) return;
-
-        setSharing(true);
-        try {
-            const chatId = [user.uid, friendId].sort().join("_");
-            const chatRef = doc(db, "chats", chatId);
-
-            const shareText = `Check out this post: "${post.title}"\n\n${post.description.substring(0, 100)}${post.description.length > 100 ? '...' : ''}\n\nTap to view: letitout://post/${post.id}`;
-
-            await setDoc(chatRef, {
-                participants: [user.uid, friendId],
-                lastMessage: shareText,
-                lastMessageTimestamp: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                [`unreadCount_${friendId}`]: increment(1),
-            }, { merge: true });
-
-            await addDoc(collection(db, "chats", chatId, "messages"), {
-                text: shareText,
-                senderId: user.uid,
-                senderName: user.displayName || "Anonymous",
-                createdAt: serverTimestamp(),
-                type: "shared_post",
-                sharedPost: {
-                    id: post.id || "",
-                    title: post.title || "Untitled Post",
-                    description: post.description || "",
-                    category: post.category || "General",
-                    timestamp: post.timestamp || "",
-                    authorName: post.authorName || "Anonymous",
-                    isAnonymous: post.isAnonymous ?? true,
-                    authorId: post.authorId || "",
-                }
-            });
-
-            Alert.alert("Success", "Post shared successfully!");
-            setShowShareModal(false);
-        } catch (error) {
-            console.error("Error sharing post:", error);
-            Alert.alert("Error", "Failed to share post");
-        } finally {
-            setSharing(false);
-        }
-    };
 
     return (
-        <View style={{
-            borderBottomWidth: 1,
-            borderBottomColor: theme.isDark ? '#333333' : '#E0E0E0',
-            paddingBottom: 12,
-            marginBottom: 16
-        }}>
+        <View style={[styles.cardContainer, { borderBottomColor: theme.isDark ? '#2D2D30' : '#E5E7EB' }]}>
             <Link href={`/post/${post.id}`} asChild>
-                <TouchableOpacity style={[styles.card, {
-                    backgroundColor: theme.card
-                }]}>
+                <TouchableOpacity style={styles.card} delayPressIn={0}>
                     {/* Author Section with Category Badge */}
                     <TouchableOpacity
                         style={styles.authorSection}
@@ -315,37 +211,40 @@ export default function PostCard({ post, hideDescription = false }) {
                             }
                         }}
                         disabled={post.isAnonymous || !post.authorId}
+                        delayPressIn={0}
                     >
-                        {post.isAnonymous ||
-                            !post.authorName ||
-                            post.authorName === "Anonymous" ||
-                            !authorProfileCode ? (
-                            <View style={styles.avatarWrapper}>
-                                <Image
-                                    source={require("../assets/images/letitout_logo.png")}
-                                    style={{ width: 40, height: 40, borderRadius: 20 }}
-                                />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                            {post.isAnonymous ||
+                                !post.authorName ||
+                                post.authorName === "Anonymous" ||
+                                !authorProfileCode ? (
+                                <View style={styles.avatarWrapper}>
+                                    <Image
+                                        source={require("../assets/images/letitout_logo.png")}
+                                        style={{ width: 36, height: 36, borderRadius: 18 }}
+                                    />
+                                </View>
+                            ) : (
+                                <View style={styles.avatarWrapper}>
+                                    <Avatar seed={authorProfileCode} size={36} />
+                                </View>
+                            )}
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.authorName, { color: theme.text }]} numberOfLines={1}>
+                                    {post.isAnonymous || !post.authorName
+                                        ? "Anonymous"
+                                        : post.authorName}
+                                </Text>
+                                <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
                             </View>
-                        ) : (
-                            <View style={styles.avatarWrapper}>
-                                <Avatar seed={authorProfileCode} size={40} />
-                            </View>
-                        )}
-                        <View style={{ flex: 1 }}>
-                            <Text style={[styles.authorName, { color: theme.text }]}>
-                                {post.isAnonymous || !post.authorName
-                                    ? "Anonymous"
-                                    : post.authorName}
-                            </Text>
-                            <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
                         </View>
                         <View
                             style={[
                                 styles.categoryBadge,
-                                { backgroundColor: getCategoryColor(post.category) },
+                                { backgroundColor: getCategoryColors(post.category, theme.isDark).bg },
                             ]}
                         >
-                            <Text style={styles.categoryText}>
+                            <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
                                 {getCategoryLabel(post.category)}
                             </Text>
                         </View>
@@ -361,12 +260,12 @@ export default function PostCard({ post, hideDescription = false }) {
 
                     {/* Comments Preview */}
                     {comments.length > 0 && (
-                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#0A0A0A' : '#F9F9F9', borderColor: theme.border }]}>
+                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#1F1F21' : '#F9F9FB', borderColor: theme.border }]}>
                             {comments.map((comment) => (
-                                <View key={comment.id} style={[styles.commentItem, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F5F5F5' }]}>
+                                <View key={comment.id} style={[styles.commentItem, { backgroundColor: 'transparent' }]}>
                                     <Avatar
                                         seed={commentorProfiles[comment.commentorId] || "anonymous"}
-                                        size={35}
+                                        size={30}
                                         style={styles.commentAvatar}
                                     />
                                     <View style={styles.commentTextContainer}>
@@ -384,96 +283,33 @@ export default function PostCard({ post, hideDescription = false }) {
 
                     <View style={styles.footer}>
                         <View style={styles.reactions}>
-                            <View style={styles.reactionButton}>
-                                <Ionicons name="heart" size={16} color="#E57373" />
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                                <Ionicons name="heart" size={14} color="#E57373" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
                             </View>
 
-                            <View style={styles.reactionButton}>
-                                <Ionicons name="hand-left" size={16} color="#FFB74D" />
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
                             </View>
 
-                            <View style={styles.reactionButton}>
-                                <Ionicons name="happy" size={16} color="#66BB6A" />
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                                <Ionicons name="happy" size={14} color="#66BB6A" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
                             </View>
                         </View>
 
                         <View style={styles.rightFooter}>
-                            <TouchableOpacity
-                                style={styles.shareButton}
-                                onPress={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setShowShareModal(true);
-                                }}
-                            >
-                                <Ionicons name="paper-plane-outline" size={20} color="#9F8BFF" />
-                                <Text style={styles.sendText}>Send</Text>
-                            </TouchableOpacity>
-
-                            <View style={styles.commentSection}>
+                            <View style={[styles.actionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
                                 <Ionicons
                                     name="chatbubble-outline"
-                                    size={18}
-                                    color={theme.textTertiary}
+                                    size={14}
+                                    color={theme.textSecondary}
                                 />
                                 <Text style={[styles.commentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
                             </View>
                         </View>
                     </View>
-
-                    {/* Share Modal */}
-                    <Modal
-                        visible={showShareModal}
-                        transparent={true}
-                        animationType="fade"
-                        onRequestClose={() => setShowShareModal(false)}
-                    >
-                        <Pressable
-                            style={[styles.modalOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)' }]}
-                            onPress={() => setShowShareModal(false)}
-                        >
-                            <Pressable style={[styles.modalContent, { backgroundColor: theme.isDark ? '#1A1A1A' : theme.surface }]} onPress={(e) => e.stopPropagation()}>
-                                <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                                    <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
-                                    <TouchableOpacity onPress={() => setShowShareModal(false)}>
-                                        <Ionicons name="close" size={24} color={theme.textSecondary} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {friends.length === 0 ? (
-                                    <View style={styles.emptyState}>
-                                        <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
-                                        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
-                                    </View>
-                                ) : (
-                                    <FlatList
-                                        data={friends}
-                                        keyExtractor={(item) => item.id}
-                                        renderItem={({ item }) => (
-                                            <TouchableOpacity
-                                                style={[styles.friendItem, { borderBottomColor: theme.divider }]}
-                                                onPress={() => handleShare(item.id)}
-                                                disabled={sharing}
-                                            >
-                                                {item.profileCode ? (
-                                                    <Avatar seed={item.profileCode} size={40} />
-                                                ) : (
-                                                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
-                                                        <Ionicons name="person" size={20} color="#9575cd" />
-                                                    </View>
-                                                )}
-                                                <Text style={[styles.friendName, { color: theme.text }]}>{item.name}</Text>
-                                                <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
-                                            </TouchableOpacity>
-                                        )}
-                                    />
-                                )}
-                            </Pressable>
-                        </Pressable>
-                    </Modal>
                 </TouchableOpacity>
             </Link>
         </View>
@@ -481,80 +317,63 @@ export default function PostCard({ post, hideDescription = false }) {
 }
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 20,
+    cardContainer: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#e0e0e02f",
+        paddingBottom: 5,
+        marginBottom: 5,
     },
-    cardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
+    card: {
+        paddingVertical: 12,
+        paddingHorizontal: 12,
     },
     categoryBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
     },
     categoryText: {
         fontSize: 9,
-        fontWeight: "700",
-        color: "#212121",
-        letterSpacing: 0.3,
+        fontWeight: "800",
+        letterSpacing: 0.5,
     },
     timestamp: {
         fontSize: 11,
-        color: "#BDBDBD",
+        marginTop: 2,
     },
     authorSection: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 10,
+        marginBottom: 12,
     },
     avatarWrapper: {
-        marginRight: 8,
-    },
-    avatarContainer: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: "#EFE8FF",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 8,
-    },
-    avatarText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#9575cd",
+        marginRight: 2,
     },
     authorName: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#9575cd",
+        fontSize: 14,
+        fontWeight: "700",
     },
     title: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: "700",
-        marginBottom: 6,
-        lineHeight: 20,
+        marginBottom: 8,
+        lineHeight: 22,
     },
     preview: {
         fontSize: 13,
-        color: "#757575",
-        lineHeight: 18,
+        lineHeight: 19,
         marginBottom: 14,
     },
     commentsPreview: {
-        marginBottom: 12,
-        gap: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        padding: 1,
+        marginBottom: 14,
     },
     commentItem: {
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
         borderRadius: 8,
         flexDirection: "row",
         gap: 10,
@@ -568,12 +387,10 @@ const styles = StyleSheet.create({
     },
     commentUsername: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#212121",
+        fontWeight: "700",
     },
     commentText: {
         fontSize: 12,
-        color: "#616161",
         lineHeight: 16,
     },
     footer: {
@@ -583,93 +400,94 @@ const styles = StyleSheet.create({
     },
     reactions: {
         flexDirection: "row",
-        gap: 16,
+        gap: 8,
     },
-    reactionButton: {
+    reactionPill: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    actionPill: {
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'transparent',
     },
     reactionCount: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#757575",
-    },
-    reactionActive: {
-        color: "#E57373",
-    },
-    reactionActiveHug: {
-        color: "#FFB74D",
-    },
-    commentSection: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
+        fontWeight: "700",
     },
     commentCount: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#757575",
-    },
-    shareButton: {
-        padding: 4,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
+        fontWeight: "700",
     },
     sendText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontWeight: "700",
         color: "#9F8BFF",
+    },
+    rightFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "flex-end",
     },
     modalContent: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        width: '85%',
-        maxHeight: '70%',
-        overflow: 'hidden',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingTop: 20,
+        paddingBottom: 40,
+        paddingHorizontal: 20,
+        maxHeight: "80%",
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        paddingBottom: 16,
+        marginBottom: 16,
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: '700',
-        color: '#212121',
+        fontWeight: '800',
+        letterSpacing: -0.5,
+    },
+    modalCloseBtn: {
+        padding: 4,
     },
     emptyState: {
-        padding: 40,
+        paddingVertical: 40,
         alignItems: 'center',
         gap: 12,
     },
     emptyText: {
         fontSize: 14,
-        color: '#9E9E9E',
     },
     friendItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingVertical: 14,
+        paddingHorizontal: 8,
         gap: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#F5F5F5',
     },
     defaultAvatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#EFE8FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -677,11 +495,5 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 15,
         fontWeight: '600',
-        color: '#212121',
-    },
-    rightFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
     },
 });

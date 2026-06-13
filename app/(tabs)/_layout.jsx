@@ -1,15 +1,18 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { TabBarProvider, useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 
-export default function TabsLayout() {
+function TabsLayoutInner() {
     const { user } = useAuth();
     const { theme } = useTheme();
+    const { translateY } = useTabBar();
     const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     // Fetch total unread chats count
@@ -21,10 +24,10 @@ export default function TabsLayout() {
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             let totalUnread = 0;
-            snapshot.docs.forEach(doc => {
-                const data = doc.data();
-                const count = data[`unreadCount_${user.uid}`] || 0;
-                totalUnread += count;
+            snapshot.docs.forEach((docSnap) => {
+                const data = docSnap.data();
+                const unreadCount = data.unreadCount || {};
+                totalUnread += unreadCount[user.uid] || 0;
             });
             setUnreadChatCount(totalUnread);
         });
@@ -34,14 +37,29 @@ export default function TabsLayout() {
 
     return (
         <Tabs
+            tabBar={(props) => (
+                <Animated.View
+                    style={[
+                        styles.animatedTabBarContainer,
+                        {
+                            transform: [{ translateY }],
+                        },
+                    ]}
+                >
+                    <BottomTabBar {...props} />
+                </Animated.View>
+            )}
             screenOptions={{
                 headerShown: false,
                 tabBarShowLabel: false,
                 tabBarActiveTintColor: "#9575cd",
                 tabBarInactiveTintColor: theme.textTertiary,
                 tabBarStyle: {
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     backgroundColor: theme.surface,
-                    borderTopWidth: 1,
                     borderTopColor: theme.border,
                     height: 65,
                     paddingBottom: 10,
@@ -58,35 +76,9 @@ export default function TabsLayout() {
                 options={{
                     title: "Feed",
                     tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
+                        <MaterialCommunityIcons
                             name={focused ? "home" : "home-outline"}
-                            size={28}
-                            color={color}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="explore"
-                options={{
-                    title: "Explore",
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "compass" : "compass-outline"}
-                            size={28}
-                            color={color}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="create"
-                options={{
-                    title: "Create",
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "add-circle" : "add-circle-outline"}
-                            size={28}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -99,8 +91,8 @@ export default function TabsLayout() {
                     tabBarIcon: ({ color, focused }) => (
                         <View>
                             <Ionicons
-                                name={focused ? "chatbubbles" : "chatbubbles-outline"}
-                                size={28}
+                                name={focused ? "chatbubble" : "chatbubble-outline"}
+                                size={26}
                                 color={color}
                             />
                             {unreadChatCount > 0 && (
@@ -115,13 +107,39 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
+                name="create"
+                options={{
+                    title: "Create",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "create" : "create-outline"}
+                            size={26}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="notifications"
+                options={{
+                    title: "Notifications",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "heart" : "heart-outline"}
+                            size={26}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+            <Tabs.Screen
                 name="profile"
                 options={{
                     title: "Profile",
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "person" : "person-outline"}
-                            size={28}
+                            size={26}
                             color={color}
                         />
                     ),
@@ -131,7 +149,24 @@ export default function TabsLayout() {
     );
 }
 
+export default function TabsLayout() {
+    return (
+        <TabBarProvider>
+            <TabsLayoutInner />
+        </TabBarProvider>
+    );
+}
+
 const styles = StyleSheet.create({
+    animatedTabBarContainer: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 65,
+        zIndex: 1000,
+        elevation: 10,
+    },
     badge: {
         position: "absolute",
         top: -4,

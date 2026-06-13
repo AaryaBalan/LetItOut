@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     FlatList,
     RefreshControl,
@@ -17,12 +17,20 @@ import Loading from "../../components/Loading";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function ChatTab() {
     const { user } = useAuth();
     const { theme } = useTheme();
+    const { showTabBar } = useTabBar();
     const router = useRouter();
+
+    // Ensure tab bar is shown when entering the Chat screen
+    useEffect(() => {
+        showTabBar();
+    }, [showTabBar]);
+
     const [friends, setFriends] = useState([]);
     const [chats, setChats] = useState({});
     const [loading, setLoading] = useState(true);
@@ -47,7 +55,7 @@ export default function ChatTab() {
         return () => unsubscribe();
     }, [user]);
 
-    const fetchFriends = async () => {
+    const fetchFriends = useCallback(async () => {
         if (!user) return;
         try {
             // 1. Get people following the current user (Accepted)
@@ -101,11 +109,11 @@ export default function ChatTab() {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         fetchFriends();
-    }, [user]);
+    }, [fetchFriends]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -161,15 +169,16 @@ export default function ChatTab() {
 
     const renderFriend = ({ item }) => (
         <TouchableOpacity
-            style={[styles.friendCard, { borderBottomColor: theme.divider }]}
+            style={[styles.friendCard, { borderBottomColor: theme.border }]}
             onPress={() => router.push(`/chat/${item.id}`)}
+            delayPressIn={0}
         >
             <View style={styles.avatarContainer}>
                 {item.profileCode ? (
-                    <Avatar seed={item.profileCode} size={50} />
+                    <Avatar seed={item.profileCode} size={48} />
                 ) : (
-                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={24} color="#9575cd" />
+                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#222' : '#EFE8FF' }]}>
+                        <Ionicons name="person" size={22} color="#9575cd" />
                     </View>
                 )}
             </View>
@@ -201,21 +210,21 @@ export default function ChatTab() {
     return (
         <TabScreenWrapper>
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
-                {/* Header - No back button for Tab */}
-                <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+                {/* Header */}
+                <View style={[styles.header, { backgroundColor: theme.background }]}>
                     <Text style={[styles.headerTitle, { color: theme.text }]}>Messages</Text>
                 </View>
 
                 {/* Search */}
-                <View style={[styles.searchContainer, { backgroundColor: theme.isDark ? '#000000' : theme.surface }]}>
-                    <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                        <Ionicons name="search" size={20} color={theme.placeholder} />
+                <View style={[styles.searchContainer, { backgroundColor: theme.background }]}>
+                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: theme.border }]}>
+                        <Ionicons name="search" size={18} color={theme.textSecondary} />
                         <TextInput
-                            style={[styles.searchInput, { color: theme.text }]}
-                            placeholder="Search friends..."
-                            placeholderTextColor={theme.placeholder}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
+                          style={[styles.searchInput, { color: theme.text }]}
+                          placeholder="Search friends..."
+                          placeholderTextColor={theme.placeholder}
+                          value={searchQuery}
+                          onChangeText={setSearchQuery}
                         />
                     </View>
                 </View>
@@ -232,7 +241,7 @@ export default function ChatTab() {
                     ListEmptyComponent={
                         !loading && (
                             <View style={styles.emptyContainer}>
-                                <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
+                                <Ionicons name="people-outline" size={56} color={theme.textTertiary} />
                                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends found</Text>
                                 <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>Connect with others to start chatting</Text>
                             </View>
@@ -241,7 +250,7 @@ export default function ChatTab() {
                 />
                 {loading && (
                     <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                        <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                        <Loading size="large" color="#9575cd" />
                     </View>
                 )}
             </SafeAreaView>
@@ -256,53 +265,53 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
         paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
+        paddingVertical: 14,
     },
     headerTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#212121",
+        fontSize: 22,
+        fontWeight: "800",
+        letterSpacing: -0.5,
     },
     searchContainer: {
-        padding: 16,
+        paddingHorizontal: 20,
+        paddingBottom: 12,
     },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
-        borderRadius: 12,
+        borderRadius: 18,
         paddingHorizontal: 12,
-        paddingVertical: 10,
+        height: 38,
         gap: 8,
+        borderWidth: 1,
     },
     searchInput: {
         flex: 1,
-        fontSize: 15,
-        color: "#212121",
+        fontSize: 14,
+        fontWeight: "500",
+        padding: 0,
+        height: '100%',
     },
     listContent: {
-        paddingBottom: 20,
+        paddingBottom: 90,
     },
     friendCard: {
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
-        paddingVertical: 12,
+        paddingVertical: 14,
         borderBottomWidth: 1,
-        borderBottomColor: "#FAFAFA",
     },
     avatarContainer: {
-        marginRight: 12,
+        marginRight: 14,
     },
     defaultAvatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: "#EFE8FF",
-        justifyContent: "center",
-        alignItems: "center",
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     infoContainer: {
         flex: 1,
@@ -312,16 +321,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 2,
+        marginBottom: 3,
     },
     name: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#212121",
+        fontSize: 15,
+        fontWeight: "700",
     },
     timeText: {
-        fontSize: 12,
-        color: '#9E9E9E',
+        fontSize: 11,
     },
     messageRow: {
         flexDirection: 'row',
@@ -330,40 +337,39 @@ const styles = StyleSheet.create({
     },
     subtext: {
         fontSize: 13,
-        color: "#9E9E9E",
         flex: 1,
         marginRight: 8,
     },
     unreadSubtext: {
-        color: '#212121',
-        fontWeight: '600',
+        fontWeight: '700',
     },
     badge: {
         backgroundColor: '#EF5350',
-        borderRadius: 10,
-        minWidth: 20,
-        height: 20,
+        borderRadius: 9,
+        minWidth: 18,
+        height: 18,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 4,
     },
     badgeText: {
         color: '#FFFFFF',
-        fontSize: 11,
-        fontWeight: '700',
+        fontSize: 10,
+        fontWeight: '800',
     },
     emptyContainer: {
         alignItems: "center",
-        paddingTop: 60,
+        paddingTop: 80,
+        gap: 8,
     },
     emptyText: {
-        fontSize: 18,
-        fontWeight: "600",
-        marginTop: 16,
+        fontSize: 16,
+        fontWeight: "700",
     },
     emptySubtext: {
-        fontSize: 14,
-        marginTop: 4,
+        fontSize: 13,
+        textAlign: 'center',
+        maxWidth: 240,
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,

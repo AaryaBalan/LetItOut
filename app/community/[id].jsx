@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
     FlatList,
     Modal,
+    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
@@ -83,6 +84,19 @@ const CATEGORIES = [
     },
 ];
 
+const getCategoryTheme = (category, isDark) => {
+  const themes = {
+    "All": { icon: "grid", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" },
+    "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
+    "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
+    "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
+    "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
+    "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+    "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+  };
+  return themes[category] || themes["Other"];
+};
+
 export default function CommunityDetail() {
     const { id } = useLocalSearchParams();
     const { theme } = useTheme();
@@ -121,7 +135,7 @@ export default function CommunityDetail() {
                     commentCount: data.commentCount || 0,
                     reactionCount: data.reactionCount || 0,
                     helpNeeded: data.helpNeeded || false,
-                    feelPercentage: data.feelPercentage ?? 50,
+                    feelPercentage: data.feelPercentage ?? 0,
                 };
             });
             setPosts(fetched);
@@ -145,11 +159,11 @@ export default function CommunityDetail() {
         // Filter by mood if selected
         if (selectedMood === "depression") {
             filtered = filtered.filter((p) => {
-                const feel = p.feelPercentage ?? 50;
-                return feel < 50;
+                const feel = p.feelPercentage ?? 0;
+                return feel < 0;
             });
         } else if (selectedMood === "happiness") {
-            filtered = filtered.filter((p) => (p.feelPercentage ?? 50) >= 50);
+            filtered = filtered.filter((p) => (p.feelPercentage ?? 0) >= 0);
         }
 
         // Handle different sort options
@@ -175,120 +189,213 @@ export default function CommunityDetail() {
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return "Just now";
+
+        if (typeof timestamp === 'string') {
+            if (timestamp === 'Just now') return timestamp;
+            const match = timestamp.match(/^(\d+)d ago$/);
+            if (match) {
+                const days = parseInt(match[1], 10);
+                if (days >= 7) {
+                    const weeks = Math.floor(days / 7);
+                    const months = Math.floor(days / 30);
+                    const years = Math.floor(days / 365);
+                    if (days < 30) return `${weeks}w ago`;
+                    if (days < 365) return `${months}mon ago`;
+                    return `${years}yr ago`;
+                }
+            }
+            const parsedDate = new Date(timestamp);
+            if (isNaN(parsedDate.getTime())) {
+                return timestamp;
+            }
+            timestamp = parsedDate;
+        }
+
+        const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+        if (isNaN(postDate.getTime())) return "Just now";
+
         const now = new Date();
-        const postDate = timestamp.toDate
-            ? timestamp.toDate()
-            : new Date(timestamp);
-        const diff = now - postDate;
-        const mins = Math.floor(diff / 60000);
-        const hrs = Math.floor(mins / 60);
-        const days = Math.floor(hrs / 24);
-        if (mins < 1) return "Just now";
-        if (mins < 60) return `${mins}m ago`;
-        if (hrs < 24) return `${hrs}h ago`;
-        if (days === 1) return "Yesterday";
-        return `${days}d ago`;
+        const diffInMs = now - postDate;
+        const diffInMinutes = Math.floor(diffInMs / 60000);
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        const diffInMonths = Math.floor(diffInDays / 30);
+        const diffInYears = Math.floor(diffInDays / 365);
+
+        if (diffInMinutes < 1) return "Just now";
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+        if (diffInDays < 7) return `${diffInDays}d ago`;
+        if (diffInDays < 30) return `${diffInWeeks}w ago`;
+        if (diffInDays < 365) return `${diffInMonths}mon ago`;
+        return `${diffInYears}yr ago`;
     };
 
-    const renderPost = ({ item }) => (
-        <View style={styles.postItemList}>
-            <PostCard post={item} />
-        </View>
-    );
+    const catTheme = getCategoryTheme(id, theme.isDark);
 
-    if (!categoryData) {
+    const listData = [
+        { id: 'HEADER_KEY', type: 'header' },
+        { id: 'FILTERS_KEY', type: 'filters' },
+        ...(filteredPosts.length > 0 
+            ? filteredPosts.map(p => ({ ...p, type: 'post' }))
+            : [{ id: 'EMPTY_KEY', type: 'empty' }]
+        )
+    ];
+
+    const renderListItem = ({ item }) => {
+        if (item.type === 'header') {
+            return (
+                <View style={{ backgroundColor: theme.background }}>
+                    {/* Full-width Banner */}
+                    <View style={styles.heroContainer}>
+                        <View style={[styles.heroBanner, { backgroundColor: catTheme.bgColor }]}>
+                            <Ionicons name={categoryData.icon} size={110} color={catTheme.color} style={styles.heroWatermark} />
+                        </View>
+                        
+                        {/* Absolute Overlay Nav Bar */}
+                        <View style={styles.navHeader}>
+                            <TouchableOpacity
+                                style={[styles.roundBackBtn, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)' }]}
+                                onPress={() => router.back()}
+                                delayPressIn={0}
+                            >
+                                <Ionicons name="chevron-back" size={24} color={theme.text} />
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity
+                                style={[styles.roundBackBtn, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)' }]}
+                                onPress={() => setShowFilterModal(true)}
+                                delayPressIn={0}
+                            >
+                                <Ionicons name="options-outline" size={20} color={theme.text} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Community Title & Description details card (colliding/overlapping the banner) */}
+                    <View style={[styles.communityDetailsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                        <View style={styles.titleRow}>
+                            <View style={[styles.emblemBadge, { backgroundColor: catTheme.bgColor }]}>
+                                <Ionicons name={categoryData.icon} size={20} color={catTheme.color} />
+                            </View>
+                            <Text style={[styles.communityTitleText, { color: theme.text }]}>c/{categoryData.id}</Text>
+                        </View>
+                        <Text style={[styles.communityDescriptionText, { color: theme.textSecondary }]}>
+                            &ldquo;{categoryData.quote}&rdquo;
+                        </Text>
+                    </View>
+                </View>
+            );
+        }
+
+        if (item.type === 'filters') {
+            return (
+                <View style={[styles.filtersContainer, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.filtersScrollContent}
+                        keyboardShouldPersistTaps="always"
+                    >
+                        {[
+                            { label: "Latest", type: "latest", sort: "recent", mood: null },
+                            { label: "Popular", type: "latest", sort: "popular", mood: null },
+                            { label: "Help Needed", type: "help", sort: "recent", mood: null },
+                            { label: "Venting (-100 to 0)", type: "latest", sort: "recent", mood: "depression" },
+                            { label: "Happy (0 to 100)", type: "latest", sort: "recent", mood: "happiness" },
+                        ].map((opt, idx) => {
+                            const isSelected = 
+                                selectedFilter === opt.type &&
+                                selectedSort === opt.sort &&
+                                selectedMood === opt.mood;
+                            return (
+                                <TouchableOpacity
+                                    key={idx}
+                                    style={[
+                                        styles.filterPill,
+                                        { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' },
+                                        isSelected && { backgroundColor: catTheme.bgColor, borderColor: catTheme.color }
+                                    ]}
+                                    delayPressIn={0}
+                                    onPress={() => {
+                                        setSelectedFilter(opt.type);
+                                        setSelectedSort(opt.sort);
+                                        setSelectedMood(opt.mood);
+                                    }}
+                                >
+                                    <Text style={[styles.filterPillText, { color: theme.isDark ? '#FFF' : theme.textSecondary }, isSelected && { color: catTheme.color, fontWeight: '700' }]}>
+                                        {opt.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                        
+                        {/* Anonymous Only Toggle Pill */}
+                        <TouchableOpacity
+                            style={[
+                                styles.filterPill,
+                                { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' },
+                                showAnonymousOnly && { backgroundColor: catTheme.bgColor, borderColor: catTheme.color }
+                            ]}
+                            delayPressIn={0}
+                            onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
+                        >
+                            <Ionicons name="eye-off-outline" size={14} color={showAnonymousOnly ? catTheme.color : (theme.isDark ? '#FFF' : theme.textSecondary)} style={{ marginRight: 4 }} />
+                            <Text style={[styles.filterPillText, { color: theme.isDark ? '#FFF' : theme.textSecondary }, showAnonymousOnly && { color: catTheme.color, fontWeight: '700' }]}>
+                                Anonymous Only
+                            </Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                </View>
+            );
+        }
+
+        if (item.type === 'empty') {
+            return loading ? (
+                <View style={styles.emptyState}>
+                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                    <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
+                </View>
+            ) : (
+                <View style={styles.emptyState}>
+                    <Ionicons
+                        name="search-outline"
+                        size={64}
+                        color={theme.textTertiary}
+                    />
+                    <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>No posts found</Text>
+                    <Text style={[styles.emptyStateText, { color: theme.textTertiary }]}>
+                        Be the first to share in this category
+                    </Text>
+                </View>
+            );
+        }
+
         return (
-            <SafeAreaView style={styles.container}>
-                <Text>Category not found</Text>
-            </SafeAreaView>
+            <View style={styles.postItemList}>
+                <PostCard post={item} />
+            </View>
         );
-    }
+    };
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <StatusBar
-                barStyle="light-content"
-                backgroundColor={categoryData.gradientColors[0]}
+                barStyle={theme.isDark ? "light-content" : "dark-content"}
+                backgroundColor={catTheme.bgColor}
                 translucent={false}
             />
-            <View
-                style={[
-                    styles.categoryHeader,
-                    { backgroundColor: categoryData.gradientColors[0] },
-                ]}
-            >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="chevron-back" size={24} color={id === "Mental Health" ? "#000" : "#FFF"} />
-                </TouchableOpacity>
-
-                <View style={styles.categoryHeaderContent}>
-                    <View style={styles.categoryHeaderIcon}>
-                        <Ionicons name={categoryData.icon} size={24} color={id === "Mental Health" ? "#000" : "#FFF"} />
-                    </View>
-                    <View style={styles.categoryHeaderTextContainer}>
-                        <Text style={[styles.categoryHeaderTitle, { color: id === "Mental Health" ? "#000" : "#FFF" }]}>{categoryData.id}</Text>
-                        <Text style={[styles.categoryHeaderQuote, { color: id === "Mental Health" ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.85)" }]}>
-                            "{categoryData.quote}"
-                        </Text>
-                    </View>
-                </View>
-            </View>
-
-            <View style={[styles.categoryFilters, { backgroundColor: theme.isDark ? '#1A1A1A' : theme.surface, borderBottomColor: theme.divider, borderBottomWidth: theme.isDark ? 0 : 1 }]}>
-                <TouchableOpacity
-                    style={[styles.filterButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' }]}
-                    onPress={() => setShowFilterModal(true)}
-                >
-                    <Ionicons name="options-outline" size={22} color={theme.isDark ? '#FFFFFF' : theme.text} />
-                    <Text style={[styles.filterButtonText, { color: theme.isDark ? '#FFFFFF' : theme.text }]}>Filters</Text>
-                </TouchableOpacity>
-
-                {(selectedFilter !== "latest" || selectedSort !== "recent" || selectedMood !== null || showAnonymousOnly) && (
-                    <TouchableOpacity
-                        style={styles.clearFilterButton}
-                        onPress={() => {
-                            setSelectedFilter("latest");
-                            setSelectedSort("recent");
-                            setSelectedMood(null);
-                            setShowAnonymousOnly(false);
-                        }}
-                    >
-                        <Ionicons name="close-circle" size={20} color="#9B8BC9" />
-                        <Text style={styles.clearFilterText}>Clear</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
 
             <FlatList
-                data={filteredPosts}
-                renderItem={renderPost}
+                data={listData}
+                renderItem={renderListItem}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
+                stickyHeaderIndices={[1]}
                 style={{ backgroundColor: theme.background }}
                 contentContainerStyle={[styles.postsListContainer, { backgroundColor: theme.background }]}
-                ListEmptyComponent={
-                    loading ? (
-                        <View style={styles.emptyState}>
-                            <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
-                            <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
-                        </View>
-                    ) : (
-                        <View style={styles.emptyState}>
-                            <Ionicons
-                                name="search-outline"
-                                size={64}
-                                color={theme.textTertiary}
-                            />
-                            <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>No posts found</Text>
-                            <Text style={[styles.emptyStateText, { color: theme.textTertiary }]}>
-                                Be the first to share in this category
-                            </Text>
-                        </View>
-                    )
-                }
             />
 
             {/* Filter Modal */}
@@ -299,240 +406,127 @@ export default function CommunityDetail() {
                 onRequestClose={() => setShowFilterModal(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-                        <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                            <Text style={[styles.modalTitle, { color: theme.text }]}>Sort & Filter</Text>
-                            <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                                <Ionicons name="close" size={28} color={theme.textSecondary} />
+                    <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+                        {/* Header */}
+                        <View style={[styles.modalHeader, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Ionicons name="options-outline" size={22} color={theme.text} />
+                                <Text style={[styles.modalTitle, { color: theme.text }]}>Filter Options</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setShowFilterModal(false)} style={styles.modalCloseBtn} delayPressIn={0}>
+                                <Ionicons name="close" size={24} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
-                        {/* Sort & Filter Section */}
+                        {/* Section 1: Sort Feed */}
                         <View style={styles.modalSection}>
-                            <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Sort & Filter</Text>
-                            <View style={styles.modalOptionsColumn}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        selectedFilter === "latest" && selectedSort === "recent" && styles.modalOptionActive,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedFilter("latest");
-                                        setSelectedSort("recent");
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="time-outline"
-                                        size={20}
-                                        color={selectedFilter === "latest" && selectedSort === "recent" ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            selectedFilter === "latest" && selectedSort === "recent" && styles.modalOptionTextActive,
-                                        ]}
-                                    >
-                                        Latest
-                                    </Text>
-                                    {selectedFilter === "latest" && selectedSort === "recent" && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        selectedFilter === "help" && styles.modalOptionActive,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedFilter("help");
-                                        setSelectedSort("help");
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="hand-left-outline"
-                                        size={20}
-                                        color={selectedFilter === "help" ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            selectedFilter === "help" && styles.modalOptionTextActive,
-                                        ]}
-                                    >
-                                        Help Needed
-                                    </Text>
-                                    {selectedFilter === "help" && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        selectedSort === "popular" && styles.modalOptionActive,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedFilter("latest");
-                                        setSelectedSort("popular");
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="trending-up-outline"
-                                        size={20}
-                                        color={selectedSort === "popular" ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            selectedSort === "popular" && styles.modalOptionTextActive,
-                                        ]}
-                                    >
-                                        Popular
-                                    </Text>
-                                    {selectedSort === "popular" && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        selectedSort === "mostCommented" && styles.modalOptionActive,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedFilter("latest");
-                                        setSelectedSort("mostCommented");
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="chatbubbles-outline"
-                                        size={20}
-                                        color={selectedSort === "mostCommented" ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            selectedSort === "mostCommented" && styles.modalOptionTextActive,
-                                        ]}
-                                    >
-                                        Most Commented
-                                    </Text>
-                                    {selectedSort === "mostCommented" && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
+                            <Text style={[styles.modalSectionTitle, { color: theme.textSecondary }]}>SORT FEED BY</Text>
+                            <View style={styles.modalChipsRow}>
+                                {[
+                                    { label: "Latest", value: { filter: "latest", sort: "recent" }, icon: "time-outline" },
+                                    { label: "Popular", value: { filter: "latest", sort: "popular" }, icon: "trending-up-outline" },
+                                    { label: "Most Commented", value: { filter: "latest", sort: "mostCommented" }, icon: "chatbubbles-outline" },
+                                    { label: "Help Needed", value: { filter: "help", sort: "help" }, icon: "hand-left-outline" },
+                                ].map((opt) => {
+                                    const isSelected = selectedFilter === opt.value.filter && selectedSort === opt.value.sort;
+                                    return (
+                                        <TouchableOpacity
+                                            key={opt.label}
+                                            style={[
+                                                styles.modalChip,
+                                                { backgroundColor: theme.isDark ? '#2D2D2D' : '#F3F4F6', borderColor: theme.border },
+                                                isSelected && { backgroundColor: catTheme.bgColor, borderColor: catTheme.color }
+                                            ]}
+                                            delayPressIn={0}
+                                            onPress={() => {
+                                                setSelectedFilter(opt.value.filter);
+                                                setSelectedSort(opt.value.sort);
+                                            }}
+                                        >
+                                            <Ionicons name={opt.icon} size={16} color={isSelected ? catTheme.color : theme.textSecondary} />
+                                            <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: catTheme.color, fontWeight: '700' }]}>
+                                                {opt.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
                         </View>
 
-                        {/* Content Type Section */}
+                        {/* Section 2: Author Anonymity */}
                         <View style={styles.modalSection}>
-                            <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Content Type</Text>
-                            <View style={styles.modalOptionsColumn}>
+                            <Text style={[styles.modalSectionTitle, { color: theme.textSecondary }]}>AUTHOR PRIVACY</Text>
+                            <View style={styles.modalChipsRow}>
                                 <TouchableOpacity
                                     style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        showAnonymousOnly && styles.modalOptionActive,
+                                        styles.modalChip,
+                                        { backgroundColor: theme.isDark ? '#2D2D2D' : '#F3F4F6', borderColor: theme.border },
+                                        showAnonymousOnly && { backgroundColor: catTheme.bgColor, borderColor: catTheme.color }
                                     ]}
+                                    delayPressIn={0}
                                     onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
                                 >
-                                    <Ionicons
-                                        name="eye-off-outline"
-                                        size={20}
-                                        color={showAnonymousOnly ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            showAnonymousOnly && styles.modalOptionTextActive,
-                                        ]}
-                                    >
+                                    <Ionicons name="eye-off-outline" size={16} color={showAnonymousOnly ? catTheme.color : theme.textSecondary} />
+                                    <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: catTheme.color, fontWeight: '700' }]}>
                                         Anonymous Stories Only
                                     </Text>
-                                    {showAnonymousOnly && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
                                 </TouchableOpacity>
                             </View>
                         </View>
 
-                        {/* Mood Section */}
+                        {/* Section 3: Filter by Mood */}
                         <View style={styles.modalSection}>
-                            <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Filter by Mood</Text>
-                            <View style={styles.modalOptionsColumn}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        selectedMood === "depression" && styles.modalOptionActive,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedMood(selectedMood === "depression" ? null : "depression");
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="sad-outline"
-                                        size={20}
-                                        color={selectedMood === "depression" ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            selectedMood === "depression" && styles.modalOptionTextActive,
-                                        ]}
-                                    >
-                                        Depression
-                                    </Text>
-                                    {selectedMood === "depression" && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalOption,
-                                        { backgroundColor: theme.isDark ? '#0A0A0A' : '#FFFFFF', borderColor: theme.border },
-                                        selectedMood === "happiness" && styles.modalOptionActive,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedMood(selectedMood === "happiness" ? null : "happiness");
-                                    }}
-                                >
-                                    <Ionicons
-                                        name="happy-outline"
-                                        size={20}
-                                        color={selectedMood === "happiness" ? "#9B8BC9" : theme.textSecondary}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.modalOptionText,
-                                            { color: theme.text },
-                                            selectedMood === "happiness" && styles.modalOptionTextActive,
-                                        ]}
-                                    >
-                                        Happiness
-                                    </Text>
-                                    {selectedMood === "happiness" && (
-                                        <Ionicons name="checkmark" size={20} color="#9B8BC9" style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
+                            <Text style={[styles.modalSectionTitle, { color: theme.textSecondary }]}>FILTER BY MOOD</Text>
+                            <View style={styles.modalChipsRow}>
+                                {[
+                                    { label: "All Moods", value: null, icon: "analytics-outline" },
+                                    { label: "Venting (-100 to 0)", value: "depression", icon: "sad-outline" },
+                                    { label: "Happiness (0 to 100)", value: "happiness", icon: "happy-outline" },
+                                ].map((opt) => {
+                                    const isSelected = selectedMood === opt.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={opt.label}
+                                            style={[
+                                                styles.modalChip,
+                                                { backgroundColor: theme.isDark ? '#2D2D2D' : '#F3F4F6', borderColor: theme.border },
+                                                isSelected && { backgroundColor: catTheme.bgColor, borderColor: catTheme.color }
+                                            ]}
+                                            delayPressIn={0}
+                                            onPress={() => setSelectedMood(opt.value)}
+                                        >
+                                            <Ionicons name={opt.icon} size={16} color={isSelected ? catTheme.color : theme.textSecondary} />
+                                            <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: catTheme.color, fontWeight: '700' }]}>
+                                                {opt.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
                         </View>
 
-                        {/* Apply Button */}
-                        <TouchableOpacity
-                            style={styles.applyButton}
-                            onPress={() => setShowFilterModal(false)}
-                        >
-                            <Text style={styles.applyButtonText}>Apply</Text>
-                        </TouchableOpacity>
+                        {/* Actions */}
+                        <View style={styles.modalFooter}>
+                            <TouchableOpacity
+                                style={[styles.modalResetBtn, { borderColor: theme.border, borderWidth: 1 }]}
+                                delayPressIn={0}
+                                onPress={() => {
+                                    setSelectedFilter("latest");
+                                    setSelectedSort("recent");
+                                    setSelectedMood(null);
+                                    setShowAnonymousOnly(false);
+                                }}
+                            >
+                                <Text style={[styles.modalResetText, { color: theme.text }]}>Reset</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalApplyBtn, { backgroundColor: catTheme.color }]}
+                                delayPressIn={0}
+                                onPress={() => setShowFilterModal(false)}
+                            >
+                                <Text style={[styles.modalApplyText, { color: theme.isDark ? '#000' : '#FFF' }]}>Apply Settings</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -542,81 +536,96 @@ export default function CommunityDetail() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    categoryHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 12,
-        gap: 12,
+    heroContainer: {
+        position: 'relative',
+        paddingBottom: 0,
     },
-    backButton: {
+    heroBanner: {
+        height: 120,
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        paddingRight: 32,
+        overflow: 'hidden',
+    },
+    heroWatermark: {
+        opacity: 0.12,
+        transform: [{ rotate: '-15deg' }],
+        position: 'absolute',
+        right: -10,
+        bottom: -20,
+    },
+    navHeader: {
+        position: 'absolute',
+        top: 12,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        zIndex: 100,
+    },
+    roundBackBtn: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    communityDetailsCard: {
+        marginHorizontal: 16,
+        marginTop: -30,
+        borderRadius: 20,
+        borderWidth: 1,
+        padding: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 10,
+    },
+    emblemBadge: {
         width: 36,
         height: 36,
-        justifyContent: "center",
-        alignItems: "center",
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    categoryHeaderContent: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
+    communityTitleText: {
+        fontSize: 22,
+        fontWeight: '800',
     },
-    categoryHeaderTextContainer: {
-        flex: 1,
+    communityDescriptionText: {
+        fontSize: 13,
+        lineHeight: 18,
+        fontStyle: 'italic',
     },
-    categoryHeaderIcon: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "rgba(255,255,255,0.25)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    categoryHeaderTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#FFF",
-        marginBottom: 2,
-    },
-    categoryHeaderQuote: {
-        fontSize: 12,
-        color: "rgba(255,255,255,0.85)",
-        fontStyle: "italic",
-    },
-    categoryFilters: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 20,
+    filtersContainer: {
         paddingVertical: 12,
+        borderBottomWidth: 1,
+        marginBottom: 8,
+    },
+    filtersScrollContent: {
+        paddingHorizontal: 16,
         gap: 10,
     },
-    filterButton: {
-        flexDirection: "row",
-        alignItems: "center",
+    filterPill: {
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
-        gap: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'transparent',
     },
-    filterButtonText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#6B7280",
-    },
-    clearFilterButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: "#E8E4F3",
-        gap: 6,
-    },
-    clearFilterText: {
+    filterPillText: {
         fontSize: 13,
-        fontWeight: "600",
-        color: "#9B8BC9",
+        fontWeight: '600',
     },
     modalOverlay: {
         flex: 1,
@@ -624,7 +633,6 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
     },
     modalContent: {
-        backgroundColor: "#FFFFFF",
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         paddingTop: 20,
@@ -636,20 +644,24 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 24,
+        paddingBottom: 16,
+        marginBottom: 20,
     },
     modalTitle: {
-        fontSize: 22,
-        fontWeight: "700",
-        color: "#1F2937",
+        fontSize: 20,
+        fontWeight: "800",
+        letterSpacing: -0.5,
+    },
+    modalCloseBtn: {
+        padding: 4,
     },
     modalSection: {
-        marginBottom: 28,
+        marginBottom: 24,
     },
     modalSectionTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#374151",
+        fontSize: 11,
+        fontWeight: "800",
+        letterSpacing: 1,
         marginBottom: 12,
     },
     modalChipsRow: {
@@ -658,68 +670,54 @@ const styles = StyleSheet.create({
         flexWrap: "wrap",
     },
     modalChip: {
-        paddingHorizontal: 18,
+        paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
-        backgroundColor: "#F3F4F6",
         borderWidth: 1,
-        borderColor: "#E5E7EB",
-    },
-    modalChipActive: {
-        backgroundColor: "#E8E4F3",
-        borderColor: "#9B8BC9",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
     },
     modalChipText: {
         fontSize: 13,
-        fontWeight: "700",
-        color: "#6B7280",
-        letterSpacing: 0.5,
-    },
-    modalChipTextActive: {
-        color: "#9B8BC9",
-    },
-    modalOptionsColumn: {
-        gap: 8,
-    },
-    modalOption: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderRadius: 12,
-        backgroundColor: "#F9FAFB",
-        gap: 12,
-    },
-    modalOptionActive: {
-        backgroundColor: "#E8E4F3",
-    },
-    modalOptionText: {
-        fontSize: 15,
-        fontWeight: "500",
-        color: "#374151",
-    },
-    modalOptionTextActive: {
-        color: "#9B8BC9",
         fontWeight: "600",
     },
-    applyButton: {
-        backgroundColor: "#9B8BC9",
-        paddingVertical: 16,
-        borderRadius: 16,
-        alignItems: "center",
-        marginTop: 12,
+    modalFooter: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 20,
     },
-    applyButtonText: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#FFFFFF",
+    modalResetBtn: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    postsListContainer: { paddingTop: 12, paddingBottom: 100, paddingHorizontal: 16 },
+    modalResetText: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    modalApplyBtn: {
+        flex: 2,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#9575cd',
+    },
+    modalApplyText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    postsListContainer: { paddingTop: 12, paddingBottom: 100 },
     postItemList: { marginBottom: 12 },
     emptyState: {
         alignItems: "center",
         justifyContent: "center",
         paddingVertical: 60,
+        paddingHorizontal: 32,
     },
     emptyStateTitle: {
         fontSize: 18,

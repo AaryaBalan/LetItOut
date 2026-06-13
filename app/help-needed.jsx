@@ -12,12 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Loading from "../components/Loading";
 import PostCard from "../components/PostCard";
 import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 
 export default function HelpNeeded() {
     const router = useRouter();
-    const { user: currentUser } = useAuth();
     const { theme } = useTheme();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);

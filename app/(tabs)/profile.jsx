@@ -31,19 +31,28 @@ import PostCard from "../../components/PostCard";
 import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function Profile() {
   const router = useRouter();
+  const { showTabBar } = useTabBar();
   const { user, logout } = useAuth();
   const { theme } = useTheme();
+
+  // Ensure tab bar is shown when entering the profile screen
+  useEffect(() => {
+    showTabBar();
+  }, [showTabBar]);
+
   const [userPosts, setUserPosts] = useState([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
   const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
   const [showAllHistoryModal, setShowAllHistoryModal] = useState(false);
-  const [postReactions, setPostReactions] = useState({});
   const [supportiveHistory, setSupportiveHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingSaved, setLoadingSaved] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [profileCode, setProfileCode] = useState(
@@ -57,12 +66,14 @@ export default function Profile() {
   const [friendsList, setFriendsList] = useState([]);
   const [isLoadingFriends, setIsLoadingFriends] = useState(false);
   const [savedPosts, setSavedPosts] = useState([]);
-  const [loadingSavedPosts, setLoadingSavedPosts] = useState(true);
   const [showAllSavedModal, setShowAllSavedModal] = useState(false);
 
   // Listen to user profile changes in real-time
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoadingProfile(false);
+      return;
+    }
 
     setProfileCode(user.profileCode || user.email || "");
 
@@ -74,9 +85,11 @@ export default function Profile() {
         if (docSnap.exists()) {
           setUserProfile(docSnap.data());
         }
+        setLoadingProfile(false);
       },
       (error) => {
         console.error("Error listening to user profile:", error);
+        setLoadingProfile(false);
       }
     );
 
@@ -188,38 +201,6 @@ export default function Profile() {
 
     return () => unsubscribe();
   }, [user]);
-
-  // Fetch reaction counts for user's posts in real-time
-  useEffect(() => {
-    if (!user || userPosts.length === 0) return;
-
-    const postIds = userPosts.map((p) => String(p.id));
-    const reactionsRef = collection(db, "reactions");
-
-    // Create listeners for each post's reactions
-    const unsubscribes = postIds.map((postId) => {
-      const q = query(reactionsRef, where("postId", "==", postId));
-
-      return onSnapshot(q, (snapshot) => {
-        const counts = { like: 0, hug: 0, metoo: 0 };
-        snapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          if (data.type === "like") counts.like++;
-          else if (data.type === "hug") counts.hug++;
-          else if (data.type === "metoo") counts.metoo++;
-        });
-
-        setPostReactions((prev) => ({
-          ...prev,
-          [postId]: counts,
-        }));
-      });
-    });
-
-    return () => {
-      unsubscribes.forEach((unsub) => unsub());
-    };
-  }, [user, userPosts.map((p) => p.id).join(",")]);
 
   // Fetch user's supportive history (reactions and comments) in real-time
   useEffect(() => {
@@ -429,7 +410,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchSavedPosts = async () => {
       if (!user) {
-        setLoadingSavedPosts(false);
+        setLoadingSaved(false);
         return;
       }
 
@@ -441,7 +422,7 @@ export default function Profile() {
 
           if (savedPostIds.length === 0) {
             setSavedPosts([]);
-            setLoadingSavedPosts(false);
+            setLoadingSaved(false);
             return;
           }
 
@@ -457,11 +438,13 @@ export default function Profile() {
           const posts = await Promise.all(postsPromises);
           const validPosts = posts.filter(post => post !== null);
           setSavedPosts(validPosts);
+        } else {
+          setSavedPosts([]);
         }
       } catch (error) {
         console.error("Error fetching saved posts:", error);
       } finally {
-        setLoadingSavedPosts(false);
+        setLoadingSaved(false);
       }
     };
 
@@ -470,17 +453,48 @@ export default function Profile() {
 
   const getTimeAgo = (timestamp) => {
     if (!timestamp) return "Just now";
+
+    if (typeof timestamp === 'string') {
+      if (timestamp === 'Just now') return timestamp;
+      const match = timestamp.match(/^(\d+)d ago$/);
+      if (match) {
+        const days = parseInt(match[1], 10);
+        if (days >= 7) {
+          const weeks = Math.floor(days / 7);
+          const months = Math.floor(days / 30);
+          const years = Math.floor(days / 365);
+          if (days < 30) return `${weeks}w ago`;
+          if (days < 365) return `${months}mon ago`;
+          return `${years}yr ago`;
+        }
+      }
+      const parsedDate = new Date(timestamp);
+      if (isNaN(parsedDate.getTime())) {
+        return timestamp;
+      }
+      timestamp = parsedDate;
+    }
+
+    const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+    if (isNaN(postDate.getTime())) return "Just now";
+
     const now = new Date();
-    const postDate = new Date(timestamp);
     const diffInMs = now - postDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    const diffInYears = Math.floor(diffInDays / 365);
 
     if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    return `${diffInDays}d ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInDays < 30) return `${diffInWeeks}w ago`;
+    if (diffInDays < 365) return `${diffInMonths}mon ago`;
+    return `${diffInYears}yr ago`;
   };
 
   const getHistoryCardTextColor = (type) => {
@@ -571,7 +585,21 @@ export default function Profile() {
       </SafeAreaView>
     );
   }
+  const isPageLoading = loadingProfile || loadingPosts || loadingHistory || loadingSaved;
 
+  if (isPageLoading) {
+    return (
+      <TabScreenWrapper>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
+          <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
+          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+          <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontWeight: '600' }}>
+            Loading Profile...
+          </Text>
+        </SafeAreaView>
+      </TabScreenWrapper>
+    );
+  }
   const joinDate = user.metadata?.creationTime
     ? formatJoinDate(user.metadata.creationTime)
     : user.createdAt
@@ -602,7 +630,7 @@ export default function Profile() {
 
         <ScrollView
           style={[styles.scrollView, { backgroundColor: theme.background }]}
-          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
+          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background, paddingBottom: 80 }]}
           showsVerticalScrollIndicator={false}
         >
           {/* Profile Card */}
@@ -843,11 +871,6 @@ export default function Profile() {
 
               <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
                 {userPosts.map((post) => {
-                  const reactions = postReactions[post.id] || {
-                    like: 0,
-                    hug: 0,
-                    metoo: 0,
-                  };
                   const postData = {
                     ...post,
                     timestamp: getTimeAgo(post.createdAt),
@@ -957,7 +980,7 @@ export default function Profile() {
                     </Text>
                     {item.type === "comment" ? (
                       <Text style={[styles.historyText, { color: theme.textSecondary }]}>
-                        "{item.comment}" in "{item.postTitle}"
+                        &ldquo;{item.comment}&rdquo; in &ldquo;{item.postTitle}&rdquo;
                       </Text>
                     ) : (
                       <Text style={[styles.historyText, { color: theme.textSecondary }]}>
@@ -1514,14 +1537,6 @@ const styles = StyleSheet.create({
   friendBio: {
     fontSize: 13,
     color: "#9E9E9E",
-  },
-  emptyState: {
-    padding: 40,
-    alignItems: "center",
-  },
-  emptyStateText: {
-    color: "#9E9E9E",
-    fontSize: 14,
   },
   summaryCard: {
     backgroundColor: "#FFFFFF",
