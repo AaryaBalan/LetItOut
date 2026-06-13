@@ -297,16 +297,14 @@ export default function PostCard({ post, hideDescription = false }) {
                                 <Ionicons name="happy" size={14} color="#66BB6A" />
                                 <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
                             </View>
-                        </View>
 
-                        <View style={styles.rightFooter}>
-                            <View style={[styles.actionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
+                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
                                 <Ionicons
                                     name="chatbubble-outline"
                                     size={14}
                                     color={theme.textSecondary}
                                 />
-                                <Text style={[styles.commentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
+                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{commentCount}</Text>
                             </View>
                         </View>
                     </View>

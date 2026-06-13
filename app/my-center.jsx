@@ -28,7 +28,7 @@ export default function MyCenter() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
   const [commentsByPost, setCommentsByPost] = useState({});
-  const [activeTab, setActiveTab] = useState("posts"); // "posts" or "comments"
+  const [activeTab, setActiveTab] = useState("posts"); // "posts" or "insights"
   const [selectedPost, setSelectedPost] = useState(null); // Selected post for comments detail view
   const [ratingFeedback, setRatingFeedback] = useState({}); // Track saved status: { [commentId]: 'Saved!' }
   const [expandedCommentId, setExpandedCommentId] = useState(null);
@@ -248,19 +248,6 @@ export default function MyCenter() {
     return Math.max(-100, Math.min(100, cumulative));
   };
 
-  // Compile all comments across all posts for the Comments Tab
-  const getAllComments = () => {
-    const all = Object.values(commentsByPost).flat();
-    return all.sort((a, b) => {
-      const aTime = a.createdAt?.seconds 
-        ? a.createdAt.seconds * 1000 
-        : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-      const bTime = b.createdAt?.seconds 
-        ? b.createdAt.seconds * 1000 
-        : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-      return bTime - aTime;
-    });
-  };
 
   // Custom visualizer for mood shift
   const renderMoodShiftTrack = (post, isMini = false) => {
@@ -357,7 +344,40 @@ export default function MyCenter() {
     );
   }
 
-  const allCommentsList = getAllComments();
+  const avgShift = (() => {
+    if (posts.length === 0) return 0;
+    const totalShift = posts.reduce((sum, post) => {
+      const initial = post.feelPercentage ?? 0;
+      const current = getPostCumulativeScore(post);
+      return sum + (current - initial);
+    }, 0);
+    return Math.round(totalShift / posts.length);
+  })();
+
+  const getPostInsights = (post) => {
+    const comments = commentsByPost[post.id] || [];
+    const initial = post.feelPercentage ?? 0;
+    const current = getPostCumulativeScore(post);
+    const shift = current - initial;
+    
+    let bestComment = null;
+    let maxRating = -Infinity;
+    comments.forEach((c) => {
+      if (c.perspectiveRating !== undefined && c.perspectiveRating > maxRating) {
+        maxRating = c.perspectiveRating;
+        bestComment = c;
+      }
+    });
+
+    return {
+      initial,
+      current,
+      shift,
+      bestComment,
+      hasComments: comments.length > 0,
+      hasRatedComments: comments.some(c => c.perspectiveRating !== undefined)
+    };
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
@@ -383,7 +403,6 @@ export default function MyCenter() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Segmented Tab Bar (Only visible when no post is selected) */}
       {!selectedPost && (
         <View style={[styles.tabBar, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
           <TouchableOpacity
@@ -397,12 +416,12 @@ export default function MyCenter() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tabItem, activeTab === "comments" && [styles.activeTabItem, { borderBottomColor: "#9575cd" }]]}
-            onPress={() => setActiveTab("comments")}
+            style={[styles.tabItem, activeTab === "insights" && [styles.activeTabItem, { borderBottomColor: "#9575cd" }]]}
+            onPress={() => setActiveTab("insights")}
           >
-            <Ionicons name="chatbubbles-outline" size={18} color={activeTab === "comments" ? "#9575cd" : theme.textSecondary} />
-            <Text style={[styles.tabText, { color: activeTab === "comments" ? "#9575cd" : theme.textSecondary }, activeTab === "comments" && styles.activeTabText]}>
-              Comments
+            <Ionicons name="analytics-outline" size={18} color={activeTab === "insights" ? "#9575cd" : theme.textSecondary} />
+            <Text style={[styles.tabText, { color: activeTab === "insights" ? "#9575cd" : theme.textSecondary }, activeTab === "insights" && styles.activeTabText]}>
+              Insights
             </Text>
           </TouchableOpacity>
         </View>
@@ -545,6 +564,16 @@ export default function MyCenter() {
       ) : activeTab === "posts" ? (
         // --- 2. POSTS LIST TAB ---
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Welcoming explanation card */}
+          <View style={[styles.explanationCard, { backgroundColor: theme.isDark ? '#222030' : '#E8E5F8', borderColor: theme.border }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 8 }}>
+              <Ionicons name="journal-outline" size={18} color="#9575cd" />
+              <Text style={[styles.explanationTitle, { color: theme.text }]}>Perspective Journals</Text>
+            </View>
+            <Text style={[styles.explanationText, { color: theme.textSecondary }]}>
+              Below are the feelings you&apos;ve shared. Click any post to view replies and rate how their comments shifted your perspective.
+            </Text>
+          </View>
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}>
@@ -594,121 +623,144 @@ export default function MyCenter() {
                   </Text>
 
                   {/* MINI MOOD SHIFT TRACK */}
-                  {renderMoodShiftTrack(post, true)}
+                  <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 8 }}>
+                    <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', marginBottom: 4 }}>
+                      Perspective Shift Tracking
+                    </Text>
+                    {renderMoodShiftTrack(post, true)}
+                  </View>
                 </TouchableOpacity>
               );
             })
           )}
         </ScrollView>
       ) : (
-        // --- 3. ALL COMMENTS LIST TAB ---
+        // --- 3. INSIGHTS TAB ---
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {allCommentsList.length === 0 ? (
+          {/* How Insights Work */}
+          <View style={[styles.insightsExplanationBox, { backgroundColor: theme.isDark ? '#222030' : '#E8E5F8', borderColor: theme.border }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+              <Ionicons name="bulb-outline" size={22} color="#9575cd" />
+              <Text style={[styles.insightsTitle, { color: theme.text }]}>How Insights Work</Text>
+            </View>
+            <Text style={[styles.insightsDescription, { color: theme.textSecondary }]}>
+              Whenever you share a post, we log your initial mood (-100 to +100). When others leave comments, you can expand them in the &quot;Posts&quot; tab and use the slider to rate how they shifted your perspective.
+            </Text>
+            <Text style={[styles.insightsDescription, { color: theme.textSecondary, marginTop: 6 }]}>
+              We calculate your emotional shift to show how community support helps you transform negative feelings into positive clarity and growth!
+            </Text>
+          </View>
+
+          {/* Stats Grid */}
+          <View style={styles.statsGrid}>
+            <View style={[styles.statItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.statVal, { color: "#9575cd" }]}>{posts.length}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Posts Shared</Text>
+            </View>
+
+            <View style={[styles.statItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.statVal, { color: avgShift >= 0 ? '#66BB6A' : '#E57373' }]}>
+                {avgShift >= 0 ? `+${avgShift}` : avgShift}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Avg Perspective Shift</Text>
+            </View>
+
+            <View style={[styles.statItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.statVal, { color: theme.text }]}>
+                {Object.values(commentsByPost).flat().filter(c => c.perspectiveRating !== undefined).length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Perspectives Rated</Text>
+            </View>
+          </View>
+
+          {/* Post Insights Breakdown */}
+          <Text style={[styles.commentsSectionTitle, { color: theme.text, marginTop: 12 }]}>
+            Post-by-Post Insights
+          </Text>
+
+          {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}>
-                <Ionicons name="chatbubbles-outline" size={48} color="#9575cd" />
+                <Ionicons name="analytics-outline" size={48} color="#9575cd" />
               </View>
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>No Comments Yet</Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>No Insights Yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                You haven&apos;t received any comments on your posts yet.
+                Create your first post and receive support comments to see perspective insights!
               </Text>
             </View>
           ) : (
-            allCommentsList.map((comment) => {
-              const matchingPost = posts.find((p) => p.id === comment.postId);
-              const baselineVal = matchingPost ? (matchingPost.feelPercentage ?? 0) : 0;
-              const currentVal = comment.perspectiveRating !== undefined ? comment.perspectiveRating : baselineVal;
+            posts.map((post) => {
+              const { initial, current, bestComment, hasComments, hasRatedComments } = getPostInsights(post);
               return (
-                <TouchableOpacity 
-                  key={comment.id} 
-                  activeOpacity={0.9}
-                  onPress={() => setExpandedCommentId(prev => prev === comment.id ? null : comment.id)}
-                  style={styles.timelineCommentItem}
-                >
-                  <View style={styles.timelineLeftColumn}>
-                    <Avatar seed={comment.commentorAvatar || comment.commentorName} size={32} />
-                    <View style={[styles.timelineVerticalLine, { backgroundColor: theme.divider }]} />
-                  </View>
-
-                  <View style={styles.timelineRightColumn}>
-                    {/* Context note about which post this comment was sent to */}
-                    <View style={[styles.postContextRow, { backgroundColor: theme.isDark ? '#1C1C1E' : '#F2F2F7', marginBottom: 8 }]}>
-                      <Text style={[styles.postContextText, { color: theme.textSecondary }]} numberOfLines={1}>
-                        On: <Text style={{ fontWeight: "700", color: theme.text }}>{comment.postTitle}</Text>
+                <View key={post.id} style={[styles.insightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  {/* Insight Card Header */}
+                  <View style={styles.postHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.insightCardTitle, { color: theme.text }]} numberOfLines={1}>
+                        {post.title}
+                      </Text>
+                      <View style={{ flexDirection: 'row', marginTop: 4, alignItems: 'center', gap: 8 }}>
+                        <View style={[styles.categoryBadge, { backgroundColor: getCategoryColors(post.category, theme.isDark).bg }]}>
+                          <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
+                            {getCategoryLabel(post.category)}
+                          </Text>
+                        </View>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>
+                          {formatTimestamp(post.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={[styles.moodBadge, { backgroundColor: getMoodColor(current) + "15" }]}>
+                      <Text style={[styles.moodText, { color: getMoodColor(current) }]}>
+                        {current > 0 ? `+${current}` : current}
                       </Text>
                     </View>
-
-                    <View style={styles.commentHeader}>
-                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={[styles.commentorName, { color: theme.text }]}>
-                          {comment.commentorName}
-                        </Text>
-                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>
-                          • {formatTimestamp(comment.createdAt)}
-                        </Text>
-                      </View>
-                      {ratingFeedback[comment.id] && (
-                        <View style={styles.savedBadge}>
-                          <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
-                        </View>
-                      )}
-                      <Ionicons 
-                        name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"} 
-                        size={18} 
-                        color={theme.textTertiary} 
-                      />
-                    </View>
-
-                    <Text style={[styles.commentText, { color: theme.textSecondary }]}>
-                      {comment.text}
-                    </Text>
-
-                    {expandedCommentId === comment.id && (
-                      <View style={styles.ratingSection}>
-                        <View style={[styles.reflectionNote, { backgroundColor: theme.isDark ? '#2C2A3A' : '#F3E5F5', borderColor: theme.border }]}>
-                          <Ionicons name="bulb-outline" size={16} color="#9575cd" style={{ marginRight: 6 }} />
-                          <Text style={[styles.reflectionNoteText, { color: theme.textSecondary }]}>
-                            How did this comment shift your perspective or state of mind? Adjust the slider below.
-                          </Text>
-                        </View>
-
-                        <View style={styles.ratingLabelRow}>
-                          <Text style={[styles.ratingLabel, { color: theme.textSecondary }]}>
-                            Perspective:
-                          </Text>
-                          <Text style={[styles.ratingValue, { color: getMoodColor(currentVal) }]}>
-                            {currentVal === 0
-                              ? "Neutral (0)"
-                              : currentVal < 0
-                              ? `Negative (${currentVal})`
-                              : `Positive (+${currentVal})`}
-                          </Text>
-                        </View>
-
-                        <Slider
-                          style={styles.slider}
-                          minimumValue={-100}
-                          maximumValue={100}
-                          step={5}
-                          value={currentVal}
-                          onSlidingComplete={(val) => {
-                            const postObj = matchingPost || { id: comment.postId, title: comment.postTitle, feelPercentage: 0 };
-                            handleRatingChange(postObj, comment, val);
-                          }}
-                          minimumTrackTintColor="#7986CB"
-                          maximumTrackTintColor="#FFB74D"
-                          thumbTintColor="#9575cd"
-                        />
-
-                        <View style={styles.ticksRow}>
-                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
-                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
-                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
-                        </View>
-                      </View>
-                    )}
                   </View>
-                </TouchableOpacity>
+
+                  {/* Visual Mood Shift */}
+                  {renderMoodShiftTrack(post, true)}
+
+                  {/* Reflection & Perspective Info */}
+                  <View style={styles.insightDivider} />
+                  
+                  {hasRatedComments && bestComment ? (
+                    <View>
+                      <Text style={[styles.insightLabel, { color: theme.textSecondary }]}>
+                        Top Perspective Shifter
+                      </Text>
+                      <View style={[styles.insightQuoteBox, { backgroundColor: theme.isDark ? '#2C2C2E' : '#F2F2F7' }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <Avatar seed={bestComment.commentorAvatar || bestComment.commentorName} size={22} />
+                          <Text style={[styles.insightQuoteAuthor, { color: theme.text }]} numberOfLines={1}>
+                            {bestComment.commentorName}
+                          </Text>
+                          <View style={[styles.shiftIndicator, { backgroundColor: bestComment.perspectiveRating > initial ? (theme.isDark ? '#1B4D22' : '#E8F5E9') : (theme.isDark ? '#37474F' : '#ECEFF1') }]}>
+                            <Text style={[styles.shiftIndicatorText, { color: bestComment.perspectiveRating > initial ? (theme.isDark ? '#81C784' : '#2E7D32') : (theme.isDark ? '#CFD8DC' : '#78909C') }]}>
+                              {bestComment.perspectiveRating > initial ? `+${bestComment.perspectiveRating - initial} shift` : 'Neutral'}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={[styles.insightQuoteText, { color: theme.textSecondary }]} numberOfLines={2}>
+                          &ldquo;{bestComment.text}&rdquo;
+                        </Text>
+                      </View>
+                    </View>
+                  ) : hasComments ? (
+                    <View style={styles.insightNotice}>
+                      <Ionicons name="information-circle-outline" size={16} color="#9575cd" />
+                      <Text style={[styles.insightNoticeText, { color: theme.textSecondary }]}>
+                        Comments received! Select this post under the Posts tab to rate how they shifted your perspective.
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.insightNotice}>
+                      <Ionicons name="chatbubbles-outline" size={16} color={theme.textTertiary} />
+                      <Text style={[styles.insightNoticeText, { color: theme.textTertiary }]}>
+                        No comments received yet. Share this post in chats to connect with friends!
+                      </Text>
+                    </View>
+                  )}
+                </View>
               );
             })
           )}
@@ -1092,6 +1144,121 @@ const styles = StyleSheet.create({
   reflectionNoteText: {
     fontSize: 11,
     fontWeight: "600",
+    flex: 1,
+    lineHeight: 16,
+  },
+  explanationCard: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  explanationTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  explanationText: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  insightsExplanationBox: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  insightsTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  insightsDescription: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  statItem: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statVal: {
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  insightCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  insightCardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  insightDivider: {
+    height: 1,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    marginVertical: 12,
+  },
+  insightLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+    marginBottom: 8,
+  },
+  insightQuoteBox: {
+    padding: 10,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  insightQuoteAuthor: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  insightQuoteText: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: "italic",
+  },
+  shiftIndicator: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  shiftIndicatorText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  insightNotice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+  },
+  insightNoticeText: {
+    fontSize: 11,
     flex: 1,
     lineHeight: 16,
   },
