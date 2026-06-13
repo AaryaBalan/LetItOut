@@ -478,17 +478,49 @@ export default function PostDetail() {
 
     // Helper function to calculate time ago
     const getTimeAgo = (timestamp) => {
+        if (!timestamp) return "Just now";
+
+        if (typeof timestamp === 'string') {
+            if (timestamp === 'Just now') return timestamp;
+            const match = timestamp.match(/^(\d+)d ago$/);
+            if (match) {
+                const days = parseInt(match[1], 10);
+                if (days >= 7) {
+                    const weeks = Math.floor(days / 7);
+                    const months = Math.floor(days / 30);
+                    const years = Math.floor(days / 365);
+                    if (days < 30) return `${weeks}w ago`;
+                    if (days < 365) return `${months}mon ago`;
+                    return `${years}yr ago`;
+                }
+            }
+            const parsedDate = new Date(timestamp);
+            if (isNaN(parsedDate.getTime())) {
+                return timestamp;
+            }
+            timestamp = parsedDate;
+        }
+
+        const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+        if (isNaN(postDate.getTime())) return "Just now";
+
         const now = new Date();
-        const postDate = new Date(timestamp);
         const diffInMs = now - postDate;
         const diffInMinutes = Math.floor(diffInMs / 60000);
         const diffInHours = Math.floor(diffInMinutes / 60);
         const diffInDays = Math.floor(diffInHours / 24);
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        const diffInMonths = Math.floor(diffInDays / 30);
+        const diffInYears = Math.floor(diffInDays / 365);
 
         if (diffInMinutes < 1) return "Just now";
         if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
         if (diffInHours < 24) return `${diffInHours}h ago`;
-        return `${diffInDays}d ago`;
+        if (diffInDays < 7) return `${diffInDays}d ago`;
+        if (diffInDays < 30) return `${diffInWeeks}w ago`;
+        if (diffInDays < 365) return `${diffInMonths}mon ago`;
+        return `${diffInYears}yr ago`;
     };
 
     // Helper function to build comment tree from flat array
@@ -927,7 +959,7 @@ export default function PostDetail() {
                         style={styles.headerButton}
                         onPress={() => setShowShareModal(true)}
                     >
-                        <Ionicons name="paper-plane-outline" size={24} color={activeTheme.textSecondary} />
+                        <Ionicons name="share-outline" size={24} color={activeTheme.textSecondary} />
                     </TouchableOpacity>
                     {isAuthor && (
                         <TouchableOpacity
@@ -965,7 +997,7 @@ export default function PostDetail() {
                                         {getCategoryLabel(post.category)}
                                     </Text>
                                 </View>
-                                <Text style={[styles.timestamp, { color: activeTheme.textSecondary }]}>{getTimeAgo(post.createdAt?.toDate())}</Text>
+                                <Text style={[styles.timestamp, { color: activeTheme.textSecondary }]}>{post.timestamp}</Text>
                             </View>
 
                             {/* Author Section */}
@@ -1239,7 +1271,7 @@ export default function PostDetail() {
                                             </View>
                                         )}
                                         <Text style={[styles.friendName, { color: activeTheme.text }]}>{item.name}</Text>
-                                        <Ionicons name="paper-plane" size={20} color="#9F8BFF" />
+                                        <Ionicons name="share-outline" size={20} color="#9F8BFF" />
                                     </TouchableOpacity>
                                 )}
                             />

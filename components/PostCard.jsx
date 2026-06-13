@@ -1,20 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import {
-    addDoc,
     collection,
     doc,
     getDoc,
-    getDocs,
-    increment,
     onSnapshot,
     query,
-    serverTimestamp,
-    setDoc,
     where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Alert, FlatList, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -45,14 +40,29 @@ const getCategoryLabel = (category) => {
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Just now";
 
-    // If timestamp is already a formatted string (like "5m ago"), return it
-    if (typeof timestamp === 'string' && (timestamp.includes('ago') || timestamp === 'Just now')) {
-        return timestamp;
+    if (typeof timestamp === 'string') {
+        if (timestamp === 'Just now') return timestamp;
+        const match = timestamp.match(/^(\d+)d ago$/);
+        if (match) {
+            const days = parseInt(match[1], 10);
+            if (days >= 7) {
+                const weeks = Math.floor(days / 7);
+                const months = Math.floor(days / 30);
+                const years = Math.floor(days / 365);
+                if (days < 30) return `${weeks}w ago`;
+                if (days < 365) return `${months}mon ago`;
+                return `${years}yr ago`;
+            }
+        }
+        const parsedDate = new Date(timestamp);
+        if (isNaN(parsedDate.getTime())) {
+            return timestamp;
+        }
+        timestamp = parsedDate;
     }
 
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
 
-    // Check if date is valid
     if (isNaN(date.getTime())) return "Just now";
 
     const now = new Date();
@@ -60,13 +70,17 @@ const formatTimestamp = (timestamp) => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
 
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (diffDays < 30) return `${diffWeeks}w ago`;
+    if (diffDays < 365) return `${diffMonths}mon ago`;
+    return `${diffYears}yr ago`;
 };
 
 export default function PostCard({ post, hideDescription = false }) {
@@ -80,9 +94,7 @@ export default function PostCard({ post, hideDescription = false }) {
     const [comments, setComments] = useState([]);
     const [authorProfileCode, setAuthorProfileCode] = useState(null);
     const [commentorProfiles, setCommentorProfiles] = useState({});
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [friends, setFriends] = useState([]);
-    const [sharing, setSharing] = useState(false);
+
 
     // Fetch author profile code with real-time updates
     useEffect(() => {
@@ -180,110 +192,6 @@ export default function PostCard({ post, hideDescription = false }) {
         return () => unsubscribe();
     }, [post.id]);
 
-
-
-    // Fetch friends list
-    useEffect(() => {
-        if (!user || !showShareModal) return;
-
-        const fetchFriendsList = async () => {
-            try {
-                // Get people following the current user (Accepted)
-                const followersQuery = query(
-                    collection(db, "friends"),
-                    where("followingId", "==", user.uid),
-                    where("status", "==", 1)
-                );
-
-                // Get people the current user is following (Accepted)
-                const followingQuery = query(
-                    collection(db, "friends"),
-                    where("followerId", "==", user.uid),
-                    where("status", "==", 1)
-                );
-
-                const [followersSnap, followingSnap] = await Promise.all([
-                    getDocs(followersQuery),
-                    getDocs(followingQuery)
-                ]);
-
-                // Collect unique User IDs
-                const friendIds = new Set();
-                followersSnap.forEach(doc => friendIds.add(doc.data().followerId));
-                followingSnap.forEach(doc => friendIds.add(doc.data().followingId));
-
-                const ids = Array.from(friendIds);
-
-                // Fetch user profiles
-                const friendsList = [];
-                for (const friendId of ids) {
-                    if (friendId === user.uid) continue;
-
-                    const userDoc = await getDoc(doc(db, "users", friendId));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        friendsList.push({
-                            id: friendId,
-                            name: userData.displayName || "Anonymous",
-                            profileCode: userData.profileCode || userData.email || null,
-                        });
-                    }
-                }
-
-                setFriends(friendsList);
-            } catch (error) {
-                console.error("Error fetching friends:", error);
-            }
-        };
-
-        fetchFriendsList();
-    }, [user, showShareModal]);
-
-    const handleShare = async (friendId) => {
-        if (!user || sharing) return;
-
-        setSharing(true);
-        try {
-            const chatId = [user.uid, friendId].sort().join("_");
-            const chatRef = doc(db, "chats", chatId);
-
-            const shareText = `Check out this post: "${post.title}"\n\n${post.description.substring(0, 100)}${post.description.length > 100 ? '...' : ''}\n\nTap to view: letitout://post/${post.id}`;
-
-            await setDoc(chatRef, {
-                participants: [user.uid, friendId],
-                lastMessage: shareText,
-                lastMessageTimestamp: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                [`unreadCount_${friendId}`]: increment(1),
-            }, { merge: true });
-
-            await addDoc(collection(db, "chats", chatId, "messages"), {
-                text: shareText,
-                senderId: user.uid,
-                senderName: user.displayName || "Anonymous",
-                createdAt: serverTimestamp(),
-                type: "shared_post",
-                sharedPost: {
-                    id: post.id || "",
-                    title: post.title || "Untitled Post",
-                    description: post.description || "",
-                    category: post.category || "General",
-                    timestamp: post.timestamp || "",
-                    authorName: post.authorName || "Anonymous",
-                    isAnonymous: post.isAnonymous ?? true,
-                    authorId: post.authorId || "",
-                }
-            });
-
-            Alert.alert("Success", "Post shared successfully!");
-            setShowShareModal(false);
-        } catch (error) {
-            console.error("Error sharing post:", error);
-            Alert.alert("Error", "Failed to share post");
-        } finally {
-            setSharing(false);
-        }
-    };
 
     return (
         <View style={[styles.cardContainer, { borderBottomColor: theme.isDark ? '#2D2D30' : '#E5E7EB' }]}>
@@ -392,19 +300,6 @@ export default function PostCard({ post, hideDescription = false }) {
                         </View>
 
                         <View style={styles.rightFooter}>
-                            <TouchableOpacity
-                                style={[styles.actionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}
-                                delayPressIn={0}
-                                onPress={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setShowShareModal(true);
-                                }}
-                            >
-                                <Ionicons name="paper-plane-outline" size={14} color="#9F8BFF" />
-                                <Text style={styles.sendText}>Send</Text>
-                            </TouchableOpacity>
-
                             <View style={[styles.actionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
                                 <Ionicons
                                     name="chatbubble-outline"
@@ -415,62 +310,6 @@ export default function PostCard({ post, hideDescription = false }) {
                             </View>
                         </View>
                     </View>
-
-                    {/* Share Modal */}
-                    <Modal
-                        visible={showShareModal}
-                        transparent={true}
-                        animationType="slide"
-                        onRequestClose={() => setShowShareModal(false)}
-                    >
-                        <Pressable
-                            style={styles.modalOverlay}
-                            onPress={() => setShowShareModal(false)}
-                        >
-                            <Pressable style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} onPress={(e) => e.stopPropagation()}>
-                                <View style={[styles.modalHeader, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                        <Ionicons name="share-social-outline" size={22} color={theme.text} />
-                                        <Text style={[styles.modalTitle, { color: theme.text }]}>Share with Friends</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setShowShareModal(false)} style={styles.modalCloseBtn} delayPressIn={0}>
-                                        <Ionicons name="close" size={24} color={theme.textSecondary} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {friends.length === 0 ? (
-                                    <View style={styles.emptyState}>
-                                        <Ionicons name="people-outline" size={48} color={theme.textTertiary} />
-                                        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No friends to share with</Text>
-                                    </View>
-                                ) : (
-                                    <FlatList
-                                        data={friends}
-                                        keyExtractor={(item) => item.id}
-                                        showsVerticalScrollIndicator={false}
-                                        renderItem={({ item }) => (
-                                            <TouchableOpacity
-                                                style={[styles.friendItem, { borderBottomColor: theme.border }]}
-                                                onPress={() => handleShare(item.id)}
-                                                disabled={sharing}
-                                                delayPressIn={0}
-                                            >
-                                                {item.profileCode ? (
-                                                    <Avatar seed={item.profileCode} size={40} />
-                                                ) : (
-                                                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#2D2D2D' : '#EFE8FF' }]}>
-                                                        <Ionicons name="person" size={20} color="#9575cd" />
-                                                    </View>
-                                                )}
-                                                <Text style={[styles.friendName, { color: theme.text }]}>{item.name}</Text>
-                                                <Ionicons name="paper-plane" size={18} color="#9F8BFF" />
-                                            </TouchableOpacity>
-                                        )}
-                                    />
-                                )}
-                            </Pressable>
-                        </Pressable>
-                    </Modal>
                 </TouchableOpacity>
             </Link>
         </View>

@@ -189,14 +189,29 @@ export default function MyCenter() {
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Just now";
 
-    // If timestamp is already a formatted string (like "5m ago"), return it
-    if (typeof timestamp === 'string' && (timestamp.includes('ago') || timestamp === 'Just now')) {
-      return timestamp;
+    if (typeof timestamp === 'string') {
+      if (timestamp === 'Just now') return timestamp;
+      const match = timestamp.match(/^(\d+)d ago$/);
+      if (match) {
+        const days = parseInt(match[1], 10);
+        if (days >= 7) {
+          const weeks = Math.floor(days / 7);
+          const months = Math.floor(days / 30);
+          const years = Math.floor(days / 365);
+          if (days < 30) return `${weeks}w ago`;
+          if (days < 365) return `${months}mon ago`;
+          return `${years}yr ago`;
+        }
+      }
+      const parsedDate = new Date(timestamp);
+      if (isNaN(parsedDate.getTime())) {
+        return timestamp;
+      }
+      timestamp = parsedDate;
     }
 
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
 
-    // Check if date is valid
     if (isNaN(date.getTime())) return "Just now";
 
     const now = new Date();
@@ -204,13 +219,17 @@ export default function MyCenter() {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
 
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (diffDays < 30) return `${diffWeeks}w ago`;
+    if (diffDays < 365) return `${diffMonths}mon ago`;
+    return `${diffYears}yr ago`;
   };
 
   // Calculate cumulative score: starting mood + sum of all comment deltas relative to starting mood
