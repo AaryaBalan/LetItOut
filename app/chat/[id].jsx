@@ -45,7 +45,7 @@ const getCategoryColor = (category) => {
         Relationship: "#F48FB1",
         Family: "#80CBC4",
     };
-    return colors[category] || "#E0E0E0";
+    return colors[category] || "#E5E7EB";
 };
 
 // SharedPostCard component with live data
@@ -156,7 +156,7 @@ function SharedPostCard({ postData }) {
             <View style={styles.postAuthorSection}>
                 {postData.isAnonymous || !postData.authorName || postData.authorName === "Anonymous" || !authorProfileCode ? (
                     <View style={[styles.postAvatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={16} color="#9575cd" />
+                        <Ionicons name="person" size={16} color="#7C3AED" />
                     </View>
                 ) : (
                     <View style={styles.postAvatarWrapper}>
@@ -431,7 +431,7 @@ export default function ChatScreen() {
                     {/* Reply button on LEFT for MY messages (right-aligned) */}
                     {isMe && isSelected && (
                         <TouchableOpacity style={styles.replyButton} onPress={() => handleReply(item)}>
-                            <Ionicons name="return-up-back" size={24} color="#757575" />
+                            <Ionicons name="return-up-back" size={24} color="#6B7280" />
                         </TouchableOpacity>
                     )}
 
@@ -487,7 +487,7 @@ export default function ChatScreen() {
                     {/* Reply button on RIGHT for THEIR messages (left-aligned) */}
                     {!isMe && isSelected && (
                         <TouchableOpacity style={styles.replyButton} onPress={() => handleReply(item)}>
-                            <Ionicons name="return-up-back" size={24} color="#757575" />
+                            <Ionicons name="return-up-back" size={24} color="#6B7280" />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -505,7 +505,7 @@ export default function ChatScreen() {
                     </TouchableOpacity>
                     {recipient && (
                         <View style={styles.headerAvatar}>
-                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={20} color="#9575cd" /></View>}
+                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={20} color="#7C3AED" /></View>}
                         </View>
                     )}
                 </View>
@@ -541,7 +541,7 @@ export default function ChatScreen() {
                                             {recipient && recipient.profileCode ?
                                                 <Avatar seed={recipient.profileCode} size={80} /> :
                                                 <View style={[styles.defaultHeaderAvatar, { width: 80, height: 80, borderRadius: 40 }]}>
-                                                    <Ionicons name="person" size={40} color="#9575cd" />
+                                                    <Ionicons name="person" size={40} color="#7C3AED" />
                                                 </View>
                                             }
                                             <View style={styles.onlineBadge} />
@@ -576,7 +576,7 @@ export default function ChatScreen() {
                                 <Text numberOfLines={1} style={styles.replyBannerText}>{replyingTo.text}</Text>
                             </View>
                             <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                <Ionicons name="close" size={20} color="#757575" />
+                                <Ionicons name="close" size={20} color="#6B7280" />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
 
     messagesList: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
     dateHeaderContainer: { alignItems: 'center', marginBottom: 10, marginTop: 6 },
-    dateHeaderBadge: { backgroundColor: '#F5F5F5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    dateHeaderBadge: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
     dateHeaderText: { fontSize: 10, fontWeight: "600", color: "#9E9E9E", textTransform: 'uppercase' },
 
     messageRowContainer: {
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
 
     messageText: { fontSize: 15, lineHeight: 20 },
     myMessageText: { color: "#FFFFFF" },
-    theirMessageText: { color: "#212121" },
+    theirMessageText: { color: "#111827" },
 
     timestamp: { fontSize: 10, color: "#9E9E9E", marginTop: 2 },
     myTimestamp: { textAlign: 'right' },
@@ -737,23 +737,23 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F3F4F6",
         borderRadius: 24,
         paddingHorizontal: 4,
         paddingVertical: 4,
         borderWidth: 1,
         borderColor: "#EEEEEE",
     },
-    input: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100, color: "#212121" },
+    input: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100, color: "#111827" },
     sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#9F8BFF", justifyContent: "center", alignItems: "center", shadowColor: "#9F8BFF", shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 },
 
     replyBanner: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', paddingHorizontal: 16, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#E0E0E0'
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', paddingHorizontal: 16, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#E5E7EB'
     },
     replyBannerLine: { width: 4, height: 36, backgroundColor: '#9F8BFF', borderRadius: 2, marginRight: 12 },
     replyBannerContent: { flex: 1 },
     replyBannerSender: { fontSize: 12, fontWeight: '700', color: '#9F8BFF', marginBottom: 2 },
-    replyBannerText: { fontSize: 12, color: '#757575' },
+    replyBannerText: { fontSize: 12, color: '#6B7280' },
 
     replyPreview: {
         marginBottom: 6,
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
     postCategoryText: {
         fontSize: 9,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         letterSpacing: 0.3,
     },
     postTimestamp: {
@@ -848,18 +848,18 @@ const styles = StyleSheet.create({
     postAuthorName: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#9575cd",
+        color: "#7C3AED",
     },
     postTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         marginBottom: 6,
         lineHeight: 20,
     },
     postPreview: {
         fontSize: 13,
-        color: "#757575",
+        color: "#6B7280",
         lineHeight: 18,
         marginBottom: 14,
     },
@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
     postReactionCount: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#757575",
+        color: "#6B7280",
     },
     postCommentSection: {
         flexDirection: "row",
@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
     postCommentCount: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#757575",
+        color: "#6B7280",
     },
     // Empty Chat UI Styles
     emptyChatContainer: {
@@ -918,13 +918,13 @@ const styles = StyleSheet.create({
     emptyChatTitle: {
         fontSize: 20,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         marginBottom: 8,
         textAlign: "center",
     },
     emptyChatSubtitle: {
         fontSize: 14,
-        color: "#757575",
+        color: "#6B7280",
         textAlign: "center",
         marginBottom: 32,
         lineHeight: 20,
@@ -938,6 +938,6 @@ const styles = StyleSheet.create({
     waveButtonText: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#9575cd",
+        color: "#7C3AED",
     },
 });

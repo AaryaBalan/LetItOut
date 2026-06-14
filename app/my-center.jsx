@@ -338,7 +338,7 @@ export default function MyCenter() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
         <View style={styles.loadingContainer}>
-          <Loading size="large" color="#9575cd" />
+          <Loading size="large" color="#7C3AED" />
         </View>
       </SafeAreaView>
     );
@@ -406,21 +406,21 @@ export default function MyCenter() {
       {!selectedPost && (
         <View style={[styles.tabBar, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
           <TouchableOpacity
-            style={[styles.tabItem, activeTab === "posts" && [styles.activeTabItem, { borderBottomColor: "#9575cd" }]]}
+            style={[styles.tabItem, activeTab === "posts" && [styles.activeTabItem, { borderBottomColor: "#7C3AED" }]]}
             onPress={() => setActiveTab("posts")}
           >
-            <Ionicons name="document-text-outline" size={18} color={activeTab === "posts" ? "#9575cd" : theme.textSecondary} />
-            <Text style={[styles.tabText, { color: activeTab === "posts" ? "#9575cd" : theme.textSecondary }, activeTab === "posts" && styles.activeTabText]}>
+            <Ionicons name="document-text-outline" size={18} color={activeTab === "posts" ? "#7C3AED" : theme.textSecondary} />
+            <Text style={[styles.tabText, { color: activeTab === "posts" ? "#7C3AED" : theme.textSecondary }, activeTab === "posts" && styles.activeTabText]}>
               Posts
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tabItem, activeTab === "insights" && [styles.activeTabItem, { borderBottomColor: "#9575cd" }]]}
+            style={[styles.tabItem, activeTab === "insights" && [styles.activeTabItem, { borderBottomColor: "#7C3AED" }]]}
             onPress={() => setActiveTab("insights")}
           >
-            <Ionicons name="analytics-outline" size={18} color={activeTab === "insights" ? "#9575cd" : theme.textSecondary} />
-            <Text style={[styles.tabText, { color: activeTab === "insights" ? "#9575cd" : theme.textSecondary }, activeTab === "insights" && styles.activeTabText]}>
+            <Ionicons name="analytics-outline" size={18} color={activeTab === "insights" ? "#7C3AED" : theme.textSecondary} />
+            <Text style={[styles.tabText, { color: activeTab === "insights" ? "#7C3AED" : theme.textSecondary }, activeTab === "insights" && styles.activeTabText]}>
               Insights
             </Text>
           </TouchableOpacity>
@@ -517,7 +517,7 @@ export default function MyCenter() {
                     {expandedCommentId === comment.id && (
                       <View style={styles.ratingSection}>
                         <View style={[styles.reflectionNote, { backgroundColor: theme.isDark ? '#2C2A3A' : '#F3E5F5', borderColor: theme.border }]}>
-                          <Ionicons name="bulb-outline" size={16} color="#9575cd" style={{ marginRight: 6 }} />
+                          <Ionicons name="bulb-outline" size={16} color="#7C3AED" style={{ marginRight: 6 }} />
                           <Text style={[styles.reflectionNoteText, { color: theme.textSecondary }]}>
                             How did this comment shift your perspective or state of mind? Adjust the slider below.
                           </Text>
@@ -545,7 +545,7 @@ export default function MyCenter() {
                           onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
                           minimumTrackTintColor="#7986CB"
                           maximumTrackTintColor="#FFB74D"
-                          thumbTintColor="#9575cd"
+                          thumbTintColor="#7C3AED"
                         />
 
                         <View style={styles.ticksRow}>
@@ -567,7 +567,7 @@ export default function MyCenter() {
           {/* Welcoming explanation card */}
           <View style={[styles.explanationCard, { backgroundColor: theme.isDark ? '#222030' : '#E8E5F8', borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 8 }}>
-              <Ionicons name="journal-outline" size={18} color="#9575cd" />
+              <Ionicons name="journal-outline" size={18} color="#7C3AED" />
               <Text style={[styles.explanationTitle, { color: theme.text }]}>Perspective Journals</Text>
             </View>
             <Text style={[styles.explanationText, { color: theme.textSecondary }]}>
@@ -576,8 +576,8 @@ export default function MyCenter() {
           </View>
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}>
-                <Ionicons name="document-text-outline" size={48} color="#9575cd" />
+              <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}>
+                <Ionicons name="document-text-outline" size={48} color="#7C3AED" />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Posts Yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
@@ -640,7 +640,7 @@ export default function MyCenter() {
           {/* How Insights Work */}
           <View style={[styles.insightsExplanationBox, { backgroundColor: theme.isDark ? '#222030' : '#E8E5F8', borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 }}>
-              <Ionicons name="bulb-outline" size={22} color="#9575cd" />
+              <Ionicons name="bulb-outline" size={22} color="#7C3AED" />
               <Text style={[styles.insightsTitle, { color: theme.text }]}>How Insights Work</Text>
             </View>
             <Text style={[styles.insightsDescription, { color: theme.textSecondary }]}>
@@ -654,7 +654,7 @@ export default function MyCenter() {
           {/* Stats Grid */}
           <View style={styles.statsGrid}>
             <View style={[styles.statItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.statVal, { color: "#9575cd" }]}>{posts.length}</Text>
+              <Text style={[styles.statVal, { color: "#7C3AED" }]}>{posts.length}</Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Posts Shared</Text>
             </View>
 
@@ -680,8 +680,8 @@ export default function MyCenter() {
 
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}>
-                <Ionicons name="analytics-outline" size={48} color="#9575cd" />
+              <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}>
+                <Ionicons name="analytics-outline" size={48} color="#7C3AED" />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Insights Yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
@@ -719,8 +719,8 @@ export default function MyCenter() {
                   {/* Emotional Journey narrative */}
                   <View style={[styles.journeyBox, { backgroundColor: theme.isDark ? '#1C1B2E' : '#F5F3FF' }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                      <Ionicons name="heart-circle-outline" size={15} color="#9575cd" />
-                      <Text style={[styles.journeyLabel, { color: '#9575cd' }]}>Your Emotional Journey</Text>
+                      <Ionicons name="heart-circle-outline" size={15} color="#7C3AED" />
+                      <Text style={[styles.journeyLabel, { color: '#7C3AED' }]}>Your Emotional Journey</Text>
                     </View>
                     {postComments.length === 0 ? (
                       <Text style={[styles.journeyText, { color: theme.textSecondary }]}>
@@ -787,7 +787,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
   },
   backButton: {
     width: 40,
@@ -899,14 +898,13 @@ const styles = StyleSheet.create({
   },
   commentItem: {
     borderRadius: 16,
-    borderWidth: 1,
     padding: 16,
     marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   commentHeader: {
     flexDirection: "row",
@@ -1155,7 +1153,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 14,
     borderRadius: 16,
-    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
   },
   explanationTitle: {
     fontSize: 14,
@@ -1172,7 +1174,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 16,
     borderRadius: 16,
-    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
   },
   insightsTitle: {
     fontSize: 15,
@@ -1192,9 +1198,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderRadius: 16,
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   statVal: {
     fontSize: 20,
@@ -1211,7 +1221,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 16,
     borderRadius: 20,
-    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   insightCardTitle: {
     fontSize: 15,

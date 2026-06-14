@@ -60,7 +60,7 @@ const getCategoryColor = (category) => {
         Relationship: "#F48FB1",
         Family: "#80CBC4",
     };
-    return colors[category] || "#E0E0E0";
+    return colors[category] || "#E5E7EB";
 };
 
 const getCategoryLabel = (category) => {
@@ -551,7 +551,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
                 <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
+                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} style={{ marginBottom: 16 }} />
                 <Text style={[styles.errorText, { color: theme.textSecondary }]}>Loading...</Text>
             </SafeAreaView>
         );
@@ -919,8 +919,8 @@ export default function PostDetail() {
         border: "#333333",
         text: "#FFFFFF",
         textSecondary: "#BDBDBD",
-        textTertiary: "#757575",
-        placeholder: "#757575",
+        textTertiary: "#6B7280",
+        placeholder: "#6B7280",
         inputBorder: "#333333",
         statusBar: "light-content",
     };
@@ -952,7 +952,7 @@ export default function PostDetail() {
                         <Ionicons
                             name={isSaved ? "bookmark" : "bookmark-outline"}
                             size={24}
-                            color={isSaved ? "#FFB74D" : "#9575cd"}
+                            color={isSaved ? "#FFB74D" : "#7C3AED"}
                         />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -993,7 +993,7 @@ export default function PostDetail() {
                                         { backgroundColor: getCategoryColor(post.category) },
                                     ]}
                                 >
-                                    <Text style={[styles.categoryText, { color: "#212121" }]}>
+                                    <Text style={[styles.categoryText, { color: "#111827" }]}>
                                         {getCategoryLabel(post.category)}
                                     </Text>
                                 </View>
@@ -1068,7 +1068,7 @@ export default function PostDetail() {
                                     <Ionicons
                                         name={likeActive ? "heart" : "heart-outline"}
                                         size={18}
-                                        color={likeActive ? "#C62828" : "#9575cd"} // Red 800
+                                        color={likeActive ? "#C62828" : "#7C3AED"} // Red 800
                                     />
                                     <Text
                                         style={[
@@ -1092,7 +1092,7 @@ export default function PostDetail() {
                                     <Ionicons
                                         name={hugActive ? "hand-left" : "hand-left-outline"}
                                         size={18}
-                                        color={hugActive ? "#EF6C00" : "#9575cd"} // Orange 800
+                                        color={hugActive ? "#EF6C00" : "#7C3AED"} // Orange 800
                                         style={hugActive ? { textShadowColor: 'rgba(239, 108, 0, 0.3)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5 } : {}}
                                     />
                                     <Text
@@ -1117,7 +1117,7 @@ export default function PostDetail() {
                                     <Ionicons
                                         name={meTooActive ? "happy" : "happy-outline"}
                                         size={18}
-                                        color={meTooActive ? "#2E7D32" : "#9575cd"} // Green 800
+                                        color={meTooActive ? "#2E7D32" : "#7C3AED"} // Green 800
                                     />
                                     <Text
                                         style={[
@@ -1151,7 +1151,7 @@ export default function PostDetail() {
                             {comments.length > 0 ? (
                                 <View style={[styles.commentsContainer, { backgroundColor: activeTheme.background }]}>
                                     {/* Vertical line connecting all comments */}
-                                    <View style={[styles.commentsVerticalLine, { backgroundColor: '#9575cd' }]} />
+                                    <View style={[styles.commentsVerticalLine, { backgroundColor: '#7C3AED' }]} />
 
                                     {buildCommentTree(comments).map((comment, index) => (
                                         <CommentThread
@@ -1191,9 +1191,9 @@ export default function PostDetail() {
                     {replyingTo && (
                         <View style={[styles.replyIndicator, { backgroundColor: activeTheme.surface, borderTopColor: activeTheme.border }]}>
                             <View style={styles.replyIndicatorContent}>
-                                <Ionicons name="arrow-undo" size={16} color="#9575cd" />
+                                <Ionicons name="arrow-undo" size={16} color="#7C3AED" />
                                 <Text style={[styles.replyingToText, { color: activeTheme.textSecondary }]}>
-                                    Replying to <Text style={{ color: '#9575cd', fontWeight: '600' }}>@{replyingTo.username || 'Anonymous'}</Text>
+                                    Replying to <Text style={{ color: '#7C3AED', fontWeight: '600' }}>@{replyingTo.username || 'Anonymous'}</Text>
                                 </Text>
                             </View>
                             <TouchableOpacity onPress={() => setReplyingTo(null)}>
@@ -1267,7 +1267,7 @@ export default function PostDetail() {
                                             <Avatar seed={item.profileCode} size={40} />
                                         ) : (
                                             <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#333333' : '#F3E5F5' }]}>
-                                                <Ionicons name="person" size={20} color="#9575cd" />
+                                                <Ionicons name="person" size={20} color="#7C3AED" />
                                             </View>
                                         )}
                                         <Text style={[styles.friendName, { color: activeTheme.text }]}>{item.name}</Text>
@@ -1503,7 +1503,7 @@ const styles = StyleSheet.create({
     commentUsername: {
         fontSize: 14,
         fontWeight: "600",
-        color: "#9575cd",
+        color: "#7C3AED",
     },
     commentTimestamp: {
         fontSize: 12,
@@ -1595,7 +1595,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: "#9575cd",
+        backgroundColor: "#7C3AED",
         justifyContent: "center",
         alignItems: "center",
         marginLeft: 8,

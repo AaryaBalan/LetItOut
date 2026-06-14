@@ -93,7 +93,7 @@ export default function Settings() {
           <View style={[styles.settingItem, { borderBottomColor: theme.divider }]}>
             <View style={styles.settingInfo}>
               <View style={[styles.iconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                <Ionicons name="moon" size={22} color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                <Ionicons name="moon" size={22} color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
               </View>
               <View style={styles.settingText}>
                 <Text style={[styles.settingLabel, { color: theme.text }]}>Dark Mode</Text>
@@ -106,7 +106,7 @@ export default function Settings() {
               value={isDark}
               onValueChange={handleDarkThemeToggle}
               trackColor={{ false: theme.inputBorder, true: '#B39DDB' }}
-              thumbColor={isDark ? '#9575cd' : '#F5F5F5'}
+              thumbColor={isDark ? '#7C3AED' : '#F3F4F6'}
               ios_backgroundColor={theme.inputBorder}
             />
           </View>
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   changeButton: {
-    backgroundColor: "#9575cd",
+    backgroundColor: "#7C3AED",
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",

@@ -317,7 +317,7 @@ export default function PostCard({ post, hideDescription = false }) {
 const styles = StyleSheet.create({
     cardContainer: {
         borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e02f",
+        borderBottomColor: "#E5E7EB2f",
         paddingBottom: 5,
         marginBottom: 5,
     },

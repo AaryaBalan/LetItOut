@@ -178,7 +178,7 @@ export default function ChatTab() {
                     <Avatar seed={item.profileCode} size={48} />
                 ) : (
                     <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#222' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={22} color="#9575cd" />
+                        <Ionicons name="person" size={22} color="#7C3AED" />
                     </View>
                 )}
             </View>
@@ -217,7 +217,7 @@ export default function ChatTab() {
 
                 {/* Search */}
                 <View style={[styles.searchContainer, { backgroundColor: theme.background }]}>
-                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: theme.border }]}>
+                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: theme.border }]}>
                         <Ionicons name="search" size={18} color={theme.textSecondary} />
                         <TextInput
                           style={[styles.searchInput, { color: theme.text }]}
@@ -250,7 +250,7 @@ export default function ChatTab() {
                 />
                 {loading && (
                     <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                        <Loading size="large" color="#9575cd" />
+                        <Loading size="large" color="#7C3AED" />
                     </View>
                 )}
             </SafeAreaView>

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet } from 'react-native';
 
-const Loading = ({ size = 'large', color = '#9575cd', style }) => {
+const Loading = ({ size = 'large', color = '#7C3AED', style }) => {
     const rotateAnim = useRef(new Animated.Value(0)).current;
     const counterRotateAnim = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(0)).current;

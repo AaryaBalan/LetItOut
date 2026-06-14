@@ -24,6 +24,6 @@ const styles = StyleSheet.create({
     adContainer: {
         backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
+        borderTopColor: '#E5E7EB',
     },
 });

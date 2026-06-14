@@ -66,7 +66,7 @@ export default function HelpNeeded() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {loading ? (
                     <View style={styles.loadingContainer}>
-                        <Loading size="large" color="#9575cd" />
+                        <Loading size="large" color="#7C3AED" />
                     </View>
                 ) : posts.length === 0 ? (
                     <View style={styles.emptyContainer}>

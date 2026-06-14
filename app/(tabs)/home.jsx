@@ -293,7 +293,7 @@ export default function Home() {
           <View style={[styles.header, { backgroundColor: theme.background }]}>
             {isSearchExpanded ? (
               <View style={styles.expandedWrapper}>
-                <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: theme.border }]}>
+                <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: theme.border }]}>
                   <Ionicons name="search" size={18} color={theme.textSecondary} />
                   <TextInput
                     style={[styles.expandedSearchInput, { color: theme.text }]}
@@ -306,7 +306,7 @@ export default function Home() {
                 </View>
                 
                 <TouchableOpacity
-                  style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                  style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
                   onPress={() => setFilterModalVisible(true)}
                   delayPressIn={0}
                 >
@@ -328,7 +328,7 @@ export default function Home() {
               <>
                 <View style={styles.headerLeft}>
                   <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
                     onPress={() => setIsDrawerOpen(true)}
                     delayPressIn={0}
                   >
@@ -342,7 +342,7 @@ export default function Home() {
 
                 <View style={styles.headerRight}>
                   <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5' }]}
+                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
                     onPress={() => setIsSearchExpanded(true)}
                     delayPressIn={0}
                   >
@@ -380,7 +380,7 @@ export default function Home() {
                         backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
                         gap: 6,
                         borderWidth: 1,
-                        borderColor: '#9575cd',
+                        borderColor: '#7C3AED',
                         marginRight: 6,
                         marginLeft: 16,
                       }}
@@ -392,8 +392,8 @@ export default function Home() {
                       }}
                       delayPressIn={0}
                     >
-                      <Ionicons name="close-circle" size={16} color="#9575cd" />
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#9575cd" }}>
+                      <Ionicons name="close-circle" size={16} color="#7C3AED" />
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#7C3AED" }}>
                         Clear
                       </Text>
                     </TouchableOpacity>
@@ -409,7 +409,7 @@ export default function Home() {
                       key={category}
                       style={[
                         styles.categoryChip,
-                        { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', borderColor: 'transparent', borderWidth: 1 },
+                        { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: 'transparent', borderWidth: 1 },
                         isFirst && !hasActiveFilters && { marginLeft: 16 },
                         isActive && {
                           backgroundColor: catTheme.bgColor,
@@ -472,7 +472,7 @@ export default function Home() {
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
-                <Loading size="large" color="#9575cd" />
+                <Loading size="large" color="#7C3AED" />
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
               </View>
             ) : filteredPosts.length === 0 ? (
@@ -480,7 +480,7 @@ export default function Home() {
                 <View style={{
                   width: 100,
                   height: 100,
-                  backgroundColor: theme.isDark ? '#222' : '#F5F5F5',
+                  backgroundColor: theme.isDark ? '#222' : '#F3F4F6',
                   borderRadius: 50,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -489,7 +489,7 @@ export default function Home() {
                   <Ionicons
                     name="telescope-outline"
                     size={48}
-                    color="#9575cd"
+                    color="#7C3AED"
                   />
                 </View>
                 <Text style={[styles.emptyTitle, { color: theme.text, fontSize: 18, fontWeight: '800', marginBottom: 8 }]}>No matches found</Text>
@@ -523,7 +523,7 @@ export default function Home() {
             elevation: 9999,
             transform: [{ translateY: slideAnim }],
           }}>
-            <Loading size="large" color="#9575cd" />
+            <Loading size="large" color="#7C3AED" />
           </Animated.View>
         )}
 
@@ -570,7 +570,7 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <View style={[styles.drawerAvatarContainer, { backgroundColor: theme.isDark ? '#222' : '#F5F5F5', width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' }]}>
+                    <View style={[styles.drawerAvatarContainer, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' }]}>
                       <Ionicons name="person" size={28} color={theme.textSecondary} />
                     </View>
                     <Text style={[styles.drawerName, { color: theme.text }]}>Welcome Guest</Text>
@@ -597,7 +597,7 @@ export default function Home() {
                     router.push("/my-center");
                   }}
                 >
-                  <Ionicons name="heart-half-outline" size={22} color="#9575cd" />
+                  <Ionicons name="heart-half-outline" size={22} color="#7C3AED" />
                   <Text style={[styles.drawerItemText, { color: theme.text }]}>My Center</Text>
                 </TouchableOpacity>
 
@@ -748,7 +748,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 36,
     gap: 8,
-    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   expandedSearchInput: {
     flex: 1,

@@ -5,8 +5,8 @@ const categoryColors = {
     'Stress': { bg: '#ffe8cc', text: '#d9844d' },
     'Relationship': { bg: '#ffd9e8', text: '#d9699f' },
     'Study': { bg: '#d4f0e3', text: '#5cb885' },
-    'Mental Health': { bg: '#e8dff5', text: '#9575cd' },
-    'Other': { bg: '#f5f5f5', text: '#7d7d7d' },
+    'Mental Health': { bg: '#e8dff5', text: '#7C3AED' },
+    'Other': { bg: '#F3F4F6', text: '#7d7d7d' },
 };
 
 export default function CategoryBadge({ category }) {

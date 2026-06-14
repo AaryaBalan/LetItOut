@@ -33,7 +33,7 @@ export default function Index() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.logoContainer}>
-                        <Ionicons name="leaf" size={24} color="#9575cd" />
+                        <Ionicons name="leaf" size={24} color="#7C3AED" />
                     </View>
                     <Text style={styles.appName}>LetItOut</Text>
                     <View style={styles.profileContainer}>
@@ -86,7 +86,7 @@ export default function Index() {
                             <Ionicons
                                 name="shield-checkmark"
                                 size={16}
-                                color="#9575cd"
+                                color="#7C3AED"
                             />
                             <Text style={styles.featureBadgeText}>100% ANONYMOUS</Text>
                         </View>
@@ -95,7 +95,7 @@ export default function Index() {
                             <Text style={styles.featureBadgeText}>NO JUDGMENT</Text>
                         </View>
                         <View style={styles.featureBadge}>
-                            <Ionicons name="lock-closed" size={16} color="#9575cd" />
+                            <Ionicons name="lock-closed" size={16} color="#7C3AED" />
                             <Text style={styles.featureBadgeText}>SECURE SPACE</Text>
                         </View>
                     </View>
@@ -109,10 +109,10 @@ export default function Index() {
                             <View
                                 style={[
                                     styles.workIcon,
-                                    { backgroundColor: "#E1D5F4" },
+                                    { backgroundColor: "#F5F3FF" },
                                 ]}
                             >
-                                <Ionicons name="create" size={24} color="#9575cd" />
+                                <Ionicons name="create" size={24} color="#7C3AED" />
                             </View>
                             <View style={styles.workContent}>
                                 <Text style={styles.workTitle}>Express</Text>
@@ -128,13 +128,13 @@ export default function Index() {
                             <View
                                 style={[
                                     styles.workIcon,
-                                    { backgroundColor: "#FFE0C9" },
+                                    { backgroundColor: "#FFF7ED" },
                                 ]}
                             >
                                 <Ionicons
                                     name="chatbubbles"
                                     size={24}
-                                    color="#FF9F66"
+                                    color="#EA580C"
                                 />
                             </View>
                             <View style={styles.workContent}>
@@ -151,10 +151,10 @@ export default function Index() {
                             <View
                                 style={[
                                     styles.workIcon,
-                                    { backgroundColor: "#FFF9C4" },
+                                    { backgroundColor: "#FEFCE8" },
                                 ]}
                             >
-                                <Ionicons name="sunny" size={24} color="#FBC02D" />
+                                <Ionicons name="sunny" size={24} color="#CA8A04" />
                             </View>
                             <View style={styles.workContent}>
                                 <Text style={styles.workTitle}>Heal</Text>
@@ -168,13 +168,13 @@ export default function Index() {
 
                     {/* Quote */}
                     <View style={styles.quoteContainer}>
-                        <Ionicons name="chatbox-ellipses" size={40} color="#E0E0E0" />
+                        <Ionicons name="chatbox-ellipses" size={40} color="#E5E7EB" />
                         <Text style={styles.quoteText}>
                             &ldquo;I finally felt like my feelings were valid. I didn&apos;t have
                             to pretend to be okay here.&rdquo;
                         </Text>
                         <View style={styles.quoteAuthor}>
-                            <Ionicons name="person" size={14} color="#9575cd" />
+                            <Ionicons name="person" size={14} color="#7C3AED" />
                             <Text style={styles.quoteAuthorText}>
                                 ANONYMOUS STUDENT
                             </Text>
@@ -189,7 +189,7 @@ export default function Index() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8F9FA",
+        backgroundColor: "#F9FAFB",
     },
     scrollView: {
         flex: 1,
@@ -205,14 +205,14 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: "#E1D5F4",
+        backgroundColor: "#F5F3FF",
         justifyContent: "center",
         alignItems: "center",
     },
     appName: {
         fontSize: 20,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         flex: 1,
         textAlign: "center",
     },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     },
     badge: {
         alignSelf: "center",
-        backgroundColor: "#E8E0F5",
+        backgroundColor: "#F5F3FF",
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 12,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     badgeText: {
         fontSize: 11,
         fontWeight: "700",
-        color: "#9575cd",
+        color: "#7C3AED",
         letterSpacing: 1.2,
     },
     heroSection: {
@@ -246,17 +246,17 @@ const styles = StyleSheet.create({
     heroTitle: {
         fontSize: 36,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         textAlign: "center",
         marginBottom: 16,
         lineHeight: 42,
     },
     heroHighlight: {
-        color: "#9575cd",
+        color: "#7C3AED",
     },
     heroSubtitle: {
         fontSize: 15,
-        color: "#757575",
+        color: "#6B7280",
         textAlign: "center",
         lineHeight: 24,
         paddingHorizontal: 10,
@@ -266,11 +266,11 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     primaryButton: {
-        backgroundColor: "#9575cd",
+        backgroundColor: "#7C3AED",
         paddingVertical: 16,
         borderRadius: 24,
         alignItems: "center",
-        shadowColor: "#9575cd",
+        shadowColor: "#7C3AED",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -287,10 +287,10 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         alignItems: "center",
         borderWidth: 2,
-        borderColor: "#E0E0E0",
+        borderColor: "#E5E7EB",
     },
     secondaryButtonText: {
-        color: "#424242",
+        color: "#4B5563",
         fontSize: 16,
         fontWeight: "600",
     },
@@ -310,18 +310,18 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         gap: 6,
         borderWidth: 1,
-        borderColor: "#F0F0F0",
+        borderColor: "#E5E7EB",
     },
     featureBadgeText: {
         fontSize: 10,
         fontWeight: "700",
-        color: "#757575",
+        color: "#6B7280",
         letterSpacing: 0.5,
     },
     sectionTitle: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#9575cd",
+        color: "#7C3AED",
         textAlign: "center",
         marginBottom: 32,
         letterSpacing: 2,
@@ -348,12 +348,12 @@ const styles = StyleSheet.create({
     workTitle: {
         fontSize: 18,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         marginBottom: 4,
     },
     workDescription: {
         fontSize: 14,
-        color: "#757575",
+        color: "#6B7280",
         lineHeight: 20,
     },
     quoteContainer: {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     quoteText: {
         fontSize: 16,
         fontStyle: "italic",
-        color: "#424242",
+        color: "#4B5563",
         textAlign: "center",
         lineHeight: 26,
         marginTop: 16,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     quoteAuthorText: {
         fontSize: 11,
         fontWeight: "700",
-        color: "#9575cd",
+        color: "#7C3AED",
         letterSpacing: 1,
     },
 });

@@ -328,7 +328,7 @@ export default function CreatePost() {
                 onValueChange={setMoodLevel}
                 minimumTrackTintColor="#7986CB"
                 maximumTrackTintColor="#FFB74D"
-                thumbTintColor="#9575cd"
+                thumbTintColor="#7C3AED"
               />
 
               <View style={styles.sliderTicks}>
@@ -354,9 +354,9 @@ export default function CreatePost() {
               <Switch
                 value={helpNeeded}
                 onValueChange={handleHelpNeededToggle}
-                trackColor={{ false: theme.isDark ? "#3E3E3E" : "#E0E0E0", true: "#FFB74D" }}
-                thumbColor={helpNeeded ? "#FF9800" : "#F5F5F5"}
-                ios_backgroundColor="#E0E0E0"
+                trackColor={{ false: theme.isDark ? "#3E3E3E" : "#E5E7EB", true: "#FFB74D" }}
+                thumbColor={helpNeeded ? "#FF9800" : "#F3F4F6"}
+                ios_backgroundColor="#E5E7EB"
               />
             </View>
 
@@ -461,7 +461,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
   },
   cancelButton: {
     padding: 4,
@@ -471,9 +470,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   postButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -499,10 +498,9 @@ const styles = StyleSheet.create({
   identityPill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    borderWidth: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
     alignSelf: "flex-start",
   },
   identityAvatar: {
@@ -529,9 +527,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    borderWidth: 1,
+    paddingHorizontal: 14,
+    borderRadius: 20,
     gap: 6,
   },
   flairText: {
@@ -545,8 +542,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    borderRadius: 20,
     borderWidth: 1,
     borderStyle: "dashed",
     gap: 6,
@@ -573,11 +570,15 @@ const styles = StyleSheet.create({
   },
   bottomCard: {
     marginHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     marginTop: 8,
     marginBottom: Platform.OS === "ios" ? 10 : 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
   },
   moodSection: {
     gap: 8,

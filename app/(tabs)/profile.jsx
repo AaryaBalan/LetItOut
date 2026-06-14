@@ -501,7 +501,7 @@ export default function Profile() {
     if (type === "like") return "#F06292"; // Pink
     if (type === "hug") return "#FFB74D"; // Orange/Yellow
     if (type === "metoo") return "#66BB6A"; // Green
-    if (type === "comment") return "#9575cd"; // Violet
+    if (type === "comment") return "#7C3AED"; // Violet
     return "#FFB74D";
   };
 
@@ -592,7 +592,7 @@ export default function Profile() {
       <TabScreenWrapper>
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
           <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
           <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontWeight: '600' }}>
             Loading Profile...
           </Text>
@@ -690,7 +690,7 @@ export default function Profile() {
                 <Ionicons
                   name="person-outline"
                   size={16}
-                  color="#757575"
+                  color="#6B7280"
                 />
                 <Text style={styles.infoText}>
                   {user.displayName || "Anonymous"}
@@ -700,7 +700,7 @@ export default function Profile() {
                 <Ionicons
                   name="calendar-outline"
                   size={16}
-                  color="#757575"
+                  color="#6B7280"
                 />
                 <Text style={styles.infoText}>
                   Member since {memberSince}
@@ -724,7 +724,7 @@ export default function Profile() {
               {/* Stories Card */}
               <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
-                  <Ionicons name="book" size={20} color="#9575cd" />
+                  <Ionicons name="book" size={20} color="#7C3AED" />
                 </View>
                 <View style={styles.statInfo}>
                   <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
@@ -765,7 +765,7 @@ export default function Profile() {
               activeOpacity={0.7}
             >
               <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
-                <Ionicons name="document-text" size={24} color="#9575cd" />
+                <Ionicons name="document-text" size={24} color="#7C3AED" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{userPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>My Stories</Text>
@@ -793,12 +793,12 @@ export default function Profile() {
           >
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Supportive History</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9575cd" />
+              <Ionicons name="chevron-forward" size={20} color="#7C3AED" />
             </View>
 
             {loadingHistory ? (
               <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-                <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
               </View>
             ) : (
               <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
@@ -834,7 +834,7 @@ export default function Profile() {
               style={styles.logoutButton}
               onPress={handleLogout}
             >
-              <Ionicons name="log-out-outline" size={20} color="#212121" />
+              <Ionicons name="log-out-outline" size={20} color="#111827" />
               <Text style={styles.logoutButtonText}>Logout</Text>
             </TouchableOpacity>
 
@@ -1030,7 +1030,7 @@ export default function Profile() {
 
               {isLoadingFriends ? (
                 <View style={styles.loadingContainer}>
-                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
                 </View>
               ) : (
                 <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
@@ -1087,7 +1087,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#212121",
+    color: "#111827",
     letterSpacing: -0.5,
   },
   settingsButton: {
@@ -1109,10 +1109,10 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
   },
   profileHeader: {
     flexDirection: "row",
@@ -1145,7 +1145,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -2,
     right: -2,
-    backgroundColor: "#9575cd",
+    backgroundColor: "#7C3AED",
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -1153,7 +1153,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
-    shadowColor: "#9575cd",
+    shadowColor: "#7C3AED",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -1162,7 +1162,7 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#212121",
+    color: "#111827",
     marginBottom: 4,
     letterSpacing: -0.3,
   },
@@ -1187,7 +1187,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3E5F5",
     borderRadius: 24,
     marginBottom: 16,
-    shadowColor: "#9575cd",
+    shadowColor: "#7C3AED",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1196,7 +1196,7 @@ const styles = StyleSheet.create({
   editProfileText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#9575cd",
+    color: "#7C3AED",
   },
   infoSection: {
     width: "100%",
@@ -1230,11 +1230,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 14,
     borderRadius: 14,
-    borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
   },
   statIconCircle: {
@@ -1271,12 +1270,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#212121",
+    color: "#111827",
   },
   viewAllText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#9575cd",
+    color: "#7C3AED",
     letterSpacing: 0.5,
   },
   recentText: {
@@ -1313,7 +1312,7 @@ const styles = StyleSheet.create({
   },
   storyText: {
     fontSize: 15,
-    color: "#424242",
+    color: "#4B5563",
     lineHeight: 22,
     marginBottom: 12,
   },
@@ -1360,7 +1359,7 @@ const styles = StyleSheet.create({
   },
   commentPreview: {
     fontSize: 13,
-    color: "#757575",
+    color: "#6B7280",
     lineHeight: 18,
     marginTop: 8,
     fontStyle: "italic",
@@ -1368,7 +1367,7 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "700",
     fontStyle: "normal",
-    color: "#212121",
+    color: "#111827",
   },
   actionButtons: {
     marginTop: 8,
@@ -1378,11 +1377,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#9575cd",
+    backgroundColor: "#7C3AED",
     paddingVertical: 16,
     borderRadius: 24,
     gap: 8,
-    shadowColor: "#9575cd",
+    shadowColor: "#7C3AED",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1410,7 +1409,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#212121",
+    color: "#111827",
   },
   deactivateButton: {
     paddingVertical: 16,
@@ -1431,18 +1430,18 @@ const styles = StyleSheet.create({
   notLoggedInTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#212121",
+    color: "#111827",
     marginTop: 16,
     marginBottom: 8,
   },
   notLoggedInText: {
     fontSize: 15,
-    color: "#757575",
+    color: "#6B7280",
     textAlign: "center",
     marginBottom: 24,
   },
   loginButton: {
-    backgroundColor: "#9575cd",
+    backgroundColor: "#7C3AED",
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 24,
@@ -1454,7 +1453,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#F3F4F6",
   },
   modalHeader: {
     flexDirection: "row",
@@ -1464,12 +1463,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+    borderBottomColor: "#E5E7EB",
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#212121",
+    color: "#111827",
   },
   modalScrollView: {
     flex: 1,
@@ -1522,7 +1521,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F5F5F5",
+    borderBottomColor: "#F3F4F6",
   },
   friendInfo: {
     flex: 1,
@@ -1531,7 +1530,7 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#212121",
+    color: "#111827",
     marginBottom: 4,
   },
   friendBio: {
@@ -1564,17 +1563,17 @@ const styles = StyleSheet.create({
   summaryCount: {
     fontSize: 32,
     fontWeight: "700",
-    color: "#212121",
+    color: "#111827",
     marginBottom: 4,
   },
   summaryLabel: {
     fontSize: 14,
-    color: "#757575",
+    color: "#6B7280",
     fontWeight: "500",
   },
   summaryHint: {
     fontSize: 12,
-    color: "#9575cd",
+    color: "#7C3AED",
     textAlign: "center",
     fontStyle: "italic",
   },
@@ -1587,15 +1586,14 @@ const styles = StyleSheet.create({
     flex: 1,
     aspectRatio: 1,
     borderRadius: 16,
-    borderWidth: 1,
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
   },
   compactIconBadge: {
     width: 56,

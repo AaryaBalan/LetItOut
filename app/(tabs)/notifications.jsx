@@ -199,14 +199,14 @@ export default function Notifications() {
             case "perspective_change":
                 return {
                     name: "trending-up",
-                    color: "#9575cd",
+                    color: "#7C3AED",
                     bgColor: "#EFE8FF",
                 };
             default:
                 return {
                     name: "notifications",
                     color: "#9E9E9E",
-                    bgColor: "#F5F5F5",
+                    bgColor: "#F3F4F6",
                 };
         }
     };
@@ -400,7 +400,7 @@ export default function Notifications() {
                         <Avatar seed={profileCode} size={40} />
                     ) : (
                         <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                            <Ionicons name="person" size={20} color="#9575cd" />
+                            <Ionicons name="person" size={20} color="#7C3AED" />
                         </View>
                     )}
                     <View
@@ -449,7 +449,7 @@ export default function Notifications() {
                                 disabled={isProcessing}
                             >
                                 {isProcessing && processingState.action === 'reject' ? (
-                                    <ActivityIndicator size="small" color="#757575" />
+                                    <ActivityIndicator size="small" color="#6B7280" />
                                 ) : (
                                     <Text style={styles.rejectButtonText}>Reject</Text>
                                 )}
@@ -495,7 +495,7 @@ export default function Notifications() {
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} style={{ marginBottom: 16 }} />
+                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.emptyTitle, { color: theme.text }]}>Loading...</Text>
                 </View>
             </SafeAreaView>
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         letterSpacing: -0.5,
     },
     settingsButton: {
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F3F4F6",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     username: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         marginBottom: 2,
     },
     message: {
@@ -741,10 +741,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     acceptButton: {
-        backgroundColor: '#212121', // Primary black action
+        backgroundColor: '#111827', // Primary black action
     },
     rejectButton: {
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#F3F4F6',
     },
     acceptButtonText: {
         color: '#FFFFFF',
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
         fontSize: 13,
     },
     rejectButtonText: {
-        color: '#757575',
+        color: '#6B7280',
         fontWeight: '600',
         fontSize: 13,
     },

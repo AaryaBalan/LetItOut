@@ -131,7 +131,7 @@ export default function Explore() {
                             <View style={styles.headerTop}>
                                 <View style={styles.headerLeft}>
                                     <TouchableOpacity
-                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F5F5F5' }]}
+                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' }]}
                                         onPress={() => router.back()}
                                     >
                                         <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -147,7 +147,7 @@ export default function Explore() {
                             {/* Enhanced Search Bar */}
                             <View style={styles.searchContainer}>
                                 <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                                    <Ionicons name="search" size={20} color="#9575cd" />
+                                    <Ionicons name="search" size={20} color="#7C3AED" />
                                     <TextInput
                                         style={[styles.searchInput, { color: theme.text }]}
                                         placeholder="Search communities, topics, people..."
@@ -396,7 +396,7 @@ export default function Explore() {
                                     style={[styles.top10Card, styles.viewMoreCard, { backgroundColor: theme.card, borderColor: theme.border }]}
                                     onPress={() => router.push('/help-needed')}
                                 >
-                                    <Ionicons name="arrow-forward-circle" size={48} color="#9575cd" />
+                                    <Ionicons name="arrow-forward-circle" size={48} color="#7C3AED" />
                                     <Text style={[styles.viewMoreText, { color: theme.text }]}>View More</Text>
                                     <Text style={[styles.viewMoreSubtext, { color: theme.textSecondary }]}>
                                         See all posts that need help
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#212121',
+        color: '#111827',
         letterSpacing: -0.5,
     },
     headerSubtitle: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         fontSize: 15,
-        color: "#212121",
+        color: "#111827",
         fontWeight: "500",
     },
 
@@ -651,16 +651,21 @@ const styles = StyleSheet.create({
         width: width * 0.85,
         marginRight: 16,
         padding: 32,
-        borderWidth: 1,
+        borderRadius: 24,
         justifyContent: "center",
         alignItems: "center",
         position: 'relative',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 3,
     },
     rankBadge: {
         position: 'absolute',
         top: 12,
         right: 12,
-        backgroundColor: '#9575cd',
+        backgroundColor: '#7C3AED',
         borderRadius: 12,
         paddingHorizontal: 10,
         paddingVertical: 4,
@@ -741,11 +746,15 @@ const styles = StyleSheet.create({
         width: width * 0.85,
         marginRight: 16,
         padding: 32,
-        borderWidth: 1,
-        borderColor: "#f0f0f0",
+        borderRadius: 24,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 3,
     },
     quoteIcon: {
         marginBottom: 24,
@@ -869,11 +878,15 @@ const styles = StyleSheet.create({
     communityCard: {
         width: 220,
         borderRadius: 20,
-        borderWidth: 1,
         marginRight: 16,
         overflow: 'hidden',
         position: 'relative',
         paddingBottom: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 3,
     },
     communityBanner: {
         height: 70,

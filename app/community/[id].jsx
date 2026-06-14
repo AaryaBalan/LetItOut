@@ -43,7 +43,7 @@ const CATEGORIES = [
         icon: "leaf",
         iconColor: "#9B8BC9",
         bgColor: "#E8E4F3",
-        gradientColors: ["#B39DDB", "#9575CD"],
+        gradientColors: ["#B39DDB", "#7C3AED"],
         quote: "Take a deep breath. You're doing the best you can, and that's enough.",
     },
     {
@@ -355,7 +355,7 @@ export default function CommunityDetail() {
         if (item.type === 'empty') {
             return loading ? (
                 <View style={styles.emptyState}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#9575cd'} />
+                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
                     <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
                 </View>
             ) : (
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#9575cd',
+        backgroundColor: '#7C3AED',
     },
     modalApplyText: {
         fontSize: 15,

@@ -122,7 +122,7 @@ export default function SignIn() {
                             style={styles.backButton}
                             onPress={() => router.back()}
                         >
-                            <Ionicons name="chevron-back" size={28} color="#212121" />
+                            <Ionicons name="chevron-back" size={28} color="#111827" />
                         </TouchableOpacity>
                         <Text style={styles.appName}>LetItOut</Text>
                         <View style={styles.placeholder} />
@@ -267,7 +267,7 @@ export default function SignIn() {
                                 disabled={loading}
                             >
                                 {loading ? (
-                                    <ActivityIndicator color="#212121" />
+                                    <ActivityIndicator color="#111827" />
                                 ) : (
                                     <>
                                         <Text style={styles.createButtonText}>
@@ -276,7 +276,7 @@ export default function SignIn() {
                                         <Ionicons
                                             name="person-add"
                                             size={20}
-                                            color="#212121"
+                                            color="#111827"
                                         />
                                     </>
                                 )}
@@ -327,7 +327,7 @@ export default function SignIn() {
                         </View>
 
                         <View style={styles.heartContainer}>
-                            <Ionicons name="heart" size={24} color="#E0E0E0" />
+                            <Ionicons name="heart" size={24} color="#E5E7EB" />
                         </View>
                     </View>
                 </ScrollView>
@@ -339,7 +339,7 @@ export default function SignIn() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F3F4F6",
     },
     keyboardView: {
         flex: 1,
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: 20,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
     },
     placeholder: {
         width: 40,
@@ -376,12 +376,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 42,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: "#757575",
+        color: "#6B7280",
         marginBottom: 32,
     },
     formCard: {
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#212121",
+        color: "#111827",
         marginBottom: 8,
         letterSpacing: 0.5,
     },
@@ -409,12 +409,12 @@ const styles = StyleSheet.create({
         fontWeight: "400",
     },
     input: {
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F3F4F6",
         borderRadius: 16,
         paddingHorizontal: 16,
         paddingVertical: 16,
         fontSize: 15,
-        color: "#212121",
+        color: "#111827",
         borderWidth: 1,
         borderColor: "transparent",
     },
@@ -425,13 +425,13 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     passwordInput: {
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F3F4F6",
         borderRadius: 16,
         paddingHorizontal: 16,
         paddingVertical: 16,
         paddingRight: 48,
         fontSize: 15,
-        color: "#212121",
+        color: "#111827",
         borderWidth: 1,
         borderColor: "transparent",
     },
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
         opacity: 0.6,
     },
     createButtonText: {
-        color: "#212121",
+        color: "#111827",
         fontSize: 16,
         fontWeight: "700",
     },
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     divider: {
         flex: 1,
         height: 1,
-        backgroundColor: "#E0E0E0",
+        backgroundColor: "#E5E7EB",
     },
     dividerText: {
         color: "#BDBDBD",
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     googleButton: {
         backgroundColor: "#FFFFFF",
         borderWidth: 2,
-        borderColor: "#E0E0E0",
+        borderColor: "#E5E7EB",
         paddingVertical: 16,
         borderRadius: 24,
         flexDirection: "row",
@@ -507,10 +507,10 @@ const styles = StyleSheet.create({
     googleIcon: {
         fontSize: 14,
         fontWeight: "bold",
-        color: "#757575",
+        color: "#6B7280",
     },
     googleButtonText: {
-        color: "#212121",
+        color: "#111827",
         fontSize: 16,
         fontWeight: "600",
     },
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
     linkText: {
-        color: "#212121",
+        color: "#111827",
         fontSize: 15,
         fontWeight: "700",
     },
