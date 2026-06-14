@@ -691,73 +691,75 @@ export default function MyCenter() {
           ) : (
             posts.map((post) => {
               const { initial, current, bestComment, hasComments, hasRatedComments } = getPostInsights(post);
+              const postComments = commentsByPost[post.id] || [];
+              const ratedCount = postComments.filter(c => c.perspectiveRating !== undefined).length;
               return (
                 <View key={post.id} style={[styles.insightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  {/* Insight Card Header */}
+                  {/* Header */}
                   <View style={styles.postHeader}>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.insightCardTitle, { color: theme.text }]} numberOfLines={1}>
-                        {post.title}
-                      </Text>
+                      <Text style={[styles.insightCardTitle, { color: theme.text }]} numberOfLines={1}>{post.title}</Text>
                       <View style={{ flexDirection: 'row', marginTop: 4, alignItems: 'center', gap: 8 }}>
                         <View style={[styles.categoryBadge, { backgroundColor: getCategoryColors(post.category, theme.isDark).bg }]}>
-                          <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
-                            {getCategoryLabel(post.category)}
-                          </Text>
+                          <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>{getCategoryLabel(post.category)}</Text>
                         </View>
-                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>
-                          {formatTimestamp(post.createdAt)}
-                        </Text>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary }}>{formatTimestamp(post.createdAt)}</Text>
                       </View>
                     </View>
-                    <View style={[styles.moodBadge, { backgroundColor: getMoodColor(current) + "15" }]}>
-                      <Text style={[styles.moodText, { color: getMoodColor(current) }]}>
-                        {current > 0 ? `+${current}` : current}
-                      </Text>
+                    <View style={[styles.moodBadge, { backgroundColor: getMoodColor(current) + '15' }]}>
+                      <Text style={[styles.moodText, { color: getMoodColor(current) }]}>{current > 0 ? `+${current}` : current}</Text>
                     </View>
                   </View>
 
-                  {/* Visual Mood Shift */}
+                  {/* Mood track */}
                   {renderMoodShiftTrack(post, true)}
 
-                  {/* Reflection & Perspective Info */}
                   <View style={styles.insightDivider} />
-                  
-                  {hasRatedComments && bestComment ? (
-                    <View>
-                      <Text style={[styles.insightLabel, { color: theme.textSecondary }]}>
-                        Top Perspective Shifter
+
+                  {/* Emotional Journey narrative */}
+                  <View style={[styles.journeyBox, { backgroundColor: theme.isDark ? '#1C1B2E' : '#F5F3FF' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <Ionicons name="heart-circle-outline" size={15} color="#9575cd" />
+                      <Text style={[styles.journeyLabel, { color: '#9575cd' }]}>Your Emotional Journey</Text>
+                    </View>
+                    {postComments.length === 0 ? (
+                      <Text style={[styles.journeyText, { color: theme.textSecondary }]}>
+                        You shared this feeling at <Text style={{ fontWeight: '700', color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text>. When people comment, open the Posts tab, tap this post, and rate each comment to track how they shift your perspective.
                       </Text>
+                    ) : ratedCount === 0 ? (
+                      <Text style={[styles.journeyText, { color: theme.textSecondary }]}>
+                        You posted feeling <Text style={{ fontWeight: '700', color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text> and received <Text style={{ fontWeight: '700', color: theme.text }}>{postComments.length} comment{postComments.length !== 1 ? 's' : ''}</Text>. Go to the Posts tab, tap this post, and slide the rating for each comment to see your emotional shift!
+                      </Text>
+                    ) : (
+                      <Text style={[styles.journeyText, { color: theme.textSecondary }]}>
+                        You started at <Text style={{ fontWeight: '700', color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text>. After rating <Text style={{ fontWeight: '700', color: theme.text }}>{ratedCount} comment{ratedCount !== 1 ? 's' : ''}</Text>, your perspective moved to <Text style={{ fontWeight: '700', color: getMoodColor(current) }}>{current > 0 ? `+${current}` : current}</Text>.{current > initial ? ' Community support helped lift your spirits! 🌟' : current < initial ? ' Some comments challenged your view — growth happens here too.' : ' Your perspective stayed steady.'}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Most impactful comment */}
+                  {hasRatedComments && bestComment && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={[styles.insightLabel, { color: theme.textSecondary }]}>Most Impactful Comment</Text>
                       <View style={[styles.insightQuoteBox, { backgroundColor: theme.isDark ? '#2C2C2E' : '#F2F2F7' }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                           <Avatar seed={bestComment.commentorAvatar || bestComment.commentorName} size={22} />
-                          <Text style={[styles.insightQuoteAuthor, { color: theme.text }]} numberOfLines={1}>
-                            {bestComment.commentorName}
-                          </Text>
+                          <Text style={[styles.insightQuoteAuthor, { color: theme.text }]} numberOfLines={1}>{bestComment.commentorName}</Text>
                           <View style={[styles.shiftIndicator, { backgroundColor: bestComment.perspectiveRating > initial ? (theme.isDark ? '#1B4D22' : '#E8F5E9') : (theme.isDark ? '#37474F' : '#ECEFF1') }]}>
                             <Text style={[styles.shiftIndicatorText, { color: bestComment.perspectiveRating > initial ? (theme.isDark ? '#81C784' : '#2E7D32') : (theme.isDark ? '#CFD8DC' : '#78909C') }]}>
                               {bestComment.perspectiveRating > initial ? `+${bestComment.perspectiveRating - initial} shift` : 'Neutral'}
                             </Text>
                           </View>
                         </View>
-                        <Text style={[styles.insightQuoteText, { color: theme.textSecondary }]} numberOfLines={2}>
-                          &ldquo;{bestComment.text}&rdquo;
-                        </Text>
+                        <Text style={[styles.insightQuoteText, { color: theme.textSecondary }]} numberOfLines={2}>&ldquo;{bestComment.text}&rdquo;</Text>
                       </View>
                     </View>
-                  ) : hasComments ? (
+                  )}
+
+                  {!hasComments && (
                     <View style={styles.insightNotice}>
-                      <Ionicons name="information-circle-outline" size={16} color="#9575cd" />
-                      <Text style={[styles.insightNoticeText, { color: theme.textSecondary }]}>
-                        Comments received! Select this post under the Posts tab to rate how they shifted your perspective.
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.insightNotice}>
-                      <Ionicons name="chatbubbles-outline" size={16} color={theme.textTertiary} />
-                      <Text style={[styles.insightNoticeText, { color: theme.textTertiary }]}>
-                        No comments received yet. Share this post in chats to connect with friends!
-                      </Text>
+                      <Ionicons name="chatbubbles-outline" size={15} color={theme.textTertiary} />
+                      <Text style={[styles.insightNoticeText, { color: theme.textTertiary }]}>No comments yet — share this post to receive community support!</Text>
                     </View>
                   )}
                 </View>
@@ -1261,5 +1263,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     flex: 1,
     lineHeight: 16,
+  },
+  journeyBox: {
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 4,
+  },
+  journeyLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  journeyText: {
+    fontSize: 12,
+    lineHeight: 19,
   },
 });
