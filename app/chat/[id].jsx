@@ -49,7 +49,7 @@ const getCategoryColor = (category) => {
 };
 
 // SharedPostCard component with live data
-function SharedPostCard({ postData }) {
+function SharedPostCard({ postData, isMe }) {
     const router = useRouter();
     const { theme } = useTheme();
     const [likeCount, setLikeCount] = useState(0);
@@ -133,46 +133,55 @@ function SharedPostCard({ postData }) {
         return () => unsubscribe();
     }, [postData.authorId, postData.isAnonymous]);
 
+    // Get category colors based on the theme, to match PostCard
+    const getCategoryColors = (category, isDark) => {
+        const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
+        const colors = {
+            "Family": { bg: isDark ? "#EBF3FE" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#2F80ED" },
+            "Stress": { bg: isDark ? "#FCEEEE" : "#FCEEEE", text: isDark ? "#F28B82" : "#EB5757" },
+            "Relationship": { bg: isDark ? "#FEF9E6" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
+            "Study": { bg: isDark ? "#E9F7EF" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
+            "Mental Health": { bg: isDark ? "#EEF2FF" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
+            "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
+        };
+        return colors[normalized] || colors["Other"];
+    };
+
     return (
         <TouchableOpacity
-            style={[styles.sharedPostCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}
+            style={[styles.sharedPostCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: isMe ? '#B39DDB' : '#FFD5C6', borderWidth: 2 }]}
             onPress={() => router.push(`/post/${postData.id}`)}
             accessibilityRole="button"
             accessibilityLabel={`View post: ${postData.title}`}
         >
-            {/* Category Badge */}
-            <View style={styles.postCardHeader}>
-                <View style={[
-                    styles.postCategoryBadge,
-                    { backgroundColor: getCategoryColor(postData.category) }
-                ]}>
-                    <Text style={styles.postCategoryText}>
-                        {postData.category?.toUpperCase() || "GENERAL"}
-                    </Text>
-                </View>
-            </View>
-
-            {/* Author Section */}
+            {/* Author Section with Category Badge */}
             <View style={styles.postAuthorSection}>
-                {postData.isAnonymous || !postData.authorName || postData.authorName === "Anonymous" || !authorProfileCode ? (
-                    <View style={[styles.postAvatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={16} color="#111827" />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                    {postData.isAnonymous || !postData.authorName || postData.authorName === "Anonymous" || !authorProfileCode ? (
+                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+                            <Ionicons name="person" size={20} color="#111827" />
+                        </View>
+                    ) : (
+                        <Avatar seed={authorProfileCode} size={40} />
+                    )}
+                    <View style={{ flex: 1 }}>
+                        <Text style={[styles.postAuthorName, { color: theme.text }]} numberOfLines={1}>
+                            {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
+                        </Text>
+                        <Text style={[styles.postTimestamp, { color: theme.textSecondary }]}>{postData.timestamp}</Text>
                     </View>
-                ) : (
-                    <View style={styles.postAvatarWrapper}>
-                        <Avatar seed={authorProfileCode} size={32} />
-                    </View>
-                )}
-                <View>
-                    <Text style={styles.postAuthorName}>
-                        {postData.isAnonymous ? "Anonymous" : (postData.authorName || "Anonymous")}
+                </View>
+
+                {/* Category Badge */}
+                <View style={[styles.postCategoryBadge, { backgroundColor: getCategoryColors(postData.category, theme.isDark).bg }]}>
+                    <Text style={[styles.postCategoryText, { color: getCategoryColors(postData.category, theme.isDark).text }]}>
+                        {postData.category?.toUpperCase() || "OTHER"}
                     </Text>
-                    <Text style={[styles.postTimestamp, { color: theme.textSecondary }]}>{postData.timestamp}</Text>
                 </View>
             </View>
 
             {/* Title */}
-            <Text style={[styles.postTitle, { color: theme.text, fontWeight: '700' }]}>{postData.title}</Text>
+            <Text style={[styles.postTitle, { color: theme.text }]}>{postData.title}</Text>
 
             {/* Description */}
             <Text style={[styles.postPreview, { color: theme.textSecondary }]} numberOfLines={3}>
@@ -182,22 +191,22 @@ function SharedPostCard({ postData }) {
             {/* Footer with reactions */}
             <View style={styles.postFooter}>
                 <View style={styles.postReactions}>
-                    <View style={styles.postReactionButton}>
-                        <Ionicons name="heart" size={16} color="#E57373" />
-                        <Text style={[styles.postReactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
+                    <View style={[styles.postReactionPill, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}>
+                        <Ionicons name="heart" size={16} color="#EB5757" />
+                        <Text style={[styles.postReactionCount, { color: theme.text }]}>{likeCount}</Text>
                     </View>
-                    <View style={styles.postReactionButton}>
-                        <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                        <Text style={[styles.postReactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
+                    <View style={[styles.postReactionPill, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}>
+                        <Ionicons name="hand-left" size={16} color="#F2C94C" />
+                        <Text style={[styles.postReactionCount, { color: theme.text }]}>{hugCount}</Text>
                     </View>
-                    <View style={styles.postReactionButton}>
-                        <Ionicons name="happy" size={16} color="#66BB6A" />
-                        <Text style={[styles.postReactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
+                    <View style={[styles.postReactionPill, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}>
+                        <Ionicons name="happy" size={16} color="#27AE60" />
+                        <Text style={[styles.postReactionCount, { color: theme.text }]}>{meTooCount}</Text>
                     </View>
-                </View>
-                <View style={styles.postCommentSection}>
-                    <Ionicons name="chatbubble-outline" size={18} color={theme.textTertiary} />
-                    <Text style={[styles.postCommentCount, { color: theme.textSecondary }]}>{commentCount}</Text>
+                    <View style={[styles.postReactionPill, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF', borderColor: theme.border }]}>
+                        <Ionicons name="chatbubble-outline" size={16} color="#6B7280" />
+                        <Text style={[styles.postReactionCount, { color: theme.text }]}>{commentCount}</Text>
+                    </View>
                 </View>
             </View>
         </TouchableOpacity>
@@ -464,7 +473,7 @@ export default function ChatScreen() {
                             )}
 
                             {item.type === "shared_post" && item.sharedPost && (
-                                <SharedPostCard postData={item.sharedPost} />
+                                <SharedPostCard postData={item.sharedPost} isMe={isMe} />
                             )}
 
                             {item.type !== "shared_post" && (
@@ -476,12 +485,15 @@ export default function ChatScreen() {
                                 </Text>
                             )}
                         </View>
-                        <Text style={[
-                            styles.timestamp,
-                            isMe ? styles.myTimestamp : styles.theirTimestamp
+                        <View style={[
+                            styles.timestampContainer,
+                            isMe ? styles.myTimestampContainer : styles.theirTimestampContainer
                         ]}>
-                            {formatTime(item.createdAt)}
-                        </Text>
+                            <Text style={styles.timestamp}>
+                                {formatTime(item.createdAt)}
+                            </Text>
+                            {isMe && <Ionicons name="checkmark-done" size={14} color="#8B5CF6" style={{ marginLeft: 4 }} />}
+                        </View>
                     </Pressable>
 
                     {/* Reply button on RIGHT for THEIR messages (left-aligned) */}
@@ -498,31 +510,34 @@ export default function ChatScreen() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <View style={[styles.header, { backgroundColor: theme.background }]}>
                 <View style={styles.headerLeft}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={theme.text} />
+                    <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: '#F8F5FF' }]}>
+                        <Ionicons name="chevron-back" size={24} color="#111827" />
                     </TouchableOpacity>
                     {recipient && (
                         <View style={styles.headerAvatar}>
-                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={20} color="#111827" /></View>}
+                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={44} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={22} color="#111827" /></View>}
                         </View>
                     )}
                 </View>
                 <View style={styles.headerContent}>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>{recipient ? recipient.name : "Chat"}</Text>
-                    <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>ACTIVE SUPPORTER</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase' }]}>{recipient ? recipient.name : "Chat"}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Active now</Text>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#4CAF50', marginLeft: 6 }} />
+                    </View>
                 </View>
                 <TouchableOpacity style={styles.moreButton}>
-                    <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
+                    <Ionicons name="ellipsis-horizontal" size={24} color="#8B5CF6" />
                 </TouchableOpacity>
             </View>
 
-            <View style={{ flex: 1, paddingBottom: Platform.OS === "android" ? keyboardHeight : 0, backgroundColor: theme.background }}>
+            <View style={{ flex: 1, paddingBottom: Platform.OS === "android" && keyboardHeight > 0 ? keyboardHeight + 20 : 0, backgroundColor: theme.background }}>
                 <KeyboardAvoidingView
                     style={{ flex: 1, backgroundColor: theme.background }}
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 115 : 0}
                 >
                     <View style={{ flex: 1, backgroundColor: theme.background }}>
                         <FlatList
@@ -581,33 +596,33 @@ export default function ChatScreen() {
                         </View>
                     )}
 
-                    <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-                        <TouchableOpacity style={styles.emojiButton} onPress={toggleEmojiBoard}>
-                            <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={28} color={theme.textSecondary} />
+                    <View style={[styles.inputWrapper, { backgroundColor: theme.background, paddingBottom: keyboardHeight > 0 ? 24 : (Platform.OS === 'ios' ? 28 : 20) }]}>
+                        <TouchableOpacity style={[styles.emojiButton, { borderColor: '#8B5CF6' }]} onPress={toggleEmojiBoard}>
+                            <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={22} color="#8B5CF6" />
                         </TouchableOpacity>
 
-                        <View style={[styles.inputContainer, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
+                        <View style={[styles.inputContainer, { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB' }]}>
                             <TextInput
                                 style={[styles.input, { color: theme.text }]}
                                 placeholder="Type a message..."
-                                placeholderTextColor={theme.placeholder}
+                                placeholderTextColor="#9CA3AF"
                                 value={inputText}
                                 onChangeText={setInputText}
                                 multiline
                                 onFocus={() => setShowEmojiBoard(false)}
                             />
-                            <TouchableOpacity
-                                style={styles.sendButton}
-                                onPress={sendMessage}
-                                disabled={!inputText.trim() || sending}
-                            >
-                                {sending ? (
-                                    <ActivityIndicator size="small" color="#FFFFFF" />
-                                ) : (
-                                    <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-                                )}
-                            </TouchableOpacity>
                         </View>
+                        <TouchableOpacity
+                            style={[styles.sendButton, { backgroundColor: '#8B5CF6' }]}
+                            onPress={sendMessage}
+                            disabled={!inputText.trim() || sending}
+                        >
+                            {sending ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Ionicons name="send" size={16} color="#FFFFFF" style={{ marginLeft: 3 }} />
+                            )}
+                        </TouchableOpacity>
                     </View>
 
                     {/* Emoji Keyboard */}
@@ -633,35 +648,36 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: "#FFFFFF",
-        // Soft shadow instead of border
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 2,
-        zIndex: 10,
+        paddingTop: 16,
+        paddingBottom: 8,
+        borderBottomWidth: 2,
+        borderBottomColor: "#E5E7EB",
     },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    backButton: { marginRight: 8, padding: 4 },
+    backButton: { 
+        marginRight: 12, 
+        width: 36, 
+        height: 36, 
+        borderRadius: 18, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
     headerAvatar: { marginRight: 12 },
     defaultHeaderAvatar: {
-        width: 42, height: 42, borderRadius: 21, backgroundColor: "#F3E5F5", justifyContent: "center", alignItems: "center",
-        borderWidth: 1, borderColor: "#FFFFFF"
+        width: 44, height: 44, borderRadius: 22, backgroundColor: "#F3E5F5", justifyContent: "center", alignItems: "center",
     },
     headerContent: { flex: 1, justifyContent: 'center' },
-    headerTitle: { fontSize: 17, fontWeight: "700", letterSpacing: -0.5 },
-    headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#9F8BFF", marginTop: 2, letterSpacing: 0.5 },
+    headerTitle: { fontSize: 16, fontWeight: "800", letterSpacing: 1 },
+    headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#6B7280" },
     moreButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
 
     messagesList: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
-    dateHeaderContainer: { alignItems: 'center', marginBottom: 10, marginTop: 6 },
-    dateHeaderBadge: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-    dateHeaderText: { fontSize: 10, fontWeight: "600", color: "#9E9E9E", textTransform: 'uppercase' },
+    dateHeaderContainer: { alignItems: 'center', marginBottom: 16, marginTop: 12 },
+    dateHeaderBadge: { backgroundColor: '#F8F9FA', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16 },
+    dateHeaderText: { fontSize: 10, fontWeight: "800", color: "#9E9E9E", textTransform: 'uppercase', letterSpacing: 0.5 },
 
     messageRowContainer: {
         flexDirection: 'row',
@@ -692,60 +708,68 @@ const styles = StyleSheet.create({
     },
 
     bubble: {
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 24,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.08,
-        shadowRadius: 2,
-        elevation: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 20,
     },
     myBubble: {
-        backgroundColor: "#9F8BFF",
+        backgroundColor: "#B39DDB",
         borderBottomRightRadius: 4,
     },
     theirBubble: {
-        backgroundColor: "#FFAB91",
+        backgroundColor: "#FFD5C6",
         borderBottomLeftRadius: 4,
     },
     sharedPostBubbleContainer: {
-        paddingVertical: 2,
-        paddingHorizontal: 2,
+        paddingVertical: 4,
+        paddingHorizontal: 4,
         borderRadius: 18,
+        backgroundColor: "transparent",
     },
 
     messageText: { fontSize: 15, lineHeight: 20 },
     myMessageText: { color: "#FFFFFF" },
     theirMessageText: { color: "#111827" },
 
-    timestamp: { fontSize: 10, color: "#9E9E9E", marginTop: 2 },
-    myTimestamp: { textAlign: 'right' },
-    theirTimestamp: { textAlign: 'left' },
+    timestampContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    myTimestampContainer: {
+        justifyContent: 'flex-end',
+    },
+    theirTimestampContainer: {
+        justifyContent: 'flex-start',
+    },
+    timestamp: { fontSize: 10, color: "#9E9E9E" },
 
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 12,
-        paddingVertical: 8,
-        backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
+        paddingVertical: 10,
     },
-    emojiButton: { marginRight: 8, padding: 4 },
+    emojiButton: { 
+        marginRight: 10, 
+        width: 36, 
+        height: 36, 
+        borderRadius: 18, 
+        borderWidth: 1.5,
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
     inputContainer: {
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#F3F4F6",
         borderRadius: 24,
         paddingHorizontal: 4,
-        paddingVertical: 4,
         borderWidth: 1,
-        borderColor: "#EEEEEE",
+        marginRight: 10,
     },
-    input: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100, color: "#111827" },
-    sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#9F8BFF", justifyContent: "center", alignItems: "center", shadowColor: "#9F8BFF", shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 },
+    input: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100 },
+    sendButton: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center", shadowColor: "#9F8BFF", shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 },
 
     replyBanner: {
         flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', paddingHorizontal: 16, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#E5E7EB'
@@ -759,6 +783,8 @@ const styles = StyleSheet.create({
         marginBottom: 6,
         padding: 8,
         borderRadius: 8,
+        borderTopLeftRadius:0,
+        borderBottomLeftRadius:0,
         backgroundColor: 'rgba(0,0,0,0.08)',
         borderLeftWidth: 3,
     },
@@ -796,22 +822,18 @@ const styles = StyleSheet.create({
     },
     sharedPostCard: {
         backgroundColor: "#FFFFFF",
-        padding: 20,
-        borderRadius: 16,
-        marginBottom: 8,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 2,
-        minWidth: 260,
+        padding: 8,
+        borderRadius: 20,
+        minWidth: 280,
         width: '100%',
+        marginTop: 4,
+        elevation: 0.5,
     },
-    postCardHeader: {
+    postAuthorSection: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 12,
+        justifyContent: "space-between",
+        marginBottom: 16,
     },
     postCategoryBadge: {
         paddingHorizontal: 12,
@@ -819,49 +841,33 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     postCategoryText: {
-        fontSize: 9,
-        fontWeight: "700",
-        color: "#111827",
-        letterSpacing: 0.3,
-    },
-    postTimestamp: {
-        fontSize: 11,
-        color: "#BDBDBD",
-    },
-    postAuthorSection: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-    postAvatarContainer: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: "#EFE8FF",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 8,
-    },
-    postAvatarWrapper: {
-        marginRight: 8,
+        fontSize: 10,
+        fontWeight: "800",
+        letterSpacing: 0.5,
     },
     postAuthorName: {
+        fontSize: 15,
+        fontWeight: "800",
+        letterSpacing: -0.3,
+    },
+    postTimestamp: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#111827",
+        marginTop: 2,
+        fontWeight: '500',
     },
     postTitle: {
-        fontSize: 15,
-        fontWeight: "700",
-        color: "#111827",
-        marginBottom: 6,
-        lineHeight: 20,
+        fontSize: 18,
+        fontWeight: "800",
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        marginBottom: 8,
+        lineHeight: 28,
+        letterSpacing: -0.5,
     },
     postPreview: {
-        fontSize: 13,
-        color: "#6B7280",
-        lineHeight: 18,
-        marginBottom: 14,
+        fontSize: 14,
+        lineHeight: 22,
+        marginBottom: 20,
+        fontWeight: '500',
     },
     postFooter: {
         flexDirection: "row",
@@ -870,27 +876,21 @@ const styles = StyleSheet.create({
     },
     postReactions: {
         flexDirection: "row",
-        gap: 16,
+        gap: 10,
+        flexWrap: 'wrap',
     },
-    postReactionButton: {
+    postReactionPill: {
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 24,
+        borderWidth: 1,
     },
     postReactionCount: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#6B7280",
-    },
-    postCommentSection: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-    },
-    postCommentCount: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#6B7280",
+        fontSize: 13,
+        fontWeight: "700",
     },
     // Empty Chat UI Styles
     emptyChatContainer: {

@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 0,
         height: '100%',
-        backgroundColor: "#d1c1f0ff",
+        backgroundColor: "#d1cfd58e",
         borderRadius: 15,
     },
     listContent: {
