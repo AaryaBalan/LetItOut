@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
@@ -28,15 +28,15 @@ import { categories } from "../../data/dummyData";
 import { showInterstitialAd } from "../ads/InterstitialAds";
 
 const getCategoryTheme = (category, isDark) => {
-  const themes = {
-    "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#EBF3FE" },
-    "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FCEEEE" },
-    "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FEF9E6" },
-    "Study": { icon: "book", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#E9F7EF" },
-    "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#EEF2FF" },
-    "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
-  };
-  return themes[category] || themes["Other"];
+  switch (category) {
+    case "Study Support":
+    case "Study": return { icon: "school", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#1E2A22" : "#E9F7EF" };
+    case "Mental Health": return { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#282A3A" : "#EEF2FF" };
+    case "Stress": return { icon: "sad", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#2A1E1E" : "#FCEEEE" };
+    case "Relationship": return { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#2A271E" : "#FEF9E6" };
+    case "Family": return { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#1E2430" : "#EBF3FE" };
+    default: return { icon: "ghost", isMaterial: true, color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#222" : "#F3E8FF" };
+  }
 };
 
 export default function CreatePost() {
@@ -178,12 +178,12 @@ export default function CreatePost() {
         >
           <Ionicons name="close" size={26} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Create</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Create Post</Text>
         <TouchableOpacity
           onPress={handleSubmit}
           style={[
             styles.postButton,
-            { backgroundColor: isFormValid ? theme.primary : (theme.isDark ? "#2A2A2A" : "#F3F4F6") }
+            { backgroundColor: isFormValid ? "#8B5CF6" : (theme.isDark ? "#2A2A2A" : "#F3F4F6") }
           ]}
           disabled={!isFormValid || isSubmitting}
         >
@@ -205,23 +205,22 @@ export default function CreatePost() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Identity/Profile Picker (Reddit style) */}
+          {/* Identity/Profile Picker */}
           <View style={styles.identityRow}>
             <TouchableOpacity
               style={[
                 styles.identityPill,
-                { backgroundColor: theme.isDark ? "#2A2A2A" : "#F3F4F6", borderColor: theme.border }
+                { backgroundColor: theme.surface, borderColor: "#E5E7EB", borderWidth: 1 }
               ]}
               onPress={toggleAnonymity}
             >
               <View style={styles.identityAvatar}>
                 {isAnonymous ? (
-                  <Image
-                    source={require("../../assets/images/letitout_logo.png")}
-                    style={{ width: 18, height: 18, borderRadius: 9 }}
-                  />
+                  <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#F3E8FF', justifyContent: 'center', alignItems: 'center' }}>
+                    <Ionicons name="ghost" size={14} color="#8B5CF6" />
+                  </View>
                 ) : (
-                  <Ionicons name="person-circle" size={18} color={theme.primary} />
+                  <Ionicons name="person-circle" size={24} color="#8B5CF6" />
                 )}
               </View>
               <Text style={[styles.identityText, { color: theme.text }]}>
@@ -231,77 +230,91 @@ export default function CreatePost() {
             </TouchableOpacity>
           </View>
 
-          {/* Title Input */}
-          <TextInput
-            style={[styles.titleInput, { color: theme.text }]}
-            placeholder="An interesting title"
-            placeholderTextColor={theme.placeholder}
-            value={title}
-            onChangeText={setTitle}
-            multiline
-            maxLength={100}
-          />
+          {/* Top Card for Title and Category */}
+          <View style={[styles.mainCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            {/* Title Input */}
+            <Text style={[styles.inputLabel, { color: theme.textTertiary }]}>Title</Text>
+            <TextInput
+              style={[styles.titleInput, { color: theme.text }]}
+              placeholder="An interesting title"
+              placeholderTextColor={theme.placeholder}
+              value={title}
+              onChangeText={setTitle}
+              multiline
+              maxLength={100}
+            />
 
-          {/* Category/Flair Selection badge */}
-          <View style={styles.flairRow}>
-            {category ? (
-              <TouchableOpacity
-                style={[
-                  styles.flairPill,
-                  {
-                    backgroundColor: getCategoryTheme(category, theme.isDark).bgColor,
-                    borderColor: getCategoryTheme(category, theme.isDark).color
-                  }
-                ]}
-                onPress={() => setShowCategoryModal(true)}
-              >
-                <Ionicons
-                  name={getCategoryTheme(category, theme.isDark).icon}
-                  size={14}
-                  color={getCategoryTheme(category, theme.isDark).color}
-                />
-                <Text style={[styles.flairText, { color: getCategoryTheme(category, theme.isDark).color }]}>
-                  {category}
-                </Text>
+            {/* Category/Flair Selection badge */}
+            <View style={styles.flairRow}>
+              {category ? (
                 <TouchableOpacity
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    setCategory("");
-                  }}
-                  style={styles.flairClose}
+                  style={[
+                    styles.flairPill,
+                    {
+                      backgroundColor: getCategoryTheme(category, theme.isDark).bgColor,
+                      borderColor: getCategoryTheme(category, theme.isDark).color,
+                      borderWidth: 1
+                    }
+                  ]}
+                  onPress={() => setShowCategoryModal(true)}
                 >
-                  <Ionicons name="close-circle" size={16} color={getCategoryTheme(category, theme.isDark).color} />
+                  {getCategoryTheme(category, theme.isDark).isMaterial ? (
+                    <MaterialCommunityIcons
+                      name={getCategoryTheme(category, theme.isDark).icon}
+                      size={14}
+                      color={getCategoryTheme(category, theme.isDark).color}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={getCategoryTheme(category, theme.isDark).icon}
+                      size={14}
+                      color={getCategoryTheme(category, theme.isDark).color}
+                    />
+                  )}
+                  <Text style={[styles.flairText, { color: getCategoryTheme(category, theme.isDark).color }]}>
+                    {category}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      setCategory("");
+                    }}
+                    style={styles.flairClose}
+                  >
+                    <Ionicons name="close-circle" size={16} color={getCategoryTheme(category, theme.isDark).color} />
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[
-                  styles.addFlairPill,
-                  { backgroundColor: theme.isDark ? "#2A2A2A" : "#F3F4F6", borderColor: theme.border }
-                ]}
-                onPress={() => setShowCategoryModal(true)}
-              >
-                <Ionicons name="add" size={16} color={theme.textSecondary} />
-                <Text style={[styles.addFlairText, { color: theme.textSecondary }]}>Add category</Text>
-              </TouchableOpacity>
-            )}
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.addFlairPill,
+                    { backgroundColor: "transparent", borderColor: "#A78BFA" }
+                  ]}
+                  onPress={() => setShowCategoryModal(true)}
+                >
+                  <Ionicons name="add" size={16} color="#8B5CF6" />
+                  <Text style={[styles.addFlairText, { color: "#8B5CF6" }]}>Add Category</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Body Input */}
+            <Text style={[styles.inputLabel, { color: theme.textTertiary, marginTop: 24 }]}>What's happening?</Text>
+            <TextInput
+              style={[styles.bodyInput, { color: theme.text }]}
+              placeholder="Be as detailed as you like..."
+              placeholderTextColor={theme.placeholder}
+              multiline
+              value={description}
+              onChangeText={setDescription}
+              maxLength={maxCharacters}
+            />
+
+            {/* Characters count */}
+            <Text style={[styles.characterCount, { color: theme.textTertiary }]}>
+              {characterCount} / {maxCharacters}
+            </Text>
           </View>
-
-          {/* Body Input */}
-          <TextInput
-            style={[styles.bodyInput, { color: theme.text }]}
-            placeholder="What's happening? Be as detailed as you like..."
-            placeholderTextColor={theme.placeholder}
-            multiline
-            value={description}
-            onChangeText={setDescription}
-            maxLength={maxCharacters}
-          />
-
-          {/* Characters count */}
-          <Text style={[styles.characterCount, { color: theme.textTertiary }]}>
-            {characterCount} / {maxCharacters}
-          </Text>
 
           {/* Bottom Card for Mood and Options */}
           <View style={[styles.bottomCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -421,7 +434,11 @@ export default function CreatePost() {
                       setShowCategoryModal(false);
                     }}
                   >
-                    <Ionicons name={details.icon} size={18} color={details.color} />
+                    {details.isMaterial ? (
+                      <MaterialCommunityIcons name={details.icon} size={18} color={details.color} />
+                    ) : (
+                      <Ionicons name={details.icon} size={18} color={details.color} />
+                    )}
                     <Text
                       style={[
                         styles.categoryOptionText,
@@ -510,29 +527,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  titleInput: {
-    fontSize: 22,
-    fontWeight: "700",
+  mainCard: {
     marginHorizontal: 16,
-    marginVertical: 10,
+    borderRadius: 20,
+    padding: 20,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  titleInput: {
+    fontSize: 26,
+    fontWeight: "700",
+    marginBottom: 20,
     padding: 0,
   },
   flairRow: {
-    marginHorizontal: 16,
-    marginVertical: 4,
     flexDirection: "row",
     flexWrap: "wrap",
   },
   flairPill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 20,
     gap: 6,
   },
   flairText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
   },
   flairClose: {
@@ -541,38 +571,36 @@ const styles = StyleSheet.create({
   addFlairPill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 20,
     borderWidth: 1,
     borderStyle: "dashed",
     gap: 6,
   },
   addFlairText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
   },
   bodyInput: {
     fontSize: 16,
-    marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 20,
     flex: 1,
-    minHeight: 180,
+    minHeight: 120,
     textAlignVertical: "top",
     padding: 0,
   },
   characterCount: {
-    marginHorizontal: 16,
     fontSize: 12,
     textAlign: "right",
-    marginBottom: 16,
+    marginBottom: 0,
   },
   bottomCard: {
     marginHorizontal: 16,
     borderRadius: 20,
     padding: 20,
-    marginTop: 8,
+    marginTop: 16,
     marginBottom: Platform.OS === "ios" ? 10 : 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
