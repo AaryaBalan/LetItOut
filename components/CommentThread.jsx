@@ -24,7 +24,7 @@ const CommentThread = ({
 
     // Calculate indentation and line color based on depth
     const indentWidth = depth * 12; // Reduced indentation from 20 to 12
-    const lineColors = ['#7C3AED', '#B39DDB', '#D1C4E9'];
+    const lineColors = ['#111827', '#B39DDB', '#D1C4E9'];
     // For root (depth 0), use the first color. For nested, cycle through colors.
     const lineColor = lineColors[Math.min(depth, lineColors.length - 1)];
 
@@ -51,13 +51,13 @@ const CommentThread = ({
                     <View style={styles.commentHeaderSection}>
                         {/* Avatar */}
                         {comment.commentorId && commentorProfiles[comment.commentorId] ? (
-                            <Avatar seed={commentorProfiles[comment.commentorId]} size={depth > 0 ? 24 : 28} /> // Smaller avatars
+                            <Avatar seed={commentorProfiles[comment.commentorId]} size={depth > 0 ? 30 : 38} /> // Smaller avatars
                         ) : (
                             <View style={[styles.commentAvatarPlaceholder, {
                                 width: depth > 0 ? 24 : 28, // Smaller placeholders
                                 height: depth > 0 ? 24 : 28,
                             }]}>
-                                <Ionicons name="person" size={12} color="#7C3AED" />
+                                <Ionicons name="person" size={12} color="#111827" />
                             </View>
                         )}
 
@@ -112,8 +112,8 @@ const CommentThread = ({
                                         style={styles.replyButton}
                                         onPress={() => onReply(comment)}
                                     >
-                                        <Ionicons name="arrow-undo" size={13} color="#7C3AED" />
-                                        <Text style={[styles.replyText, { color: '#7C3AED' }]}>
+                                        <Ionicons name="arrow-undo" size={13} color="#111827" />
+                                        <Text style={[styles.replyText, { color: '#111827' }]}>
                                             Reply
                                         </Text>
                                     </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     addDoc,
@@ -50,24 +50,20 @@ import {
     createMeTooNotification,
 } from "../../utils/notifications";
 
-const getCategoryColor = (category) => {
-    const colors = {
-        Study: "#E1BEE7",
-        "Mental Health": "#B39DDB",
-        Mindfulness: "#FFE082",
-        Stress: "#FFAB91",
-        Anxiety: "#B39DDB",
-        Relationship: "#F48FB1",
-        Family: "#80CBC4",
-    };
-    return colors[category] || "#E5E7EB";
+const getCategoryColors = (category, isDark) => {
+    switch (category) {
+        case "Study Support":
+        case "Study": return { color: isDark ? "#81C995" : "#27AE60", bg: isDark ? "#1E2A22" : "#E9F7EF" };
+        case "Mental Health": return { color: isDark ? "#FDD663" : "#6366F1", bg: isDark ? "#282A3A" : "#EEF2FF" };
+        case "Stress": return { color: isDark ? "#F28B82" : "#EB5757", bg: isDark ? "#2A1E1E" : "#FCEEEE" };
+        case "Relationship": return { color: isDark ? "#F8BBD0" : "#F2C94C", bg: isDark ? "#2A271E" : "#FEF9E6" };
+        case "Family": return { color: isDark ? "#8AB4F8" : "#2F80ED", bg: isDark ? "#1E2430" : "#EBF3FE" };
+        default: return { color: isDark ? "#E8EAED" : "#A78BFA", bg: isDark ? "#222" : "#F3E8FF" }; // Other
+    }
 };
 
 const getCategoryLabel = (category) => {
-    const labels = {
-        Study: "ACADEMIC STRESS",
-    };
-    return labels[category] || category.toUpperCase();
+    return category ? category.toUpperCase() : "GENERAL";
 };
 
 export default function PostDetail() {
@@ -551,7 +547,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
                 <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} style={{ marginBottom: 16 }} />
+                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} style={{ marginBottom: 16 }} />
                 <Text style={[styles.errorText, { color: theme.textSecondary }]}>Loading...</Text>
             </SafeAreaView>
         );
@@ -926,6 +922,7 @@ export default function PostDetail() {
     };
 
     const activeTheme = theme.isDark ? blackTheme : theme;
+    const postTheme = getCategoryColors(post.category, activeTheme.isDark);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: activeTheme.background }]} edges={["top"]}>
@@ -952,7 +949,7 @@ export default function PostDetail() {
                         <Ionicons
                             name={isSaved ? "bookmark" : "bookmark-outline"}
                             size={24}
-                            color={isSaved ? "#FFB74D" : "#7C3AED"}
+                            color={isSaved ? "#FFB74D" : "#111827"}
                         />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -986,149 +983,157 @@ export default function PostDetail() {
                     >
                         {/* Post Card */}
                         <View style={[styles.postCard, { backgroundColor: activeTheme.card }]}>
-                            <View style={styles.postHeader}>
-                                <View
-                                    style={[
-                                        styles.categoryBadge,
-                                        { backgroundColor: getCategoryColor(post.category) },
-                                    ]}
-                                >
-                                    <Text style={[styles.categoryText, { color: "#111827" }]}>
-                                        {getCategoryLabel(post.category)}
-                                    </Text>
-                                </View>
-                                <Text style={[styles.timestamp, { color: activeTheme.textSecondary }]}>{post.timestamp}</Text>
-                            </View>
-
-                            {/* Author Section */}
-                            <TouchableOpacity
-                                style={styles.authorSection}
-                                onPress={() => {
-                                    if (post.authorId && !post.isAnonymous) {
-                                        if (user && user.uid === post.authorId) {
-                                            router.push("/(tabs)/profile");
-                                        } else {
-                                            router.push(`/user/${post.authorId}`);
-                                        }
-                                    }
-                                }}
-                                disabled={post.isAnonymous || !post.authorId}
-                            >
-                                {post.isAnonymous ||
-                                    !post.authorName ||
-                                    post.authorName === "Anonymous" ||
-                                    !authorProfileCode ? (
-                                    <View style={[styles.avatarWrapper, { backgroundColor: activeTheme.border, borderRadius: 20 }]}>
-                                        <Image
-                                            source={require("../../assets/images/letitout_logo.png")}
-                                            style={{ width: 40, height: 40, borderRadius: 20 }}
-                                        />
+                            {/* ABSOLUTE BACKGROUND BLOB */}
+                            <View style={styles.blobContainer}>
+                                {post.category === "Study" || post.category === "Study Support" ? (
+                                    <View style={styles.studyBlobWrapper}>
+                                        <View style={styles.studyBlobShape} />
+                                        <Ionicons name="school" size={60} color="#C8E6C9" style={styles.studyBlobIcon} />
+                                    </View>
+                                ) : post.category === "Stress" ? (
+                                    <View style={styles.stressBlobWrapper}>
+                                        <View style={styles.stressBlobShape} />
+                                        <Ionicons name="sad" size={60} color="#FFCDD2" style={styles.stressBlobIcon} />
+                                    </View>
+                                ) : post.category === "Relationship" ? (
+                                    <View style={styles.relationshipBlobWrapper}>
+                                        <View style={styles.relationshipBlobShape} />
+                                        <Ionicons name="heart" size={60} color="#FFE0B2" style={styles.relationshipBlobIcon} />
+                                    </View>
+                                ) : post.category === "Family" ? (
+                                    <View style={styles.familyBlobWrapper}>
+                                        <View style={styles.familyBlobShape} />
+                                        <Ionicons name="people" size={60} color="#BBDEFB" style={styles.familyBlobIcon} />
+                                    </View>
+                                ) : post.category === "Mental Health" ? (
+                                    <View style={styles.mentalBlobWrapper}>
+                                        <View style={styles.mentalBlobShape} />
+                                        <Ionicons name="heart" size={60} color="#D8D8FE" style={styles.mentalBlobIcon} />
                                     </View>
                                 ) : (
-                                    <View style={styles.avatarWrapper}>
-                                        <Avatar seed={authorProfileCode} size={40} />
+                                    <View style={styles.otherBlobWrapper}>
+                                        <View style={styles.otherBlobShape} />
+                                        <MaterialCommunityIcons name="ghost" size={60} color="#D8D8FE" style={styles.otherBlobGhost} />
                                     </View>
                                 )}
-                                <Text style={[styles.authorName, { color: activeTheme.text }]}>
-                                    {post.isAnonymous || !post.authorName
-                                        ? "Anonymous"
-                                        : post.authorName}
-                                </Text>
-                            </TouchableOpacity>
-
-                            <Text style={[styles.postTitle, { color: activeTheme.text, fontWeight: '700' }]}>{post.title}</Text>
-                            <Text style={[styles.postDescription, { color: activeTheme.textSecondary }]}>{post.description}</Text>
-
-                            {/* Hugs Sent */}
-                            <View style={styles.hugsSentContainer}>
-                                <View style={[styles.hugIcon, { backgroundColor: activeTheme.surface, borderColor: activeTheme.border, borderWidth: 1 }]}>
-                                    <Ionicons name="heart" size={16} color="#E57373" />
-                                </View>
-                                <View style={[styles.hugIcon, { backgroundColor: activeTheme.surface, borderColor: activeTheme.border, borderWidth: 1 }]}>
-                                    <Ionicons name="hand-left" size={16} color="#FFB74D" />
-                                </View>
-                                <View style={[styles.hugIcon, { backgroundColor: activeTheme.surface, borderColor: activeTheme.border, borderWidth: 1 }]}>
-                                    <Ionicons name="happy" size={16} color="#66BB6A" />
-                                </View>
-                                <Text style={[styles.hugsSentText, { color: activeTheme.textTertiary }]}>
-                                    {likeCount + hugCount + meTooCount} reactions
-                                </Text>
                             </View>
 
-                            {/* Action Buttons */}
-                            <View style={styles.actionButtons}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.actionButton,
-                                        likeActive && { backgroundColor: "#FFCDD2" }, // Red 100
-                                        !likeActive && { backgroundColor: activeTheme.border }
-                                    ]}
-                                    onPress={handleLike}
-                                >
-                                    <Ionicons
-                                        name={likeActive ? "heart" : "heart-outline"}
-                                        size={18}
-                                        color={likeActive ? "#C62828" : "#7C3AED"} // Red 800
-                                    />
-                                    <Text
+                            <View style={styles.postCardContent}>
+                                <View style={styles.postHeader}>
+                                    <View
                                         style={[
-                                            styles.actionButtonText,
-                                            likeActive && { color: "#C62828" }, // Red 800
-                                            !likeActive && { color: activeTheme.textSecondary }
+                                            styles.categoryBadge,
+                                            { backgroundColor: getCategoryColors(post.category, activeTheme.isDark).bg },
                                         ]}
                                     >
-                                        Like {likeCount > 0 && `(${likeCount})`}
+                                        <Text style={[styles.categoryText, { color: getCategoryColors(post.category, activeTheme.isDark).color }]}>
+                                            {getCategoryLabel(post.category)}
+                                        </Text>
+                                    </View>
+                                    <Text style={[styles.timestamp, { color: activeTheme.textSecondary }]}>{post.timestamp}</Text>
+                                </View>
+
+                                {/* Author Section */}
+                                <TouchableOpacity
+                                    style={styles.authorSection}
+                                    onPress={() => {
+                                        if (post.authorId && !post.isAnonymous) {
+                                            if (user && user.uid === post.authorId) {
+                                                router.push("/(tabs)/profile");
+                                            } else {
+                                                router.push(`/user/${post.authorId}`);
+                                            }
+                                        }
+                                    }}
+                                    disabled={post.isAnonymous || !post.authorId}
+                                >
+                                    {post.isAnonymous ||
+                                        !post.authorName ||
+                                        post.authorName === "Anonymous" ||
+                                        !authorProfileCode ? (
+                                        <View style={[styles.avatarWrapper, { backgroundColor: activeTheme.border, borderRadius: 20 }]}>
+                                            <MaterialCommunityIcons name="ghost-outline" size={24} color={activeTheme.textSecondary} />
+                                        </View>
+                                    ) : (
+                                        <View style={styles.avatarWrapper}>
+                                            <Avatar seed={authorProfileCode} size={60} />
+                                        </View>
+                                    )}
+                                    <Text style={[styles.authorName, { color: activeTheme.text }]}>
+                                        {post.isAnonymous || !post.authorName
+                                            ? "Anonymous"
+                                            : post.authorName}
                                     </Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity
-                                    style={[
-                                        styles.actionButton,
-                                        hugActive && { backgroundColor: "#FFE0B2" }, // Orange 100
-                                        !hugActive && { backgroundColor: activeTheme.border }
-                                    ]}
-                                    onPress={handleHug}
-                                >
-                                    <Ionicons
-                                        name={hugActive ? "hand-left" : "hand-left-outline"}
-                                        size={18}
-                                        color={hugActive ? "#EF6C00" : "#7C3AED"} // Orange 800
-                                        style={hugActive ? { textShadowColor: 'rgba(239, 108, 0, 0.3)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5 } : {}}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.actionButtonText,
-                                            hugActive && { color: "#EF6C00" }, // Orange 800
-                                            !hugActive && { color: activeTheme.textSecondary }
-                                        ]}
-                                    >
-                                        Send Hug {hugCount > 0 && `(${hugCount})`}
-                                    </Text>
-                                </TouchableOpacity>
+                                <Text style={[styles.postTitle, { color: activeTheme.text }]}>{post.title}</Text>
+                                <Text style={[styles.postDescription, { color: activeTheme.textSecondary }]}>{post.description}</Text>
 
-                                <TouchableOpacity
-                                    style={[
-                                        styles.actionButton,
-                                        meTooActive && { backgroundColor: "#C8E6C9" }, // Green 100
-                                        !meTooActive && { backgroundColor: activeTheme.border }
-                                    ]}
-                                    onPress={handleMeToo}
-                                >
-                                    <Ionicons
-                                        name={meTooActive ? "happy" : "happy-outline"}
-                                        size={18}
-                                        color={meTooActive ? "#2E7D32" : "#7C3AED"} // Green 800
-                                    />
-                                    <Text
+                                {/* Hugs Sent Pill */}
+                                <View style={styles.hugsSentContainer}>
+                                    <View style={[styles.hugsSentPill, { borderColor: activeTheme.border }]}>
+                                        <View style={[styles.hugIcon, { zIndex: 3, backgroundColor: '#FCEEEE', borderColor: activeTheme.card }]}>
+                                            <Ionicons name="heart" size={14} color="#EB5757" />
+                                        </View>
+                                        <View style={[styles.hugIcon, { zIndex: 2, marginLeft: -8, backgroundColor: '#FEF9E6', borderColor: activeTheme.card }]}>
+                                            <Ionicons name="hand-left" size={14} color="#F2C94C" />
+                                        </View>
+                                        <View style={[styles.hugIcon, { zIndex: 1, marginLeft: -8, backgroundColor: '#E9F7EF', borderColor: activeTheme.card }]}>
+                                            <Ionicons name="happy" size={14} color="#27AE60" />
+                                        </View>
+                                        <Text style={[styles.hugsSentText, { color: activeTheme.textTertiary }]}>
+                                            {likeCount + hugCount + meTooCount} REACTIONS
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Action Buttons */}
+                                <View style={styles.actionButtons}>
+                                    <TouchableOpacity
                                         style={[
-                                            styles.actionButtonText,
-                                            meTooActive && { color: "#2E7D32" }, // Green 800
-                                            !meTooActive && { color: activeTheme.textSecondary }
+                                            styles.actionButton,
+                                            { 
+                                                backgroundColor: likeActive ? (activeTheme.isDark ? "#2E224D" : "#EFE8FF") : "transparent",
+                                                borderWidth: 1,
+                                                borderColor: likeActive ? "transparent" : "#6366F1"
+                                            }
                                         ]}
+                                        onPress={handleLike}
                                     >
-                                        Me too {meTooCount > 0 && `(${meTooCount})`}
-                                    </Text>
-                                </TouchableOpacity>
+                                        <Ionicons name={likeActive ? "heart" : "heart-outline"} size={18} color="#6366F1" />
+                                        <Text style={[styles.actionButtonText, { color: "#6366F1" }]}>Like</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.actionButton,
+                                            { 
+                                                backgroundColor: hugActive ? (activeTheme.isDark ? "#2A271E" : "#FEF9E6") : "transparent",
+                                                borderWidth: 1,
+                                                borderColor: hugActive ? "transparent" : "#F2C94C"
+                                            }
+                                        ]}
+                                        onPress={handleHug}
+                                    >
+                                        <Ionicons name={hugActive ? "hand-left" : "hand-left-outline"} size={18} color="#F2C94C" />
+                                        <Text style={[styles.actionButtonText, { color: "#F2C94C" }]}>Send Hug</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.actionButton,
+                                            { 
+                                                backgroundColor: meTooActive ? (activeTheme.isDark ? "#1E2A22" : "#E9F7EF") : "transparent",
+                                                borderWidth: 1,
+                                                borderColor: meTooActive ? "transparent" : "#27AE60"
+                                            }
+                                        ]}
+                                        onPress={handleMeToo}
+                                    >
+                                        <Ionicons name={meTooActive ? "happy" : "happy-outline"} size={18} color="#27AE60" />
+                                        <Text style={[styles.actionButtonText, { color: "#27AE60" }]}>Me too</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
 
@@ -1136,7 +1141,7 @@ export default function PostDetail() {
                         <View style={[styles.repliesSection, { backgroundColor: activeTheme.background, borderTopColor: activeTheme.border }]}>
                             <View style={[styles.repliesHeader, { borderBottomColor: activeTheme.border }]}>
                                 <Text style={[styles.repliesTitle, { color: activeTheme.text }]}>Supportive Replies</Text>
-                                <Text style={[styles.repliesCountText, { color: activeTheme.textSecondary }]}>
+                                <Text style={[styles.repliesCountText, { color: postTheme.color }]}>
                                     {comments.length} REPLIES
                                 </Text>
                             </View>
@@ -1151,7 +1156,7 @@ export default function PostDetail() {
                             {comments.length > 0 ? (
                                 <View style={[styles.commentsContainer, { backgroundColor: activeTheme.background }]}>
                                     {/* Vertical line connecting all comments */}
-                                    <View style={[styles.commentsVerticalLine, { backgroundColor: '#7C3AED' }]} />
+                                    <View style={[styles.commentsVerticalLine, { backgroundColor: postTheme.color }]} />
 
                                     {buildCommentTree(comments).map((comment, index) => (
                                         <CommentThread
@@ -1191,9 +1196,9 @@ export default function PostDetail() {
                     {replyingTo && (
                         <View style={[styles.replyIndicator, { backgroundColor: activeTheme.surface, borderTopColor: activeTheme.border }]}>
                             <View style={styles.replyIndicatorContent}>
-                                <Ionicons name="arrow-undo" size={16} color="#7C3AED" />
+                                <Ionicons name="arrow-undo" size={16} color="#111827" />
                                 <Text style={[styles.replyingToText, { color: activeTheme.textSecondary }]}>
-                                    Replying to <Text style={{ color: '#7C3AED', fontWeight: '600' }}>@{replyingTo.username || 'Anonymous'}</Text>
+                                    Replying to <Text style={{ color: '#111827', fontWeight: '600' }}>@{replyingTo.username || 'Anonymous'}</Text>
                                 </Text>
                             </View>
                             <TouchableOpacity onPress={() => setReplyingTo(null)}>
@@ -1215,14 +1220,14 @@ export default function PostDetail() {
                             <Ionicons name="happy-outline" size={24} color={activeTheme.textSecondary} />
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={styles.sendButton}
+                            style={[styles.sendButton, { backgroundColor: postTheme.color, shadowColor: postTheme.color }]}
                             onPress={handleAddComment}
                             disabled={!newComment.trim()}
                         >
                             <Ionicons
                                 name="send"
                                 size={20}
-                                color={newComment.trim() ? "#FFFFFF" : "#BDBDBD"}
+                                color={newComment.trim() ? "#FFFFFF" : "rgba(255,255,255,0.5)"}
                             />
                         </TouchableOpacity>
                     </View>
@@ -1267,7 +1272,7 @@ export default function PostDetail() {
                                             <Avatar seed={item.profileCode} size={40} />
                                         ) : (
                                             <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#333333' : '#F3E5F5' }]}>
-                                                <Ionicons name="person" size={20} color="#7C3AED" />
+                                                <Ionicons name="person" size={20} color="#111827" />
                                             </View>
                                         )}
                                         <Text style={[styles.friendName, { color: activeTheme.text }]}>{item.name}</Text>
@@ -1329,8 +1334,155 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
     postCard: {
-        padding: 20,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        marginHorizontal: 8,
         marginBottom: 16,
+        marginTop: 16,
+        elevation: 0.5,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    postCardContent: {
+        paddingVertical: 20,
+        paddingHorizontal: 10,
+        zIndex: 1,
+    },
+    blobContainer: {
+        position: 'absolute',
+        top: -20,
+        right: -20,
+        width: 200,
+        height: 200,
+        zIndex: 0,
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end',
+    },
+    studyBlobWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    studyBlobShape: {
+        position: 'absolute',
+        width: 250,
+        height: 250,
+        backgroundColor: '#E9F7EF',
+        borderRadius: 125,
+        top: -50,
+        right: -50,
+    },
+    studyBlobIcon: {
+        position: 'absolute',
+        top: 30,
+        right: 30,
+        opacity: 0.7,
+    },
+    stressBlobWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    stressBlobShape: {
+        position: 'absolute',
+        width: 200,
+        height: 200,
+        backgroundColor: '#FCEEEE',
+        borderBottomLeftRadius: 100,
+        top: 0,
+        right: 0,
+        transform: [{ rotate: '-45deg' }],
+    },
+    stressBlobIcon: {
+        position: 'absolute',
+        top: 30,
+        right: 40,
+        opacity: 0.7,
+    },
+    relationshipBlobWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    relationshipBlobShape: {
+        position: 'absolute',
+        width: 220,
+        height: 220,
+        backgroundColor: '#FEF9E6',
+        borderRadius: 110,
+        top: -20,
+        right: -50,
+    },
+    relationshipBlobIcon: {
+        position: 'absolute',
+        top: 40,
+        right: 30,
+        opacity: 0.7,
+    },
+    familyBlobWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    familyBlobShape: {
+        position: 'absolute',
+        width: 250,
+        height: 250,
+        backgroundColor: '#EBF3FE',
+        borderRadius: 100,
+        top: -60,
+        right: -40,
+        transform: [{ skewX: '-15deg' }],
+    },
+    familyBlobIcon: {
+        position: 'absolute',
+        top: 40,
+        right: 40,
+        opacity: 0.7,
+    },
+    mentalBlobWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    mentalBlobShape: {
+        position: 'absolute',
+        width: 200,
+        height: 200,
+        backgroundColor: '#EEF2FF',
+        borderRadius: 100,
+        top: -30,
+        right: -30,
+    },
+    mentalBlobIcon: {
+        position: 'absolute',
+        top: 30,
+        right: 30,
+        opacity: 0.7,
+    },
+    otherBlobWrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    otherBlobShape: {
+        position: 'absolute',
+        width: 220,
+        height: 280,
+        backgroundColor: '#F3E8FF',
+        borderBottomLeftRadius: 120,
+        borderBottomRightRadius: 120,
+        borderTopLeftRadius: 100,
+        borderTopRightRadius: 20,
+        top: -30,
+        right: -40,
+        transform: [{ rotate: '-15deg' }],
+    },
+    otherBlobGhost: {
+        position: 'absolute',
+        top: 40,
+        right: 30,
+        opacity: 0.7,
     },
     postHeader: {
         flexDirection: "row",
@@ -1376,10 +1528,11 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     postTitle: {
-        fontSize: 20,
-        fontWeight: "700",
+        fontSize: 24,
+        fontWeight: "800",
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
         marginBottom: 12,
-        lineHeight: 28,
+        lineHeight: 32,
     },
     postDescription: {
         fontSize: 15,
@@ -1391,24 +1544,36 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 20,
     },
+    hugsSentPill: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+    },
     hugIcon: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
         justifyContent: "center",
         alignItems: "center",
-        marginRight: -8,
         borderWidth: 2,
     },
     hugsSentText: {
-        fontSize: 14,
-        marginLeft: 16,
+        fontSize: 10,
+        fontWeight: "700",
+        marginLeft: 10,
+        letterSpacing: 0.5,
     },
     actionButtons: {
         flexDirection: "row",
         gap: 12,
     },
     actionButton: {
+        borderWidth: 1,
+        borderColor: "#4A148C",
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
@@ -1419,6 +1584,8 @@ const styles = StyleSheet.create({
     },
     actionButtonActive: {
         backgroundColor: "#4A148C",
+        borderWidth: 1,
+        borderColor: "#4A148C",
     },
     actionButtonText: {
         fontSize: 13,
@@ -1445,9 +1612,10 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     repliesCountText: {
-        fontSize: 13,
-        fontWeight: "600",
+        fontSize: 11,
+        fontWeight: "700",
         letterSpacing: 0.5,
+        color: "#6366F1",
     },
     commentsContainer: {
         position: 'relative',
@@ -1503,7 +1671,7 @@ const styles = StyleSheet.create({
     commentUsername: {
         fontSize: 14,
         fontWeight: "600",
-        color: "#7C3AED",
+        color: "#111827",
     },
     commentTimestamp: {
         fontSize: 12,
@@ -1592,13 +1760,18 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     sendButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: "#7C3AED",
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#6366F1",
         justifyContent: "center",
         alignItems: "center",
         marginLeft: 8,
+        elevation: 2,
+        shadowColor: "#6366F1",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
     },
     modalOverlay: {
         flex: 1,

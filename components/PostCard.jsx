@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import {
     collection,
@@ -9,7 +9,7 @@ import {
     where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -18,11 +18,11 @@ import Avatar from "./Avatar";
 const getCategoryColors = (category, isDark) => {
     const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
     const colors = {
-        "Family": { bg: isDark ? "#174EA6" : "#E8F0FE", text: isDark ? "#8AB4F8" : "#1A73E8" },
-        "Stress": { bg: isDark ? "#C5221F" : "#FCE8E6", text: isDark ? "#F28B82" : "#D93025" },
-        "Relationship": { bg: isDark ? "#880E4F" : "#FCE4EC", text: isDark ? "#F8BBD0" : "#C2185B" },
-        "Study": { bg: isDark ? "#137333" : "#E6F4EA", text: isDark ? "#81C995" : "#188038" },
-        "Mental Health": { bg: isDark ? "#E37400" : "#FEF7E0", text: isDark ? "#FDD663" : "#B06000" },
+        "Family": { bg: isDark ? "#EBF3FE" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#2F80ED" },
+        "Stress": { bg: isDark ? "#FCEEEE" : "#FCEEEE", text: isDark ? "#F28B82" : "#EB5757" },
+        "Relationship": { bg: isDark ? "#FEF9E6" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
+        "Study": { bg: isDark ? "#E9F7EF" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
+        "Mental Health": { bg: isDark ? "#EEF2FF" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
         "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
     };
     return colors[normalized] || colors["Other"];
@@ -194,80 +194,90 @@ export default function PostCard({ post, hideDescription = false }) {
 
 
     return (
-        <View style={[styles.cardContainer, { borderBottomColor: theme.isDark ? '#2D2D30' : '#E5E7EB' }]}>
+        <View style={styles.cardContainer}>
+            {/* Background Blob Elements based on category */}
+            <View style={styles.blobContainer}>
+                {post.category === "Stress" || post.category === "Anxiety" ? (
+                    <Ionicons name="flower" size={140} color="#FCEEEE" style={[styles.blobIcon, { transform: [{ rotate: '45deg' }, { scale: 1.5 }] }]} />
+                ) : post.category === "Study" || post.category === "Study Support" ? (
+                    <Ionicons name="leaf" size={160} color="#E9F7EF" style={[styles.blobIcon, { transform: [{ rotate: '-30deg' }, { scale: 1.3 }] }]} />
+                ) : post.category === "Relationship" ? (
+                    <Ionicons name="heart" size={180} color="#FEF9E6" style={[styles.blobIcon, { transform: [{ rotate: '15deg' }, { scale: 1.2 }] }]} />
+                ) : post.category === "Family" ? (
+                    <Ionicons name="people" size={140} color="#EBF3FE" style={[styles.blobIcon, { opacity: 0.5, transform: [{ scale: 1.4 }] }]} />
+                ) : (
+                    <View style={styles.otherBlobWrapper}>
+                        <View style={styles.otherBlobShape} />
+                        <MaterialCommunityIcons name="ghost" size={50} color="#D8D8FE" style={styles.otherBlobGhost} />
+                    </View>
+                )}
+            </View>
+
             <Link href={`/post/${post.id}`} asChild>
                 <TouchableOpacity style={styles.card} delayPressIn={0}>
-                    {/* Author Section with Category Badge */}
-                    <TouchableOpacity
-                        style={styles.authorSection}
-                        onPress={(e) => {
-                            e.stopPropagation(); // Prevent navigating to post details
-                            if (post.authorId && !post.isAnonymous) {
-                                if (user && user.uid === post.authorId) {
-                                    router.push("/(tabs)/profile");
-                                } else {
-                                    router.push(`/user/${post.authorId}`);
+                    {/* Author Section */}
+                    <View style={styles.authorSection}>
+                        <TouchableOpacity
+                            style={styles.authorInfo}
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                if (post.authorId && !post.isAnonymous) {
+                                    if (user && user.uid === post.authorId) {
+                                        router.push("/(tabs)/profile");
+                                    } else {
+                                        router.push(`/user/${post.authorId}`);
+                                    }
                                 }
-                            }
-                        }}
-                        disabled={post.isAnonymous || !post.authorId}
-                        delayPressIn={0}
-                    >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                            {post.isAnonymous ||
-                                !post.authorName ||
-                                post.authorName === "Anonymous" ||
-                                !authorProfileCode ? (
-                                <View style={styles.avatarWrapper}>
-                                    <Image
-                                        source={require("../assets/images/letitout_logo.png")}
-                                        style={{ width: 36, height: 36, borderRadius: 18 }}
-                                    />
+                            }}
+                            disabled={post.isAnonymous || !post.authorId}
+                            delayPressIn={0}
+                        >
+                            {post.isAnonymous || !post.authorName || post.authorName === "Anonymous" || !authorProfileCode ? (
+                                <View style={styles.avatarWrapperGhost}>
+                                    <MaterialCommunityIcons name="ghost-outline" size={20} color="#111827" />
                                 </View>
                             ) : (
                                 <View style={styles.avatarWrapper}>
-                                    <Avatar seed={authorProfileCode} size={36} />
+                                    <Avatar seed={authorProfileCode} size={40} />
                                 </View>
                             )}
-                            <View style={{ flex: 1 }}>
+                            <View>
                                 <Text style={[styles.authorName, { color: theme.text }]} numberOfLines={1}>
-                                    {post.isAnonymous || !post.authorName
-                                        ? "Anonymous"
-                                        : post.authorName}
+                                    {post.isAnonymous || !post.authorName ? "Anonymous" : post.authorName}
                                 </Text>
-                                <Text style={[styles.timestamp, { color: theme.textSecondary }]}>{formatTimestamp(post.timestamp)}</Text>
+                                <Text style={[styles.timestamp, { color: theme.textSecondary }]}>
+                                    {formatTimestamp(post.timestamp)}
+                                </Text>
                             </View>
-                        </View>
-                        <View
-                            style={[
-                                styles.categoryBadge,
-                                { backgroundColor: getCategoryColors(post.category, theme.isDark).bg },
-                            ]}
-                        >
-                            <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
-                                {getCategoryLabel(post.category)}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
+                        </TouchableOpacity>
 
+                        <View style={styles.headerRight}>
+                            <View style={[styles.categoryBadge, { backgroundColor: getCategoryColors(post.category, theme.isDark).bg }]}>
+                                <Text style={[styles.categoryText, { color: getCategoryColors(post.category, theme.isDark).text }]}>
+                                    {getCategoryLabel(post.category)}
+                                </Text>
+                            </View>
+                            <TouchableOpacity style={styles.moreButton}>
+                                <Ionicons name="ellipsis-horizontal" size={20} color="#111827" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Content Section */}
                     <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
 
                     {!hideDescription && (
-                        <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={3}>
+                        <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={4}>
                             {post.description}
                         </Text>
                     )}
 
                     {/* Comments Preview */}
                     {comments.length > 0 && (
-                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#1F1F21' : '#F9F9FB', borderColor: theme.border }]}>
-                            {comments.map((comment) => (
-                                <View key={comment.id} style={[styles.commentItem, { backgroundColor: 'transparent' }]}>
-                                    <Avatar
-                                        seed={commentorProfiles[comment.commentorId] || "anonymous"}
-                                        size={30}
-                                        style={styles.commentAvatar}
-                                    />
+                        <View style={[styles.commentsPreview, { backgroundColor: '#e8e8e8d1' }]}>
+                            {comments.slice(0, 2).map((comment) => (
+                                <View key={comment.id} style={styles.commentItem}>
+                                    <Avatar seed={commentorProfiles[comment.commentorId] || "anonymous"} size={28} style={styles.commentAvatar} />
                                     <View style={styles.commentTextContainer}>
                                         <Text style={[styles.commentUsername, { color: theme.text }]}>
                                             {comment.commentorName || "Anonymous"}
@@ -281,30 +291,27 @@ export default function PostCard({ post, hideDescription = false }) {
                         </View>
                     )}
 
+                    {/* Footer / Reactions */}
                     <View style={styles.footer}>
                         <View style={styles.reactions}>
-                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
-                                <Ionicons name="heart" size={14} color="#E57373" />
-                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{likeCount}</Text>
+                            <View style={styles.reactionPill}>
+                                <Ionicons name="heart" size={16} color="#EB5757" />
+                                <Text style={styles.reactionCount}>{likeCount}</Text>
                             </View>
 
-                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
-                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
-                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{hugCount}</Text>
+                            <View style={styles.reactionPill}>
+                                <Ionicons name="hand-left" size={16} color="#F2C94C" />
+                                <Text style={styles.reactionCount}>{hugCount}</Text>
                             </View>
 
-                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
-                                <Ionicons name="happy" size={14} color="#66BB6A" />
-                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{meTooCount}</Text>
+                            <View style={styles.reactionPill}>
+                                <Ionicons name="happy" size={16} color="#27AE60" />
+                                <Text style={styles.reactionCount}>{meTooCount}</Text>
                             </View>
 
-                            <View style={[styles.reactionPill, { backgroundColor: theme.isDark ? '#252528' : '#F1F3F5', borderColor: theme.border }]}>
-                                <Ionicons
-                                    name="chatbubble-outline"
-                                    size={14}
-                                    color={theme.textSecondary}
-                                />
-                                <Text style={[styles.reactionCount, { color: theme.textSecondary }]}>{commentCount}</Text>
+                            <View style={styles.reactionPill}>
+                                <Ionicons name="chatbubble-outline" size={16} color="#6B7280" />
+                                <Text style={styles.reactionCount}>{commentCount}</Text>
                             </View>
                         </View>
                     </View>
@@ -316,63 +323,134 @@ export default function PostCard({ post, hideDescription = false }) {
 
 const styles = StyleSheet.create({
     cardContainer: {
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E7EB2f",
-        paddingBottom: 5,
-        marginBottom: 5,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        marginBottom: 10,
+        marginHorizontal: 8,
+        // shadowColor: "#000",
+        // shadowOffset: { width: 0, height: 4 },
+        // shadowOpacity: 0.05,
+        // shadowRadius: 10,
+        elevation: 0.5,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    blobContainer: {
+        position: 'absolute',
+        bottom: -20,
+        right: -20,
+        width: 150,
+        height: 150,
+        zIndex: 0,
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+    },
+    blobIcon: {
+        opacity: 0.8,
+    },
+    otherBlobWrapper: {
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
+    },
+    otherBlobShape: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 200,
+        height: 200,
+        backgroundColor: '#E6E6FF',
+        borderRadius: 100,
+        borderTopLeftRadius: 150,
+        borderBottomLeftRadius: 20,
+        transform: [{ scaleX: 1.2 }],
+    },
+    otherBlobGhost: {
+        position: 'absolute',
+        bottom: 25,
+        right: 25,
+        opacity: 0.7,
     },
     card: {
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-    },
-    categoryBadge: {
+        paddingVertical: 15,
         paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
-    },
-    categoryText: {
-        fontSize: 9,
-        fontWeight: "800",
-        letterSpacing: 0.5,
-    },
-    timestamp: {
-        fontSize: 11,
-        marginTop: 2,
+        zIndex: 1, // Stay above blob
     },
     authorSection: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 12,
+        marginBottom: 16,
+    },
+    authorInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        flex: 1,
+    },
+    avatarWrapperGhost: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#E5E7EB',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     avatarWrapper: {
-        marginRight: 2,
+        // Just holding the avatar
     },
     authorName: {
-        fontSize: 14,
-        fontWeight: "700",
+        fontSize: 15,
+        fontWeight: "800",
+        letterSpacing: -0.3,
+    },
+    timestamp: {
+        fontSize: 12,
+        marginTop: 2,
+        fontWeight: '500',
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    categoryBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    categoryText: {
+        fontSize: 10,
+        fontWeight: "800",
+        letterSpacing: 0.5,
+        textTransform: 'uppercase',
+    },
+    moreButton: {
+        padding: 4,
     },
     title: {
-        fontSize: 16,
-        fontWeight: "700",
+        fontSize: 20,
+        fontWeight: "800",
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
         marginBottom: 8,
-        lineHeight: 22,
+        lineHeight: 28,
+        letterSpacing: -0.5,
     },
     preview: {
-        fontSize: 13,
-        lineHeight: 19,
-        marginBottom: 14,
+        fontSize: 14,
+        lineHeight: 22,
+        marginBottom: 20,
+        fontWeight: '500',
     },
     commentsPreview: {
-        borderRadius: 12,
-        borderWidth: 1,
-        padding: 1,
-        marginBottom: 14,
+        borderRadius: 20,
+        padding: 12,
+        marginBottom: 20,
+        gap: 12,
     },
     commentItem: {
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderRadius: 8,
         flexDirection: "row",
         gap: 10,
     },
@@ -384,12 +462,13 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     commentUsername: {
-        fontSize: 12,
-        fontWeight: "700",
+        fontSize: 13,
+        fontWeight: "800",
     },
     commentText: {
         fontSize: 12,
-        lineHeight: 16,
+        lineHeight: 18,
+        fontWeight: '500',
     },
     footer: {
         flexDirection: "row",
@@ -398,100 +477,23 @@ const styles = StyleSheet.create({
     },
     reactions: {
         flexDirection: "row",
-        gap: 8,
+        gap: 10,
+        flexWrap: 'wrap',
     },
     reactionPill: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 5,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
-    actionPill: {
-        flexDirection: "row",
-        alignItems: "center",
         gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 24,
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: '#E5E7EB',
+        backgroundColor: '#FFFFFF',
     },
     reactionCount: {
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: "700",
-    },
-    commentCount: {
-        fontSize: 12,
-        fontWeight: "700",
-    },
-    sendText: {
-        fontSize: 12,
-        fontWeight: "700",
-        color: "#9F8BFF",
-    },
-    rightFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "flex-end",
-    },
-    modalContent: {
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        paddingTop: 20,
-        paddingBottom: 40,
-        paddingHorizontal: 20,
-        maxHeight: "80%",
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingBottom: 16,
-        marginBottom: 16,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '800',
-        letterSpacing: -0.5,
-    },
-    modalCloseBtn: {
-        padding: 4,
-    },
-    emptyState: {
-        paddingVertical: 40,
-        alignItems: 'center',
-        gap: 12,
-    },
-    emptyText: {
-        fontSize: 14,
-    },
-    friendItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 8,
-        gap: 12,
-        borderBottomWidth: 1,
-    },
-    defaultAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    friendName: {
-        flex: 1,
-        fontSize: 15,
-        fontWeight: '600',
+        color: '#111827',
     },
 });

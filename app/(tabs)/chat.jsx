@@ -178,7 +178,7 @@ export default function ChatTab() {
                     <Avatar seed={item.profileCode} size={48} />
                 ) : (
                     <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#222' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={22} color="#7C3AED" />
+                        <Ionicons name="person" size={22} color="#111827" />
                     </View>
                 )}
             </View>
@@ -250,7 +250,7 @@ export default function ChatTab() {
                 />
                 {loading && (
                     <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                        <Loading size="large" color="#7C3AED" />
+                        <Loading size="large" color="#111827" />
                     </View>
                 )}
             </SafeAreaView>

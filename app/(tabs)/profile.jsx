@@ -501,7 +501,7 @@ export default function Profile() {
     if (type === "like") return "#F06292"; // Pink
     if (type === "hug") return "#FFB74D"; // Orange/Yellow
     if (type === "metoo") return "#66BB6A"; // Green
-    if (type === "comment") return "#7C3AED"; // Violet
+    if (type === "comment") return "#111827"; // Violet
     return "#FFB74D";
   };
 
@@ -592,7 +592,7 @@ export default function Profile() {
       <TabScreenWrapper>
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
           <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
+          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
           <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontWeight: '600' }}>
             Loading Profile...
           </Text>
@@ -712,7 +712,7 @@ export default function Profile() {
             <View style={styles.statsContainer}>
               {/* Love Sent Card */}
               <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2A1A2E' : '#FCE4EC' }]}>
+                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2A1A2E' : '#FEF9E6' }]}>
                   <Ionicons name="heart" size={20} color="#EC4899" />
                 </View>
                 <View style={styles.statInfo}>
@@ -724,7 +724,7 @@ export default function Profile() {
               {/* Stories Card */}
               <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
-                  <Ionicons name="book" size={20} color="#7C3AED" />
+                  <Ionicons name="book" size={20} color="#111827" />
                 </View>
                 <View style={styles.statInfo}>
                   <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
@@ -765,7 +765,7 @@ export default function Profile() {
               activeOpacity={0.7}
             >
               <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
-                <Ionicons name="document-text" size={24} color="#7C3AED" />
+                <Ionicons name="document-text" size={24} color="#111827" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{userPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>My Stories</Text>
@@ -793,12 +793,12 @@ export default function Profile() {
           >
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Supportive History</Text>
-              <Ionicons name="chevron-forward" size={20} color="#7C3AED" />
+              <Ionicons name="chevron-forward" size={20} color="#111827" />
             </View>
 
             {loadingHistory ? (
               <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-                <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
+                <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#111827'} />
               </View>
             ) : (
               <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
@@ -1030,7 +1030,7 @@ export default function Profile() {
 
               {isLoadingFriends ? (
                 <View style={styles.loadingContainer}>
-                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} />
+                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
                 </View>
               ) : (
                 <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>
@@ -1145,7 +1145,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -2,
     right: -2,
-    backgroundColor: "#7C3AED",
+    backgroundColor: "#111827",
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -1153,7 +1153,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
-    shadowColor: "#7C3AED",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -1187,7 +1187,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3E5F5",
     borderRadius: 24,
     marginBottom: 16,
-    shadowColor: "#7C3AED",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1196,7 +1196,7 @@ const styles = StyleSheet.create({
   editProfileText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#7C3AED",
+    color: "#111827",
   },
   infoSection: {
     width: "100%",
@@ -1275,7 +1275,7 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#7C3AED",
+    color: "#111827",
     letterSpacing: 0.5,
   },
   recentText: {
@@ -1377,11 +1377,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#7C3AED",
+    backgroundColor: "#111827",
     paddingVertical: 16,
     borderRadius: 24,
     gap: 8,
-    shadowColor: "#7C3AED",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1441,7 +1441,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   loginButton: {
-    backgroundColor: "#7C3AED",
+    backgroundColor: "#111827",
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 24,
@@ -1573,7 +1573,7 @@ const styles = StyleSheet.create({
   },
   summaryHint: {
     fontSize: 12,
-    color: "#7C3AED",
+    color: "#111827",
     textAlign: "center",
     fontStyle: "italic",
   },

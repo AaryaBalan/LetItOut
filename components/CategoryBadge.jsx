@@ -5,7 +5,7 @@ const categoryColors = {
     'Stress': { bg: '#ffe8cc', text: '#d9844d' },
     'Relationship': { bg: '#ffd9e8', text: '#d9699f' },
     'Study': { bg: '#d4f0e3', text: '#5cb885' },
-    'Mental Health': { bg: '#e8dff5', text: '#7C3AED' },
+    'Mental Health': { bg: '#e8dff5', text: '#111827' },
     'Other': { bg: '#F3F4F6', text: '#7d7d7d' },
 };
 

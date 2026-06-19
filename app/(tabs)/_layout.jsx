@@ -51,8 +51,8 @@ function TabsLayoutInner() {
             )}
             screenOptions={{
                 headerShown: false,
-                tabBarShowLabel: false,
-                tabBarActiveTintColor: "#7C3AED",
+                tabBarShowLabel: true,
+                tabBarActiveTintColor: theme.text,
                 tabBarInactiveTintColor: theme.textTertiary,
                 tabBarStyle: {
                     position: "absolute",

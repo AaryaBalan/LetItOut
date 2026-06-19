@@ -167,11 +167,11 @@ export default function MyCenter() {
   const getCategoryColors = (category, isDark) => {
     const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
     const colors = {
-      "Family": { bg: isDark ? "#174EA6" : "#E8F0FE", text: isDark ? "#8AB4F8" : "#1A73E8" },
-      "Stress": { bg: isDark ? "#C5221F" : "#FCE8E6", text: isDark ? "#F28B82" : "#D93025" },
-      "Relationship": { bg: isDark ? "#880E4F" : "#FCE4EC", text: isDark ? "#F8BBD0" : "#C2185B" },
-      "Study": { bg: isDark ? "#137333" : "#E6F4EA", text: isDark ? "#81C995" : "#188038" },
-      "Mental Health": { bg: isDark ? "#E37400" : "#FEF7E0", text: isDark ? "#FDD663" : "#B06000" },
+      "Family": { bg: isDark ? "#EBF3FE" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#2F80ED" },
+      "Stress": { bg: isDark ? "#FCEEEE" : "#FCEEEE", text: isDark ? "#F28B82" : "#EB5757" },
+      "Relationship": { bg: isDark ? "#FEF9E6" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
+      "Study": { bg: isDark ? "#E9F7EF" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
+      "Mental Health": { bg: isDark ? "#EEF2FF" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
       "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
     };
     return colors[normalized] || colors["Other"];
@@ -338,7 +338,7 @@ export default function MyCenter() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
         <View style={styles.loadingContainer}>
-          <Loading size="large" color="#7C3AED" />
+          <Loading size="large" color="#111827" />
         </View>
       </SafeAreaView>
     );
@@ -406,21 +406,21 @@ export default function MyCenter() {
       {!selectedPost && (
         <View style={[styles.tabBar, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
           <TouchableOpacity
-            style={[styles.tabItem, activeTab === "posts" && [styles.activeTabItem, { borderBottomColor: "#7C3AED" }]]}
+            style={[styles.tabItem, activeTab === "posts" && [styles.activeTabItem, { borderBottomColor: "#111827" }]]}
             onPress={() => setActiveTab("posts")}
           >
-            <Ionicons name="document-text-outline" size={18} color={activeTab === "posts" ? "#7C3AED" : theme.textSecondary} />
-            <Text style={[styles.tabText, { color: activeTab === "posts" ? "#7C3AED" : theme.textSecondary }, activeTab === "posts" && styles.activeTabText]}>
+            <Ionicons name="document-text-outline" size={18} color={activeTab === "posts" ? "#111827" : theme.textSecondary} />
+            <Text style={[styles.tabText, { color: activeTab === "posts" ? "#111827" : theme.textSecondary }, activeTab === "posts" && styles.activeTabText]}>
               Posts
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tabItem, activeTab === "insights" && [styles.activeTabItem, { borderBottomColor: "#7C3AED" }]]}
+            style={[styles.tabItem, activeTab === "insights" && [styles.activeTabItem, { borderBottomColor: "#111827" }]]}
             onPress={() => setActiveTab("insights")}
           >
-            <Ionicons name="analytics-outline" size={18} color={activeTab === "insights" ? "#7C3AED" : theme.textSecondary} />
-            <Text style={[styles.tabText, { color: activeTab === "insights" ? "#7C3AED" : theme.textSecondary }, activeTab === "insights" && styles.activeTabText]}>
+            <Ionicons name="analytics-outline" size={18} color={activeTab === "insights" ? "#111827" : theme.textSecondary} />
+            <Text style={[styles.tabText, { color: activeTab === "insights" ? "#111827" : theme.textSecondary }, activeTab === "insights" && styles.activeTabText]}>
               Insights
             </Text>
           </TouchableOpacity>
@@ -517,7 +517,7 @@ export default function MyCenter() {
                     {expandedCommentId === comment.id && (
                       <View style={styles.ratingSection}>
                         <View style={[styles.reflectionNote, { backgroundColor: theme.isDark ? '#2C2A3A' : '#F3E5F5', borderColor: theme.border }]}>
-                          <Ionicons name="bulb-outline" size={16} color="#7C3AED" style={{ marginRight: 6 }} />
+                          <Ionicons name="bulb-outline" size={16} color="#111827" style={{ marginRight: 6 }} />
                           <Text style={[styles.reflectionNoteText, { color: theme.textSecondary }]}>
                             How did this comment shift your perspective or state of mind? Adjust the slider below.
                           </Text>
@@ -545,7 +545,7 @@ export default function MyCenter() {
                           onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
                           minimumTrackTintColor="#7986CB"
                           maximumTrackTintColor="#FFB74D"
-                          thumbTintColor="#7C3AED"
+                          thumbTintColor="#111827"
                         />
 
                         <View style={styles.ticksRow}>
@@ -567,7 +567,7 @@ export default function MyCenter() {
           {/* Welcoming explanation card */}
           <View style={[styles.explanationCard, { backgroundColor: theme.isDark ? '#222030' : '#E8E5F8', borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 8 }}>
-              <Ionicons name="journal-outline" size={18} color="#7C3AED" />
+              <Ionicons name="journal-outline" size={18} color="#111827" />
               <Text style={[styles.explanationTitle, { color: theme.text }]}>Perspective Journals</Text>
             </View>
             <Text style={[styles.explanationText, { color: theme.textSecondary }]}>
@@ -577,7 +577,7 @@ export default function MyCenter() {
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}>
-                <Ionicons name="document-text-outline" size={48} color="#7C3AED" />
+                <Ionicons name="document-text-outline" size={48} color="#111827" />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Posts Yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
@@ -640,7 +640,7 @@ export default function MyCenter() {
           {/* How Insights Work */}
           <View style={[styles.insightsExplanationBox, { backgroundColor: theme.isDark ? '#222030' : '#E8E5F8', borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 }}>
-              <Ionicons name="bulb-outline" size={22} color="#7C3AED" />
+              <Ionicons name="bulb-outline" size={22} color="#111827" />
               <Text style={[styles.insightsTitle, { color: theme.text }]}>How Insights Work</Text>
             </View>
             <Text style={[styles.insightsDescription, { color: theme.textSecondary }]}>
@@ -654,7 +654,7 @@ export default function MyCenter() {
           {/* Stats Grid */}
           <View style={styles.statsGrid}>
             <View style={[styles.statItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.statVal, { color: "#7C3AED" }]}>{posts.length}</Text>
+              <Text style={[styles.statVal, { color: "#111827" }]}>{posts.length}</Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Posts Shared</Text>
             </View>
 
@@ -681,7 +681,7 @@ export default function MyCenter() {
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}>
-                <Ionicons name="analytics-outline" size={48} color="#7C3AED" />
+                <Ionicons name="analytics-outline" size={48} color="#111827" />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Insights Yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
@@ -719,8 +719,8 @@ export default function MyCenter() {
                   {/* Emotional Journey narrative */}
                   <View style={[styles.journeyBox, { backgroundColor: theme.isDark ? '#1C1B2E' : '#F5F3FF' }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                      <Ionicons name="heart-circle-outline" size={15} color="#7C3AED" />
-                      <Text style={[styles.journeyLabel, { color: '#7C3AED' }]}>Your Emotional Journey</Text>
+                      <Ionicons name="heart-circle-outline" size={15} color="#111827" />
+                      <Text style={[styles.journeyLabel, { color: '#111827' }]}>Your Emotional Journey</Text>
                     </View>
                     {postComments.length === 0 ? (
                       <Text style={[styles.journeyText, { color: theme.textSecondary }]}>

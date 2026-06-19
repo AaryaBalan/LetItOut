@@ -313,7 +313,7 @@ export default function UserProfile() {
                                 <Path
                                     d={linePath}
                                     fill="none"
-                                    stroke="#7C3AED"
+                                    stroke="#111827"
                                     strokeWidth={3}
                                 />
                             ) : null}

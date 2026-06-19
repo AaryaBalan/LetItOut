@@ -66,7 +66,7 @@ export default function AvatarSelectionModal({
                             style={styles.refreshButton}
                             onPress={generateRandomSeeds}
                         >
-                            <Ionicons name="refresh-circle" size={36} color="#7C3AED" />
+                            <Ionicons name="refresh-circle" size={36} color="#111827" />
                         </TouchableOpacity>
                     </View>
 
@@ -88,7 +88,7 @@ export default function AvatarSelectionModal({
                                 <Avatar seed={seed} size={90} square={true} />
                                 {selectedSeed === seed && (
                                     <View style={styles.checkmarkContainer}>
-                                        <Ionicons name="checkmark-circle" size={28} color="#7C3AED" />
+                                        <Ionicons name="checkmark-circle" size={28} color="#111827" />
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     selectedAvatar: {
-        borderColor: "#7C3AED",
-        shadowColor: "#7C3AED",
+        borderColor: "#111827",
+        shadowColor: "#111827",
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
@@ -229,8 +229,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#F3F4F6",
     },
     selectButton: {
-        backgroundColor: "#7C3AED",
-        shadowColor: "#7C3AED",
+        backgroundColor: "#111827",
+        shadowColor: "#111827",
         shadowOpacity: 0.3,
     },
     cancelButtonText: {

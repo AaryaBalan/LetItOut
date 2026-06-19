@@ -25,11 +25,11 @@ const { width } = Dimensions.get("window");
 
 const getCategoryTheme = (category, isDark) => {
     const themes = {
-        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
-        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
-        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
-        "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
-        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#EBF3FE" },
+        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FCEEEE" },
+        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FEF9E6" },
+        "Study": { icon: "book", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#E9F7EF" },
+        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#EEF2FF" },
         "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
     };
     return themes[category] || themes["Other"];
@@ -147,7 +147,7 @@ export default function Explore() {
                             {/* Enhanced Search Bar */}
                             <View style={styles.searchContainer}>
                                 <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                                    <Ionicons name="search" size={20} color="#7C3AED" />
+                                    <Ionicons name="search" size={20} color="#111827" />
                                     <TextInput
                                         style={[styles.searchInput, { color: theme.text }]}
                                         placeholder="Search communities, topics, people..."
@@ -396,7 +396,7 @@ export default function Explore() {
                                     style={[styles.top10Card, styles.viewMoreCard, { backgroundColor: theme.card, borderColor: theme.border }]}
                                     onPress={() => router.push('/help-needed')}
                                 >
-                                    <Ionicons name="arrow-forward-circle" size={48} color="#7C3AED" />
+                                    <Ionicons name="arrow-forward-circle" size={48} color="#111827" />
                                     <Text style={[styles.viewMoreText, { color: theme.text }]}>View More</Text>
                                     <Text style={[styles.viewMoreSubtext, { color: theme.textSecondary }]}>
                                         See all posts that need help
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 12,
         right: 12,
-        backgroundColor: '#7C3AED',
+        backgroundColor: '#111827',
         borderRadius: 12,
         paddingHorizontal: 10,
         paddingVertical: 4,

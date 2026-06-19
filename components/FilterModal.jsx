@@ -62,7 +62,7 @@ export default function FilterModal({
                                         style={[
                                             styles.modalChip,
                                             { backgroundColor: theme.isDark ? '#2D2D3D' : '#F3F4F6', borderColor: theme.border },
-                                            isSelected && { backgroundColor: theme.isDark ? '#3C2E5C' : '#EFE8FF', borderColor: '#7C3AED' }
+                                            isSelected && { backgroundColor: theme.isDark ? '#3C2E5C' : '#EFE8FF', borderColor: '#111827' }
                                         ]}
                                         delayPressIn={0}
                                         onPress={() => {
@@ -70,8 +70,8 @@ export default function FilterModal({
                                             setSelectedSort(opt.value.sort);
                                         }}
                                     >
-                                        <Ionicons name={opt.icon} size={16} color={isSelected ? '#7C3AED' : theme.textSecondary} />
-                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#7C3AED', fontWeight: '700' }]}>
+                                        <Ionicons name={opt.icon} size={16} color={isSelected ? '#111827' : theme.textSecondary} />
+                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#111827', fontWeight: '700' }]}>
                                             {opt.label}
                                         </Text>
                                     </TouchableOpacity>
@@ -88,13 +88,13 @@ export default function FilterModal({
                                 style={[
                                     styles.modalChip,
                                     { backgroundColor: theme.isDark ? '#2D2D3D' : '#F3F4F6', borderColor: theme.border },
-                                    showAnonymousOnly && { backgroundColor: theme.isDark ? '#3C2E5C' : '#EFE8FF', borderColor: '#7C3AED' }
+                                    showAnonymousOnly && { backgroundColor: theme.isDark ? '#3C2E5C' : '#EFE8FF', borderColor: '#111827' }
                                 ]}
                                 delayPressIn={0}
                                 onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
                             >
-                                <Ionicons name="eye-off-outline" size={16} color={showAnonymousOnly ? '#7C3AED' : theme.textSecondary} />
-                                <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: '#7C3AED', fontWeight: '700' }]}>
+                                <Ionicons name="eye-off-outline" size={16} color={showAnonymousOnly ? '#111827' : theme.textSecondary} />
+                                <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: '#111827', fontWeight: '700' }]}>
                                     Anonymous Stories Only
                                 </Text>
                             </TouchableOpacity>
@@ -117,13 +117,13 @@ export default function FilterModal({
                                         style={[
                                             styles.modalChip,
                                             { backgroundColor: theme.isDark ? '#2D2D3D' : '#F3F4F6', borderColor: theme.border },
-                                            isSelected && { backgroundColor: theme.isDark ? '#3C2E5C' : '#EFE8FF', borderColor: '#7C3AED' }
+                                            isSelected && { backgroundColor: theme.isDark ? '#3C2E5C' : '#EFE8FF', borderColor: '#111827' }
                                         ]}
                                         delayPressIn={0}
                                         onPress={() => setSelectedMood(opt.value)}
                                     >
-                                        <Ionicons name={opt.icon} size={16} color={isSelected ? '#7C3AED' : theme.textSecondary} />
-                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#7C3AED', fontWeight: '700' }]}>
+                                        <Ionicons name={opt.icon} size={16} color={isSelected ? '#111827' : theme.textSecondary} />
+                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#111827', fontWeight: '700' }]}>
                                             {opt.label}
                                         </Text>
                                     </TouchableOpacity>
@@ -147,7 +147,7 @@ export default function FilterModal({
                             <Text style={[styles.modalResetText, { color: theme.text }]}>Reset</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.modalApplyBtn, { backgroundColor: '#7C3AED' }]}
+                            style={[styles.modalApplyBtn, { backgroundColor: '#111827' }]}
                             delayPressIn={0}
                             onPress={onClose}
                         >

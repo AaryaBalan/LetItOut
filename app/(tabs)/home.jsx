@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,15 +30,28 @@ import { posts as dummyPosts } from "../../data/dummyData";
 
 const getCategoryTheme = (category, isDark) => {
   const themes = {
-    "All Feed": { color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" },
-    "Family": { color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
-    "Stress": { color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
-    "Relationship": { color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
-    "Study": { color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
-    "Mental Health": { color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
-    "Other": { color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+    "All Feed": { color: isDark ? "#FFFFFF" : "#FFFFFF", bgColor: isDark ? "#222" : "#111827" },
+    "Family": { color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#FFFFFF" },
+    "Stress": { color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FFFFFF" },
+    "Relationship": { color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FFFFFF" },
+    "Study": { color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#FFFFFF" },
+    "Mental Health": { color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#FFFFFF" },
+    "Other": { color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#3C4043" : "#FFFFFF" }
   };
   return themes[category] || themes["Other"];
+};
+
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case "Other": return <MaterialCommunityIcons name="ghost-outline" size={14} color="#A78BFA" />;
+    case "Stress": return <Ionicons name="sad-outline" size={14} color="#EB5757" />;
+    case "Study Support":
+    case "Study": return <Ionicons name="school-outline" size={14} color="#27AE60" />;
+    case "Family": return <Ionicons name="people-outline" size={14} color="#2F80ED" />;
+    case "Mental Health": return <Ionicons name="heart-outline" size={14} color="#6366F1" />;
+    case "Relationship": return <Ionicons name="flower-outline" size={14} color="#F2C94C" />;
+    default: return null;
+  }
 };
 
 export default function Home() {
@@ -338,6 +351,7 @@ export default function Home() {
 
                 <View style={styles.logoContainerCenter}>
                   <Text style={[styles.logo, { color: theme.text }]}>Let It Out</Text>
+                  <Ionicons name="sparkles-outline" size={16} color="#A78BFA" style={{ marginLeft: 2, marginTop: -10 }} />
                 </View>
 
                 <View style={styles.headerRight}>
@@ -358,85 +372,84 @@ export default function Home() {
           </View>
 
           {/* Categories Row inside sticky header item */}
-          {isSearchExpanded && (
-            <View style={{ paddingBottom: 12, paddingTop: 4, backgroundColor: theme.background }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoriesContent}
-                keyboardShouldPersistTaps="always"
-              >
-                {(selectedSort !== "recent" ||
-                  selectedFilter !== "latest" ||
-                  selectedMood !== null ||
-                  showAnonymousOnly) && (
-                    <TouchableOpacity
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 12,
-                        height: 36,
-                        borderRadius: 18,
-                        backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
-                        gap: 6,
-                        borderWidth: 1,
-                        borderColor: '#7C3AED',
-                        marginRight: 6,
-                        marginLeft: 16,
-                      }}
-                      onPress={() => {
-                        setSelectedSort("recent");
-                        setSelectedFilter("latest");
-                        setSelectedMood(null);
-                        setShowAnonymousOnly(false);
-                      }}
-                      delayPressIn={0}
-                    >
-                      <Ionicons name="close-circle" size={16} color="#7C3AED" />
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#7C3AED" }}>
-                        Clear
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+          <View style={{ paddingBottom: 12, paddingTop: 4, backgroundColor: theme.background }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriesContent}
+              keyboardShouldPersistTaps="always"
+            >
+              {(selectedSort !== "recent" ||
+                selectedFilter !== "latest" ||
+                selectedMood !== null ||
+                showAnonymousOnly) && (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingHorizontal: 12,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
+                      gap: 6,
+                      borderWidth: 1,
+                      borderColor: '#111827',
+                      marginRight: 6,
+                      marginLeft: 16,
+                    }}
+                    onPress={() => {
+                      setSelectedSort("recent");
+                      setSelectedFilter("latest");
+                      setSelectedMood(null);
+                      setShowAnonymousOnly(false);
+                    }}
+                    delayPressIn={0}
+                  >
+                    <Ionicons name="close-circle" size={16} color="#111827" />
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#111827" }}>
+                      Clear
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
-                {categories.map((category) => {
-                  const catTheme = getCategoryTheme(category, theme.isDark);
-                  const isActive = selectedCategory === category;
-                  const isFirst = category === categories[0];
-                  const hasActiveFilters = (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly);
-                  return (
-                    <TouchableOpacity
-                      key={category}
+              {categories.map((category) => {
+                const catTheme = getCategoryTheme(category, theme.isDark);
+                const isActive = selectedCategory === category;
+                const isFirst = category === categories[0];
+                const hasActiveFilters = (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly);
+                return (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.categoryChip,
+                      { backgroundColor: '#FFFFFF', borderColor: 'transparent', borderWidth: 0, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+                      isFirst && !hasActiveFilters && { marginLeft: 16 },
+                      isActive && {
+                        backgroundColor: catTheme.bgColor,
+                        elevation: 0,
+                      },
+                    ]}
+                    onPress={() => setSelectedCategory(category)}
+                    delayPressIn={0}
+                  >
+                    {category !== "All Feed" && getCategoryIcon(category)}
+                    <Text
                       style={[
-                        styles.categoryChip,
-                        { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: 'transparent', borderWidth: 1 },
-                        isFirst && !hasActiveFilters && { marginLeft: 16 },
-                        isActive && {
-                          backgroundColor: catTheme.bgColor,
-                          borderColor: catTheme.color,
+                        styles.categoryChipText,
+                        { color: category === "All Feed" && isActive ? "#FFFFFF" : theme.textSecondary },
+                        isActive && category !== "All Feed" && {
+                          color: catTheme.color,
+                          fontWeight: "800",
                         },
                       ]}
-                      onPress={() => setSelectedCategory(category)}
-                      delayPressIn={0}
                     >
-                      <Text
-                        style={[
-                          styles.categoryChipText,
-                          { color: theme.textSecondary },
-                          isActive && {
-                            color: catTheme.color,
-                            fontWeight: "800",
-                          },
-                        ]}
-                      >
-                        {category}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
+                      {category === "All Feed" ? "All" : category}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
         </Animated.View>
 
         <FlatList
@@ -467,12 +480,12 @@ export default function Home() {
           contentContainerStyle={styles.feedContent}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <View style={{ height: (isSearchExpanded ? 116 : 64) + insets.top }} />
+            <View style={{ height: 116 + insets.top }} />
           }
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
-                <Loading size="large" color="#7C3AED" />
+                <Loading size="large" color="#111827" />
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
               </View>
             ) : filteredPosts.length === 0 ? (
@@ -489,7 +502,7 @@ export default function Home() {
                   <Ionicons
                     name="telescope-outline"
                     size={48}
-                    color="#7C3AED"
+                    color="#111827"
                   />
                 </View>
                 <Text style={[styles.emptyTitle, { color: theme.text, fontSize: 18, fontWeight: '800', marginBottom: 8 }]}>No matches found</Text>
@@ -523,7 +536,7 @@ export default function Home() {
             elevation: 9999,
             transform: [{ translateY: slideAnim }],
           }}>
-            <Loading size="large" color="#7C3AED" />
+            <Loading size="large" color="#111827" />
           </Animated.View>
         )}
 
@@ -597,7 +610,7 @@ export default function Home() {
                     router.push("/my-center");
                   }}
                 >
-                  <Ionicons name="heart-half-outline" size={22} color="#7C3AED" />
+                  <Ionicons name="heart-half-outline" size={22} color="#111827" />
                   <Text style={[styles.drawerItemText, { color: theme.text }]}>My Center</Text>
                 </TouchableOpacity>
 
@@ -684,12 +697,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     pointerEvents: 'none',
+    flexDirection: 'row',
   },
   logo: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
     letterSpacing: -0.5,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },
   iconButton: {
     width: 36,
@@ -773,16 +787,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     height: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 18,
+    gap: 6,
   },
   categoryChipText: {
     fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    fontWeight: "800",
   },
   feedContent: {
     paddingTop: 8,

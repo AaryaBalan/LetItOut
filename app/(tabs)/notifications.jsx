@@ -199,7 +199,7 @@ export default function Notifications() {
             case "perspective_change":
                 return {
                     name: "trending-up",
-                    color: "#7C3AED",
+                    color: "#111827",
                     bgColor: "#EFE8FF",
                 };
             default:
@@ -400,7 +400,7 @@ export default function Notifications() {
                         <Avatar seed={profileCode} size={40} />
                     ) : (
                         <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
-                            <Ionicons name="person" size={20} color="#7C3AED" />
+                            <Ionicons name="person" size={20} color="#111827" />
                         </View>
                     )}
                     <View
@@ -495,7 +495,7 @@ export default function Notifications() {
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#7C3AED'} style={{ marginBottom: 16 }} />
+                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.emptyTitle, { color: theme.text }]}>Loading...</Text>
                 </View>
             </SafeAreaView>

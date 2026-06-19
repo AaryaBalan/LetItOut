@@ -56,10 +56,15 @@ export const ThemeProvider = ({ children }) => {
     border: isDark ? '#2A2A2A' : '#E5E7EB',
     divider: isDark ? '#1A1A1A' : '#F3F4F6',
 
-    // Primary colors
-    primary: '#7C3AED',
-    primaryLight: isDark ? '#A78BFA' : '#8B5CF6',
-    primaryDark: '#5B21B6',
+    // Primary colors (Now Black for main action buttons to match design)
+    primary: isDark ? '#FFFFFF' : '#111827',
+    primaryLight: isDark ? '#E5E7EB' : '#374151',
+    primaryDark: isDark ? '#D1D5DB' : '#000000',
+
+    // Accent colors (The vibrant purple/indigo from the design)
+    accent: '#6366F1',
+    accentLight: '#818CF8',
+    accentDark: '#4F46E5',
 
     // Status colors
     success: '#10B981',

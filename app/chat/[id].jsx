@@ -156,7 +156,7 @@ function SharedPostCard({ postData }) {
             <View style={styles.postAuthorSection}>
                 {postData.isAnonymous || !postData.authorName || postData.authorName === "Anonymous" || !authorProfileCode ? (
                     <View style={[styles.postAvatarContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={16} color="#7C3AED" />
+                        <Ionicons name="person" size={16} color="#111827" />
                     </View>
                 ) : (
                     <View style={styles.postAvatarWrapper}>
@@ -505,7 +505,7 @@ export default function ChatScreen() {
                     </TouchableOpacity>
                     {recipient && (
                         <View style={styles.headerAvatar}>
-                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={20} color="#7C3AED" /></View>}
+                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={40} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={20} color="#111827" /></View>}
                         </View>
                     )}
                 </View>
@@ -541,7 +541,7 @@ export default function ChatScreen() {
                                             {recipient && recipient.profileCode ?
                                                 <Avatar seed={recipient.profileCode} size={80} /> :
                                                 <View style={[styles.defaultHeaderAvatar, { width: 80, height: 80, borderRadius: 40 }]}>
-                                                    <Ionicons name="person" size={40} color="#7C3AED" />
+                                                    <Ionicons name="person" size={40} color="#111827" />
                                                 </View>
                                             }
                                             <View style={styles.onlineBadge} />
@@ -848,7 +848,7 @@ const styles = StyleSheet.create({
     postAuthorName: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#7C3AED",
+        color: "#111827",
     },
     postTitle: {
         fontSize: 15,
@@ -938,6 +938,6 @@ const styles = StyleSheet.create({
     waveButtonText: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#7C3AED",
+        color: "#111827",
     },
 });
