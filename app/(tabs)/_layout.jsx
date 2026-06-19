@@ -51,7 +51,7 @@ function TabsLayoutInner() {
             )}
             screenOptions={{
                 headerShown: false,
-                tabBarShowLabel: true,
+                tabBarShowLabel: false,
                 tabBarActiveTintColor: theme.text,
                 tabBarInactiveTintColor: theme.textTertiary,
                 tabBarStyle: {
@@ -78,7 +78,7 @@ function TabsLayoutInner() {
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
                             name={focused ? "home" : "home-outline"}
-                            size={26}
+                            size={27}
                             color={color}
                         />
                     ),
@@ -92,7 +92,7 @@ function TabsLayoutInner() {
                         <View>
                             <Ionicons
                                 name={focused ? "chatbubble" : "chatbubble-outline"}
-                                size={26}
+                                size={27}
                                 color={color}
                             />
                             {unreadChatCount > 0 && (
@@ -113,7 +113,7 @@ function TabsLayoutInner() {
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "create" : "create-outline"}
-                            size={26}
+                            size={27}
                             color={color}
                         />
                     ),
@@ -126,7 +126,7 @@ function TabsLayoutInner() {
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "heart" : "heart-outline"}
-                            size={26}
+                            size={27}
                             color={color}
                         />
                     ),
@@ -139,7 +139,7 @@ function TabsLayoutInner() {
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons
                             name={focused ? "person" : "person-outline"}
-                            size={26}
+                            size={27}
                             color={color}
                         />
                     ),

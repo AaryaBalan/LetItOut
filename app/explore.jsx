@@ -130,24 +130,26 @@ export default function Explore() {
                             {/* Top Row */}
                             <View style={styles.headerTop}>
                                 <View style={styles.headerLeft}>
-                                    <TouchableOpacity
-                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3F4F6' }]}
-                                        onPress={() => router.back()}
-                                    >
-                                        <Ionicons name="arrow-back" size={24} color={theme.text} />
-                                    </TouchableOpacity>
                                     <View>
                                         <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
                                         <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
                                     </View>
                                 </View>
-                                <View style={styles.headerRight} />
+                                <View style={styles.headerRight}>
+                                    <TouchableOpacity 
+                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF' }]} 
+                                        onPress={() => router.push('/(tabs)/notifications')}
+                                    >
+                                        <Ionicons name="notifications-outline" size={20} color={theme.isDark ? '#B39DDB' : '#8B5CF6'} />
+                                        <View style={[styles.badge, { backgroundColor: '#8B5CF6', top: 8, right: 8, width: 6, height: 6, borderRadius: 3, borderWidth: 0 }]} />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
 
                             {/* Enhanced Search Bar */}
                             <View style={styles.searchContainer}>
-                                <View style={[styles.searchBar, { backgroundColor: theme.input, borderColor: theme.inputBorder }]}>
-                                    <Ionicons name="search" size={20} color="#111827" />
+                                <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F9FA', borderColor: theme.border, borderWidth: 0 }]}>
+                                    <Ionicons name="search" size={20} color={theme.textSecondary} />
                                     <TextInput
                                         style={[styles.searchInput, { color: theme.text }]}
                                         placeholder="Search communities, topics, people..."
@@ -175,6 +177,10 @@ export default function Explore() {
                             {/* Discovery - Communities */}
                             <View style={[styles.sectionHeader, { backgroundColor: theme.surface, marginTop: 8 }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>EXPLORE COMMUNITIES</Text>
+                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>View all</Text>
+                                    <Ionicons name="chevron-forward" size={12} color="#8B5CF6" style={{ marginLeft: 2 }} />
+                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -204,10 +210,19 @@ export default function Explore() {
                                             </View>
                                             {/* Info */}
                                             <View style={styles.communityCardContent}>
-                                                <Text style={[styles.communityName, { color: theme.text }]}>c/{cat}</Text>
+                                                <Text style={[styles.communityName, { color: theme.text }]}>C/{cat}</Text>
                                                 <Text style={[styles.communityDesc, { color: theme.textSecondary, marginTop: 4 }]} numberOfLines={3}>
                                                     {info.desc}
                                                 </Text>
+                                                
+                                                {/* Overlapping Avatars instead of text */}
+                                                <View style={styles.communityAvatarsRow}>
+                                                    {[1, 2, 3].map((num, i) => (
+                                                        <View key={num} style={[styles.communityAvatarWrapper, { marginLeft: i > 0 ? -8 : 0, borderColor: theme.card }]}>
+                                                            <Avatar seed={`${cat}${num}`} size={24} />
+                                                        </View>
+                                                    ))}
+                                                </View>
                                             </View>
                                         </TouchableOpacity>
                                     );
@@ -217,6 +232,9 @@ export default function Explore() {
                             {/* Top 10 Stories */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP 10 TODAY</Text>
+                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>See all</Text>
+                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -231,72 +249,75 @@ export default function Explore() {
                                 {top10Posts.map((post, index) => (
                                     <TouchableOpacity
                                         key={post.id}
-                                        style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                        style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border, flexDirection: 'row', alignItems: 'flex-start', padding: 24 }]}
                                         onPress={() => router.push(`/post/${post.id}`)}
                                     >
                                         {/* Rank Badge - Top Right */}
-                                        <View style={styles.rankBadge}>
-                                            <Text style={styles.rankBadgeText}>#{index + 1}</Text>
+                                        <View style={[styles.rankBadge, { backgroundColor: theme.isDark ? '#2D1B4E' : '#F3E8FF', top: 16, right: 16 }]}>
+                                            <Text style={[styles.rankBadgeText, { color: '#8B5CF6' }]}>#{index + 1}</Text>
                                         </View>
 
-                                        {/* Author Profile Picture */}
-                                        {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
-                                            <View style={[styles.top10ProfilePic, { backgroundColor: 'transparent' }]}>
-                                                <Image
-                                                    source={require("../assets/images/letitout_logo.png")}
-                                                    style={{ width: 48, height: 48, borderRadius: 24 }}
-                                                />
+                                        {/* Avatar Column */}
+                                        <View style={{ marginRight: 16, marginTop: 4 }}>
+                                            <View style={[styles.top10ProfilePic, { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F8F5FF', marginBottom: 0 }]}>
+                                                {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
+                                                    <Image
+                                                        source={require("../assets/images/letitout_logo.png")}
+                                                        style={{ width: 56, height: 56, borderRadius: 28 }}
+                                                    />
+                                                ) : (
+                                                    <Avatar seed={authorProfiles[post.authorId]} size={56} />
+                                                )}
                                             </View>
-                                        ) : (
-                                            <View style={styles.top10ProfilePic}>
-                                                <Avatar seed={authorProfiles[post.authorId]} size={48} />
-                                            </View>
-                                        )}
+                                        </View>
 
-                                        {/* Title */}
-                                        <Text style={[styles.top10Title, { color: theme.text }]} numberOfLines={2}>
-                                            {post.title}
-                                        </Text>
-
-                                        {/* Description */}
-                                        <Text style={[styles.top10Description, { color: theme.textSecondary }]} numberOfLines={3}>
-                                            {post.description}
-                                        </Text>
-
-                                        {/* Author */}
-                                        {post.authorName && (
-                                            <Text style={[styles.top10QuoteAuthor, { color: theme.textSecondary }]}>
-                                                - {post.authorName}
+                                        {/* Content Column */}
+                                        <View style={{ flex: 1, paddingRight: 24 }}>
+                                            {/* Title */}
+                                            <Text style={[styles.top10Title, { color: theme.text, textAlign: 'left', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }]} numberOfLines={2}>
+                                                {post.title}
                                             </Text>
-                                        )}
 
-                                        {/* Divider */}
-                                        <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF' }]} />
+                                            {/* Description */}
+                                            <Text style={[styles.top10Description, { color: theme.textSecondary, textAlign: 'left' }]} numberOfLines={3}>
+                                                {post.description}
+                                            </Text>
 
-                                        {/* Category Tag */}
-                                        <Text style={[styles.top10Tag, { color: theme.textSecondary }]}>
-                                            ON {post.category.toUpperCase()}
-                                        </Text>
+                                            {/* Author */}
+                                            {post.authorName && (
+                                                <Text style={[styles.top10QuoteAuthor, { color: theme.textSecondary, textAlign: 'left' }]}>
+                                                    - {post.authorName.toUpperCase()}
+                                                </Text>
+                                            )}
 
-                                        {/* Reactions */}
-                                        <View style={styles.top10Reactions}>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="heart" size={14} color="#E57373" />
-                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
-                                                    {Math.floor((post.reactionCount || 0) * 0.4)}
-                                                </Text>
-                                            </View>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
-                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
-                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
-                                                </Text>
-                                            </View>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="happy" size={14} color="#66BB6A" />
-                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
-                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
-                                                </Text>
+                                            {/* Divider */}
+                                            <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF', alignSelf: 'flex-start' }]} />
+
+                                            {/* Category Tag */}
+                                            <Text style={[styles.top10Tag, { color: theme.textSecondary, textAlign: 'left' }]}>
+                                                ON {post.category.toUpperCase()}
+                                            </Text>
+
+                                            {/* Reactions */}
+                                            <View style={[styles.top10Reactions, { justifyContent: 'flex-start' }]}>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="heart" size={14} color="#E57373" />
+                                                    <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                        {Math.floor((post.reactionCount || 0) * 0.4)}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="hand-left" size={14} color="#FFB74D" />
+                                                    <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                        {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="happy" size={14} color="#66BB6A" />
+                                                    <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                        {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                    </Text>
+                                                </View>
                                             </View>
                                         </View>
                                     </TouchableOpacity>
@@ -306,6 +327,9 @@ export default function Explore() {
                             {/* Posts That Need Your Help */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>POSTS THAT NEED YOUR HELP</Text>
+                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>See all</Text>
+                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -320,72 +344,86 @@ export default function Explore() {
                                 {helpNeededPosts.map((post, index) => (
                                     <TouchableOpacity
                                         key={post.id}
-                                        style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border }]}
+                                        style={[styles.top10Card, { backgroundColor: theme.card, borderColor: theme.border, flexDirection: 'row', alignItems: 'flex-start', padding: 24 }]}
                                         onPress={() => router.push(`/post/${post.id}`)}
                                     >
-                                        {/* Help Badge - Top Right */}
-                                        <View style={[styles.rankBadge, { backgroundColor: '#E57373' }]}>
-                                            <Ionicons name="help-circle" size={14} color="#FFFFFF" />
+                                        {/* Avatar Column with Help Badge */}
+                                        <View style={{ position: 'relative', marginRight: 16, marginTop: 4 }}>
+                                            <View style={[styles.top10ProfilePic, { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F8F5FF', marginBottom: 0 }]}>
+                                                {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
+                                                    <Image
+                                                        source={require("../assets/images/letitout_logo.png")}
+                                                        style={{ width: 56, height: 56, borderRadius: 28 }}
+                                                    />
+                                                ) : (
+                                                    <Avatar seed={authorProfiles[post.authorId]} size={56} />
+                                                )}
+                                            </View>
+                                            {/* Overlapping Badge */}
+                                            <View style={{
+                                                position: 'absolute',
+                                                bottom: 0,
+                                                right: 0,
+                                                backgroundColor: '#E57373',
+                                                width: 20,
+                                                height: 20,
+                                                borderRadius: 10,
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                borderWidth: 2,
+                                                borderColor: '#FFFFFF',
+                                            }}>
+                                                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>?</Text>
+                                            </View>
                                         </View>
 
-                                        {/* Author Profile Picture */}
-                                        {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
-                                            <View style={[styles.top10ProfilePic, { backgroundColor: 'transparent' }]}>
-                                                <Image
-                                                    source={require("../assets/images/letitout_logo.png")}
-                                                    style={{ width: 48, height: 48, borderRadius: 24 }}
-                                                />
-                                            </View>
-                                        ) : (
-                                            <View style={styles.top10ProfilePic}>
-                                                <Avatar seed={authorProfiles[post.authorId]} size={48} />
-                                            </View>
-                                        )}
-
-                                        {/* Title */}
-                                        <Text style={[styles.top10Title, { color: theme.text }]} numberOfLines={2}>
-                                            {post.title}
-                                        </Text>
-
-                                        {/* Description */}
-                                        <Text style={[styles.top10Description, { color: theme.textSecondary }]} numberOfLines={3}>
-                                            {post.description}
-                                        </Text>
-
-                                        {/* Author */}
-                                        {post.authorName && (
-                                            <Text style={[styles.top10QuoteAuthor, { color: theme.textSecondary }]}>
-                                                - {post.authorName}
+                                        {/* Content Column */}
+                                        <View style={{ flex: 1, paddingRight: 8 }}>
+                                            {/* Title */}
+                                            <Text style={[styles.top10Title, { color: theme.text, textAlign: 'left', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }]} numberOfLines={2}>
+                                                {post.title}
                                             </Text>
-                                        )}
 
-                                        {/* Divider */}
-                                        <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF' }]} />
+                                            {/* Description */}
+                                            <Text style={[styles.top10Description, { color: theme.textSecondary, textAlign: 'left' }]} numberOfLines={3}>
+                                                {post.description}
+                                            </Text>
 
-                                        {/* Category Tag */}
-                                        <Text style={[styles.top10Tag, { color: theme.textSecondary }]}>
-                                            ON {post.category.toUpperCase()}
-                                        </Text>
+                                            {/* Author */}
+                                            {post.authorName && (
+                                                <Text style={[styles.top10QuoteAuthor, { color: theme.textSecondary, textAlign: 'left' }]}>
+                                                    - {post.authorName.toUpperCase()}
+                                                </Text>
+                                            )}
 
-                                        {/* Reactions */}
-                                        <View style={styles.top10Reactions}>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="heart" size={14} color="#E57373" />
-                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
-                                                    {Math.floor((post.reactionCount || 0) * 0.4)}
-                                                </Text>
-                                            </View>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="hand-left" size={14} color="#FFB74D" />
-                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
-                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
-                                                </Text>
-                                            </View>
-                                            <View style={styles.top10ReactionItem}>
-                                                <Ionicons name="happy" size={14} color="#66BB6A" />
-                                                <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
-                                                    {Math.floor((post.reactionCount || 0) * 0.3)}
-                                                </Text>
+                                            {/* Divider */}
+                                            <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF', alignSelf: 'flex-start' }]} />
+
+                                            {/* Category Tag */}
+                                            <Text style={[styles.top10Tag, { color: theme.textSecondary, textAlign: 'left' }]}>
+                                                ON {post.category.toUpperCase()}
+                                            </Text>
+
+                                            {/* Reactions */}
+                                            <View style={[styles.top10Reactions, { justifyContent: 'flex-start' }]}>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="heart" size={14} color="#E57373" />
+                                                    <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                        {Math.floor((post.reactionCount || 0) * 0.4)}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="hand-left" size={14} color="#FFB74D" />
+                                                    <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                        {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.top10ReactionItem}>
+                                                    <Ionicons name="happy" size={14} color="#66BB6A" />
+                                                    <Text style={[styles.top10ReactionText, { color: theme.textSecondary }]}>
+                                                        {Math.floor((post.reactionCount || 0) * 0.3)}
+                                                    </Text>
+                                                </View>
                                             </View>
                                         </View>
                                     </TouchableOpacity>
@@ -921,8 +959,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     communityName: {
-        fontSize: 16,
-        fontWeight: '700',
+        fontSize: 18,
+        fontWeight: '800',
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
         marginBottom: 2,
     },
     communityStats: {
@@ -935,6 +974,20 @@ const styles = StyleSheet.create({
         lineHeight: 16,
         height: 48,
         marginBottom: 4,
+    },
+    communityAvatarsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    communityAvatarWrapper: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
     communityJoinBtn: {
         paddingVertical: 8,
