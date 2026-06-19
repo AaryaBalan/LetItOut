@@ -10,6 +10,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Platform
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, G, Line, Path, Text as SvgText } from "react-native-svg";
@@ -378,18 +379,20 @@ export default function UserProfile() {
             <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
 
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB' }]}>
+            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomWidth: 0 }]}>
+                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F5FF' }]}>
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
-                <View style={{ width: 40 }} />
+                <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontSize: 24, fontWeight: '800' }]}>Profile</Text>
+                <TouchableOpacity style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F5FF' }]}>
+                    <Ionicons name="settings-outline" size={22} color={theme.text} />
+                </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
                 {/* Profile Card */}
-                <View style={[styles.profileHeader, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}>
+                <View style={[styles.profileCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
                     {/* Horizontal Profile Row */}
                     <View style={styles.profileRow}>
                         <View style={styles.avatarContainer}>
@@ -399,7 +402,7 @@ export default function UserProfile() {
                         <View style={styles.profileInfo}>
                             <Text style={[styles.displayName, { color: theme.text }]}>{userProfile.displayName}</Text>
                             <Text style={[styles.joinDate, { color: theme.textSecondary }]}>
-                                Joined {userProfile.createdAt ? new Date(userProfile.createdAt.toDate()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
+                                Joined {userProfile.createdAt ? new Date(userProfile.createdAt.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}
                             </Text>
                         </View>
                     </View>
@@ -412,8 +415,8 @@ export default function UserProfile() {
                         <TouchableOpacity
                             style={[
                                 styles.followButton,
-                                { backgroundColor: theme.isDark ? '#FFFFFF' : '#1F2937' },
-                                (followStatus === 1 || followStatus === 0) && [styles.followingButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3F4F6', borderColor: theme.border }]
+                                { backgroundColor: followStatus === 0 ? '#F3E8FF' : (theme.isDark ? '#FFFFFF' : '#1F2937') },
+                                followStatus === 1 && { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3F4F6', borderWidth: 1, borderColor: theme.border }
                             ]}
                             onPress={handleToggleFollow}
                             disabled={followLoading}
@@ -425,11 +428,11 @@ export default function UserProfile() {
                                     <Ionicons
                                         name={followStatus === 1 ? "checkmark" : followStatus === 0 ? "time-outline" : "person-add"}
                                         size={16}
-                                        color={followStatus === 1 || followStatus === 0 ? theme.text : (theme.isDark ? "#000000" : "#FFFFFF")}
+                                        color={followStatus === 0 ? '#8B5CF6' : (followStatus === 1 ? theme.text : (theme.isDark ? "#000000" : "#FFFFFF"))}
                                     />
                                     <Text style={[
                                         styles.followButtonText,
-                                        { color: followStatus === 1 || followStatus === 0 ? theme.text : (theme.isDark ? "#000000" : "#FFFFFF") }
+                                        { color: followStatus === 0 ? '#8B5CF6' : (followStatus === 1 ? theme.text : (theme.isDark ? "#000000" : "#FFFFFF")) }
                                     ]}>
                                         {followStatus === 1 ? "Following" : followStatus === 0 ? "Requested" : "Follow"}
                                     </Text>
@@ -438,16 +441,26 @@ export default function UserProfile() {
                         </TouchableOpacity>
                     )}
 
-                    {/* Stats */}
-                    <View style={[styles.statsRow, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB' }]}>
-                        <View style={styles.statItem}>
-                            <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.postCount || 0}</Text>
-                            <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Stories</Text>
+                    {/* Stats Box */}
+                    <View style={[styles.statsBox, { borderColor: theme.border, backgroundColor: theme.isDark ? '#1A1A1A' : '#FAFAFA' }]}>
+                        <View style={styles.statBoxItem}>
+                            <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#3B2F5C' : '#F3E8FF' }]}>
+                                <Ionicons name="book" size={20} color="#8B5CF6" />
+                            </View>
+                            <View>
+                                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.postCount || 0}</Text>
+                                <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Stories</Text>
+                            </View>
                         </View>
                         <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-                        <View style={styles.statItem}>
-                            <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.loveSent || 0}</Text>
-                            <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Love Sent</Text>
+                        <View style={styles.statBoxItem}>
+                            <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#4D2C2C' : '#FEE2E2' }]}>
+                                <Ionicons name="heart" size={20} color="#E57373" />
+                            </View>
+                            <View>
+                                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.loveSent || 0}</Text>
+                                <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Love Sent</Text>
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -457,10 +470,14 @@ export default function UserProfile() {
 
                 {/* Posts Section */}
                 <View style={styles.postsSection}>
-                    <Text style={[styles.sectionTitle, { color: theme.text }]}>
-                        Recent Stories
-                        <Text style={[styles.postCount, { color: theme.textTertiary }]}> ({userPosts.length})</Text>
-                    </Text>
+                    <View style={styles.sectionHeaderRow}>
+                        <Text style={[styles.sectionTitle, { color: theme.text }]}>
+                            Recent Stories <Text style={[styles.postCount, { color: theme.textTertiary }]}>({userPosts.length})</Text>
+                        </Text>
+                        <TouchableOpacity>
+                            <Text style={styles.seeAllText}>See all</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     {userPosts.length > 0 ? (
                         userPosts.map((post) => (
@@ -510,6 +527,20 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingBottom: 40,
+    },
+    profileCard: {
+        marginHorizontal: 8,
+        marginTop: 8,
+        padding: 15,
+        borderRadius: 24,
+        backgroundColor: '#FFFFFF',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#F3F4F6'
     },
     profileHeader: {
         paddingVertical: 20,
@@ -591,42 +622,65 @@ const styles = StyleSheet.create({
     },
     followingButtonText: {
     },
-    statsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 20,
-        paddingVertical: 16,
-        paddingHorizontal: 32,
-        width: '100%',
-        justifyContent: "space-around",
+    statsBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        paddingVertical: 20,
+        paddingHorizontal: 16,
+        borderRadius: 16,
+        borderWidth: 1,
     },
-    statItem: {
-        alignItems: "center",
+    statBoxItem: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+    },
+    statIconCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     statNumber: {
-        fontSize: 18,
+        fontSize: 22,
         fontWeight: "800",
-        marginBottom: 0,
+        marginBottom: 2,
     },
     statLabel: {
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: "600",
     },
     statDivider: {
         width: 1,
-        height: 30,
+        height: 40,
     },
     postsSection: {
-        padding: 12,
+        paddingHorizontal: 10,
+        paddingTop: 12,
+    },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        marginBottom: 10,
+        fontSize: 18,
+        fontWeight: "800",
     },
     postCount: {
         fontSize: 16,
         fontWeight: "500",
+    },
+    seeAllText: {
+        color: '#8B5CF6',
+        fontWeight: '700',
+        fontSize: 14,
     },
     emptyPostsState: {
         alignItems: "center",
@@ -646,15 +700,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     chartContainer: {
-        margin: 16,
-        borderRadius: 16,
+        marginHorizontal: 8,
+        marginTop: 16,
+        marginBottom: 8,
+        borderRadius: 24,
         borderWidth: 1,
-        padding: 16,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 8,
-        elevation: 1,
+        padding: 20,
+        elevation: 0.5,
     },
     chartTitle: {
         fontSize: 15,
