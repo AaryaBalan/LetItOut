@@ -21,6 +21,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -618,13 +619,13 @@ export default function Profile() {
         <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
 
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.divider }]}>
+        <View style={[styles.header, { backgroundColor: "transparent", borderBottomWidth: 0 }]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Your Profile</Text>
           <TouchableOpacity
-            style={styles.settingsButton}
+            style={[styles.settingsButton, { backgroundColor: theme.isDark ? "#2A2A2A" : "#F8F5FF", borderRadius: 24 }]}
             onPress={() => router.push('/settings')}
           >
-            <Ionicons name="settings" size={24} color={theme.text} />
+            <Ionicons name="settings-outline" size={22} color="#8B5CF6" />
           </TouchableOpacity>
         </View>
 
@@ -640,7 +641,7 @@ export default function Profile() {
               <View style={styles.avatarContainer}>
                 <Avatar seed={profileCode} size={80} />
                 <TouchableOpacity
-                  style={styles.editAvatarButton}
+                  style={[styles.editAvatarButton, { backgroundColor: "#8B5CF6", borderColor: theme.surface }]}
                   onPress={() => setShowAvatarModal(true)}
                 >
                   <Ionicons name="pencil" size={14} color="#FFFFFF" />
@@ -651,12 +652,12 @@ export default function Profile() {
                 <Text style={[styles.username, { color: theme.text }]}>
                   {user.displayName || "Anonymous User"}
                 </Text>
-                <Text style={[styles.joinDate, { color: theme.textSecondary }]}>Joined {joinDate}</Text>
+                <Text style={[styles.joinDate, { color: "#A78BFA" }]}>Joined {joinDate}</Text>
               </View>
 
               {/* Edit Profile Button */}
               <TouchableOpacity
-                style={[styles.editProfileButtonCompact, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}
+                style={[styles.editProfileButtonCompact, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF', borderRadius: 14 }]}
                 onPress={() => setShowEditModal(true)}
               >
                 <Ionicons name="create-outline" size={20} color="#8B5CF6" />
@@ -664,124 +665,116 @@ export default function Profile() {
             </View>
 
             {/* Bio */}
-            {userProfile?.bio && (
-              <Text style={[styles.bio, { color: theme.text }]}>{userProfile.bio}</Text>
+            {userProfile?.bio ? (
+              <Text style={[styles.bio, { color: theme.textSecondary }]}>{userProfile.bio}</Text>
+            ) : (
+              <Text style={[styles.bio, { color: theme.textSecondary }]}>
+                Turning ideas into real projects 🚀 Passionate about tech, startups, and building things that actually solve problems. Always learning, improving.
+              </Text>
             )}
 
             {/* Additional Info */}
-            <View style={[styles.infoSection, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9F9F9' }]}>
-              <View style={styles.infoItem}>
-                <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
+            <View style={[styles.infoSection, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F5FF' }]}>
+              <View style={[styles.infoItem, styles.dashedBorderBottom]}>
+                <Ionicons name="mail-outline" size={18} color="#6B7280" />
                 <Text style={[styles.infoText, { color: theme.text }]}>{user.email}</Text>
               </View>
               {userProfile?.phoneNumber && (
-                <View style={styles.infoItem}>
-                  <Ionicons
-                    name="call-outline"
-                    size={16}
-                    color={theme.textSecondary}
-                  />
-                  <Text style={[styles.infoText, { color: theme.text }]}>
-                    {userProfile.phoneNumber}
-                  </Text>
+                <View style={[styles.infoItem, styles.dashedBorderBottom]}>
+                  <Ionicons name="call-outline" size={18} color="#6B7280" />
+                  <Text style={[styles.infoText, { color: theme.text }]}>{userProfile.phoneNumber}</Text>
                 </View>
               )}
-              <View style={styles.infoItem}>
-                <Ionicons
-                  name="person-outline"
-                  size={16}
-                  color="#6B7280"
-                />
-                <Text style={styles.infoText}>
-                  {user.displayName || "Anonymous"}
-                </Text>
+              <View style={[styles.infoItem, styles.dashedBorderBottom]}>
+                <Ionicons name="person-outline" size={18} color="#6B7280" />
+                <Text style={[styles.infoText, { color: theme.text }]}>{user.displayName || "Anonymous"}</Text>
               </View>
               <View style={styles.infoItem}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={16}
-                  color="#6B7280"
-                />
-                <Text style={styles.infoText}>
-                  Member since {memberSince}
-                </Text>
+                <Ionicons name="calendar-outline" size={18} color="#6B7280" />
+                <Text style={[styles.infoText, { color: theme.text }]}>Member since {memberSince}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Stats Grid */}
+          <View style={styles.statsContainer}>
+            {/* Love Sent Card */}
+            <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2A1A2E' : '#FFE4E6' }]}>
+                <Ionicons name="heart" size={20} color="#F43F5E" />
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Love Sent</Text>
               </View>
             </View>
 
-            {/* Stats */}
-            <View style={styles.statsContainer}>
-              {/* Love Sent Card */}
-              <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2A1A2E' : '#FEF9E6' }]}>
-                  <Ionicons name="heart" size={20} color="#EC4899" />
-                </View>
-                <View style={styles.statInfo}>
-                  <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
-                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Love Sent</Text>
-                </View>
+            {/* Stories Card */}
+            <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1E1B2E' : '#F3E8FF' }]}>
+                <Ionicons name="book" size={20} color="#8B5CF6" />
               </View>
-
-              {/* Stories Card */}
-              <View style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
-                  <Ionicons name="book" size={20} color="#111827" />
-                </View>
-                <View style={styles.statInfo}>
-                  <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
-                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Stories</Text>
-                </View>
+              <View style={styles.statInfo}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Stories</Text>
               </View>
-
-              {/* Followers Card */}
-              <TouchableOpacity style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => handleOpenFriends('followers')}>
-                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1A2332' : '#E3F2FD' }]}>
-                  <Ionicons name="people" size={20} color="#3B82F6" />
-                </View>
-                <View style={styles.statInfo}>
-                  <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
-                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Followers</Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* Following Card */}
-              <TouchableOpacity style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => handleOpenFriends('following')}>
-                <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2E2416' : '#FFF3E0' }]}>
-                  <Ionicons name="person-add" size={20} color="#F59E0B" />
-                </View>
-                <View style={styles.statInfo}>
-                  <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
-                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Following</Text>
-                </View>
-              </TouchableOpacity>
             </View>
+
+            {/* Followers Card */}
+            <TouchableOpacity style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => handleOpenFriends('followers')}>
+              <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#1A2332' : '#DBEAFE' }]}>
+                <Ionicons name="people" size={20} color="#3B82F6" />
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{followersCount}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Followers</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Following Card */}
+            <TouchableOpacity style={[styles.statCardHorizontal, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => handleOpenFriends('following')}>
+              <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#2E2416' : '#FEF3C7' }]}>
+                <Ionicons name="person-add" size={20} color="#F59E0B" />
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{followingCount}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Following</Text>
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Stories and Saved Posts Row */}
           <View style={styles.cardsRow}>
             {/* My Stories Card */}
             <TouchableOpacity
-              style={[styles.compactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.isDark ? '#1E1B2E' : '#F5F3FF', borderColor: theme.border }]}
               onPress={() => setShowAllStoriesModal(true)}
               activeOpacity={0.7}
             >
-              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#1E1B2E' : '#EDE7F6' }]}>
-                <Ionicons name="document-text" size={24} color="#111827" />
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2E2B4E' : '#EDE9FE' }]}>
+                <Ionicons name="document-text" size={24} color="#8B5CF6" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{userPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>My Stories</Text>
+              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2E2B4E' : '#EDE9FE' }]}>
+                <Ionicons name="arrow-forward" size={16} color="#8B5CF6" />
+              </View>
             </TouchableOpacity>
 
             {/* Saved Posts Card */}
             <TouchableOpacity
-              style={[styles.compactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.isDark ? '#2E2416' : '#FFFBEB', borderColor: theme.border }]}
               onPress={() => setShowAllSavedModal(true)}
               activeOpacity={0.7}
             >
-              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2E2416' : '#FFF3E0' }]}>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#4E3416' : '#FEF3C7' }]}>
                 <Ionicons name="bookmark" size={24} color="#F59E0B" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{savedPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
+              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#4E3416' : '#FEF3C7' }]}>
+                <Ionicons name="arrow-forward" size={16} color="#F59E0B" />
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -869,7 +862,7 @@ export default function Profile() {
                 </TouchableOpacity>
               </View>
 
-              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 8, paddingVertical: 8 }]}>
                 {userPosts.map((post) => {
                   const postData = {
                     ...post,
@@ -908,7 +901,7 @@ export default function Profile() {
                 </TouchableOpacity>
               </View>
 
-              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 8 }]}>
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={[styles.modalScrollContent, { backgroundColor: theme.surface, paddingHorizontal: 8, paddingVertical: 8 }]}>
                 {savedPosts.length > 0 ? (
                   savedPosts.map((post) => {
                     const postData = {
@@ -957,7 +950,7 @@ export default function Profile() {
                 </TouchableOpacity>
               </View>
 
-              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}>
+              <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}>
                 {supportiveHistory.map((item) => (
                   <TouchableOpacity
                     key={item.id}
@@ -1087,6 +1080,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "800",
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     color: "#111827",
     letterSpacing: -0.5,
   },
@@ -1106,13 +1100,8 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 3,
+    padding: 15,
+    elevation: 0.5,
   },
   profileHeader: {
     flexDirection: "row",
@@ -1144,8 +1133,8 @@ const styles = StyleSheet.create({
   editAvatarButton: {
     position: "absolute",
     bottom: -2,
-    right: -2,
-    backgroundColor: "#111827",
+    right: 4,
+    backgroundColor: "#8B5CF6",
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -1153,7 +1142,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
-    shadowColor: "#111827",
+    shadowColor: "#8B5CF6",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -1200,16 +1189,22 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     width: "100%",
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#F9FAFB",
     borderRadius: 16,
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     marginBottom: 16,
-    gap: 10,
   },
   infoItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 16,
+    paddingVertical: 14,
+  },
+  dashedBorderBottom: {
+    borderBottomWidth: 1,
+    borderStyle: "dashed",
+    borderBottomColor: "#E5E7EB",
   },
   infoText: {
     fontSize: 14,
@@ -1228,8 +1223,9 @@ const styles = StyleSheet.create({
     minWidth: "48%",
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -1237,9 +1233,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   statIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -1331,11 +1327,13 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     position: "relative",
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 0.5,
   },
   historyTag: {
     fontSize: 11,
@@ -1462,12 +1460,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomWidth: 0,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     color: "#111827",
   },
   modalScrollView: {
@@ -1485,9 +1483,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#666",
+    fontSize: 22,
+    fontWeight: "800",
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    color: "#111827",
     marginTop: 16,
     marginBottom: 8,
   },
@@ -1498,7 +1497,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "flex-end",
   },
   modalContent75: {
@@ -1518,8 +1517,8 @@ const styles = StyleSheet.create({
   friendItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
@@ -1581,6 +1580,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginBottom: 16,
+    marginTop: 16,
   },
   compactCard: {
     flex: 1,
@@ -1614,6 +1614,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     letterSpacing: 0.2,
+  },
+  arrowButton: {
+    marginTop: 16,
+    width: 40,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
   },
   loadingContainer: {
     flex: 1,
