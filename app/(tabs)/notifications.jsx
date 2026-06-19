@@ -21,6 +21,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Platform
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -154,60 +155,15 @@ export default function Notifications() {
     // Get notification icon and color
     const getNotificationIcon = (type) => {
         switch (type) {
-            case "like":
-                return {
-                    name: "heart",
-                    color: "#FF6B9D",
-                    bgColor: "#FFE5EE",
-                };
-            case "hug":
-                return {
-                    name: "hand-left",
-                    color: "#9B7EDE",
-                    bgColor: "#EFE8FF",
-                };
-            case "metoo":
-                return {
-                    name: "happy",
-                    color: "#9B7EDE",
-                    bgColor: "#EFE8FF",
-                };
-            case "comment":
-                return {
-                    name: "chatbubble",
-                    color: "#FF8A65",
-                    bgColor: "#FFE8E0",
-                };
-            case "follow":
-                return {
-                    name: "person-add",
-                    color: "#4DD0E1",
-                    bgColor: "#E0F7FA",
-                };
-            case "friend_request":
-                return {
-                    name: "person-add",
-                    color: "#4DD0E1",
-                    bgColor: "#E0F7FA",
-                };
-            case "friend_request_accepted":
-                return {
-                    name: "checkmark-circle",
-                    color: "#66BB6A",
-                    bgColor: "#E8F5E9",
-                };
-            case "perspective_change":
-                return {
-                    name: "trending-up",
-                    color: "#111827",
-                    bgColor: "#EFE8FF",
-                };
-            default:
-                return {
-                    name: "notifications",
-                    color: "#9E9E9E",
-                    bgColor: "#F3F4F6",
-                };
+            case "like": return { name: "heart", color: "#6366F1", bgColor: "#EEF2FF" };
+            case "hug": return { name: "hand-left", color: "#F2C94C", bgColor: "#FEF9E6" };
+            case "metoo": return { name: "happy", color: "#27AE60", bgColor: "#E9F7EF" };
+            case "comment": return { name: "chatbubble", color: "#6366F1", bgColor: "#EEF2FF" };
+            case "follow": return { name: "person-add", color: "#2F80ED", bgColor: "#EBF3FE" };
+            case "friend_request": return { name: "person-add", color: "#2F80ED", bgColor: "#EBF3FE" };
+            case "friend_request_accepted": return { name: "checkmark-circle", color: "#27AE60", bgColor: "#E9F7EF" };
+            case "perspective_change": return { name: "trending-up", color: "#6366F1", bgColor: "#EEF2FF" };
+            default: return { name: "notifications", color: "#9E9E9E", bgColor: "#F3F4F6" };
         }
     };
 
@@ -390,7 +346,10 @@ export default function Notifications() {
 
         return (
             <TouchableOpacity
-                style={[styles.notificationCard, { backgroundColor: theme.card, borderBottomColor: theme.divider }]}
+                style={[
+                    styles.notificationCard, 
+                    { backgroundColor: theme.isDark ? "#2A2A2A" : "#FFFFFF", borderColor: theme.border }
+                ]}
                 onPress={() => !isProcessing && handleNotificationPress(item)}
                 activeOpacity={0.7}
                 disabled={isProcessing}
@@ -559,7 +518,7 @@ export default function Notifications() {
             >
                 {recent.length > 0 && (
                     <View style={styles.section}>
-                        <View style={[styles.sectionHeader, { backgroundColor: theme.isDark ? '#0A0A0A' : '#FAFAFA', borderBottomColor: theme.divider }]}>
+                        <View style={[styles.sectionHeader, { backgroundColor: "transparent" }]}>
                             <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>RECENT</Text>
                             {unreadCount > 0 && (
                                 <TouchableOpacity onPress={markAllAsRead}>
@@ -577,7 +536,7 @@ export default function Notifications() {
 
                 {earlier.length > 0 && (
                     <View style={styles.section}>
-                        <View style={[styles.sectionHeader, { backgroundColor: theme.isDark ? '#0A0A0A' : '#FAFAFA', borderBottomColor: theme.divider }]}>
+                        <View style={[styles.sectionHeader, { backgroundColor: "transparent" }]}>
                             <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>EARLIER</Text>
                         </View>
                         {earlier.map((item) => (
@@ -598,15 +557,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: "700",
+        fontSize: 26,
+        fontWeight: "800",
+        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
         color: "#111827",
-        letterSpacing: -0.5,
     },
     settingsButton: {
         width: 40,
@@ -624,28 +582,34 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 20,
+        paddingHorizontal: 24,
         paddingVertical: 12,
-        borderBottomWidth: 1,
     },
     sectionTitle: {
         fontSize: 12,
-        fontWeight: "700",
+        fontWeight: "800",
         color: "#9E9E9E",
         letterSpacing: 1,
     },
     markAllRead: {
         fontSize: 12,
-        fontWeight: "600",
-        color: "#9F8BFF", // Peace purple
+        fontWeight: "700",
+        color: "#6366F1",
         letterSpacing: 0.3,
     },
     notificationCard: {
         flexDirection: "row",
-        alignItems: "flex-start", // Align to top for long text
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderBottomWidth: 1,
+        alignItems: "flex-start",
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        marginHorizontal: 10,
+        marginBottom: 8,
+        borderRadius: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+        elevation: 1,
     },
     avatarWithIcon: {
         position: "relative",
@@ -705,10 +669,11 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     unreadDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: "#4bb3ff",
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: "#6366F1",
+        marginTop: 4,
     },
     emptyContainer: {
         flex: 1,
@@ -741,7 +706,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     acceptButton: {
-        backgroundColor: '#111827', // Primary black action
+        backgroundColor: '#6366F1', // Indigo primary action
     },
     rejectButton: {
         backgroundColor: '#F3F4F6',
