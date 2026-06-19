@@ -57,11 +57,11 @@ export default function MyCenter() {
 
         // Sort posts in-memory by createdAt descending
         fetchedPosts.sort((a, b) => {
-          const aTime = a.createdAt?.seconds 
-            ? a.createdAt.seconds * 1000 
+          const aTime = a.createdAt?.seconds
+            ? a.createdAt.seconds * 1000
             : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-          const bTime = b.createdAt?.seconds 
-            ? b.createdAt.seconds * 1000 
+          const bTime = b.createdAt?.seconds
+            ? b.createdAt.seconds * 1000
             : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
           return bTime - aTime;
         });
@@ -253,11 +253,11 @@ export default function MyCenter() {
   const renderMoodShiftTrack = (post, isMini = false) => {
     const initial = post.feelPercentage ?? 0;
     const current = getPostCumulativeScore(post);
-    
+
     // Normalize -100..100 to 0%..100%
     const initialPct = `${(initial + 100) / 2}%`;
     const currentPct = `${(current + 100) / 2}%`;
-    
+
     const delta = current - initial;
     const isImprovement = delta >= 0;
 
@@ -267,9 +267,9 @@ export default function MyCenter() {
           <View style={styles.miniTrackBar}>
             <View style={[styles.moodTrackLine, { backgroundColor: theme.isDark ? '#2A2A2F' : '#E5E7EB' }]} />
             <View style={[
-              styles.moodTrackConnector, 
-              { 
-                left: delta >= 0 ? initialPct : currentPct, 
+              styles.moodTrackConnector,
+              {
+                left: delta >= 0 ? initialPct : currentPct,
                 width: `${Math.abs(delta) / 2}%`,
                 backgroundColor: isImprovement ? '#66BB6A' : '#E57373'
               }
@@ -304,26 +304,26 @@ export default function MyCenter() {
             </Text>
           </View>
         </View>
-        
+
         {/* Track Line */}
         <View style={[styles.moodTrackBar, { backgroundColor: theme.isDark ? '#2A2A2F' : '#E5E7EB' }]}>
           {/* Connector Line between Initial and Current */}
           <View style={[
-            styles.moodTrackConnector, 
-            { 
-              left: delta >= 0 ? initialPct : currentPct, 
+            styles.moodTrackConnector,
+            {
+              left: delta >= 0 ? initialPct : currentPct,
               width: `${Math.abs(delta) / 2}%`,
               backgroundColor: isImprovement ? '#66BB6A' : '#E57373'
             }
           ]} />
-          
+
           {/* Initial Mood Point */}
           <View style={[styles.moodPoint, { left: initialPct, backgroundColor: '#7986CB' }]} />
-          
+
           {/* Current Mood Point */}
           <View style={[styles.moodPoint, { left: currentPct, backgroundColor: isImprovement ? '#4CAF50' : '#F44336', transform: [{ scale: 1.3 }] }]} />
         </View>
-        
+
         <View style={styles.moodTrackInfoRow}>
           <Ionicons name={isImprovement ? "trending-up" : "trending-down"} size={16} color={isImprovement ? '#66BB6A' : '#E57373'} />
           <Text style={[styles.moodShiftText, { color: isImprovement ? '#66BB6A' : '#E57373' }]}>
@@ -359,7 +359,7 @@ export default function MyCenter() {
     const initial = post.feelPercentage ?? 0;
     const current = getPostCumulativeScore(post);
     const shift = current - initial;
-    
+
     let bestComment = null;
     let maxRating = -Infinity;
     comments.forEach((c) => {
@@ -385,14 +385,14 @@ export default function MyCenter() {
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => {
             if (selectedPost) {
               setSelectedPost(null);
             } else {
               router.back();
             }
-          }} 
+          }}
           style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB' }]}
         >
           <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -477,8 +477,8 @@ export default function MyCenter() {
               const baselineVal = selectedPost.feelPercentage ?? 0;
               const currentVal = comment.perspectiveRating !== undefined ? comment.perspectiveRating : baselineVal;
               return (
-                <TouchableOpacity 
-                  key={comment.id} 
+                <TouchableOpacity
+                  key={comment.id}
                   activeOpacity={0.9}
                   onPress={() => setExpandedCommentId(prev => prev === comment.id ? null : comment.id)}
                   style={styles.timelineCommentItem}
@@ -503,10 +503,10 @@ export default function MyCenter() {
                           <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
                         </View>
                       )}
-                      <Ionicons 
-                        name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"} 
-                        size={18} 
-                        color={theme.textTertiary} 
+                      <Ionicons
+                        name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"}
+                        size={18}
+                        color={theme.textTertiary}
                       />
                     </View>
 
@@ -531,8 +531,8 @@ export default function MyCenter() {
                             {currentVal === 0
                               ? "Neutral (0)"
                               : currentVal < 0
-                              ? `Negative (${currentVal})`
-                              : `Positive (+${currentVal})`}
+                                ? `Negative (${currentVal})`
+                                : `Positive (+${currentVal})`}
                           </Text>
                         </View>
 
@@ -1048,7 +1048,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "500",
   },
-  
+
   // Custom Visualizer Styles
   moodTrackContainer: {
     marginTop: 8,
@@ -1101,7 +1101,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  
+
   // Mini Track Styles
   miniTrackContainer: {
     marginTop: 8,

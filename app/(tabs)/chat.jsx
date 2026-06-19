@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     FlatList,
     RefreshControl,
@@ -220,11 +220,11 @@ export default function ChatTab() {
                     <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: theme.border }]}>
                         <Ionicons name="search" size={18} color={theme.textSecondary} />
                         <TextInput
-                          style={[styles.searchInput, { color: theme.text }]}
-                          placeholder="Search friends..."
-                          placeholderTextColor={theme.placeholder}
-                          value={searchQuery}
-                          onChangeText={setSearchQuery}
+                            style={[styles.searchInput, { color: theme.text }]}
+                            placeholder="Search friends..."
+                            placeholderTextColor={theme.placeholder}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
                         />
                     </View>
                 </View>

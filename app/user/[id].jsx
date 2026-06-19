@@ -12,13 +12,13 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Circle, G, Line, Path, Text as SvgText } from "react-native-svg";
 import Avatar from "../../components/Avatar";
 import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import Svg, { Path, Circle, Line, G, Text as SvgText } from "react-native-svg";
 import { createFriendRequestNotification } from "../../utils/notifications";
 
 export default function UserProfile() {
@@ -253,30 +253,30 @@ export default function UserProfile() {
 
         // Find max absolute value to scale y-axis
         const maxAbsValue = Math.max(...perspectiveShifts.map((s) => Math.abs(s.rating)), 10);
-        
+
         const spacing = 65;
         const paddingLeft = 30;
         const chartHeight = 160;
         const baselineY = 80;
-        
+
         // Map data to coordinates (x, y)
         const points = perspectiveShifts.map((shift, idx) => {
             const x = paddingLeft + idx * spacing;
             const y = baselineY - (shift.rating / maxAbsValue) * 55;
             return { x, y, rating: shift.rating, id: shift.id };
         });
-        
+
         const svgWidth = Math.max(300, points.length * spacing + paddingLeft + 20);
 
         // Path for the line
         const linePath = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-        
+
         // Path for the filled area under the line
         let areaPath = "";
         if (points.length > 0) {
             areaPath = `M ${points[0].x} ${baselineY} ` +
-                       points.map((p) => `L ${p.x} ${p.y}`).join(" ") +
-                       ` L ${points[points.length - 1].x} ${baselineY} Z`;
+                points.map((p) => `L ${p.x} ${p.y}`).join(" ") +
+                ` L ${points[points.length - 1].x} ${baselineY} Z`;
         }
 
         return (
@@ -342,7 +342,7 @@ export default function UserProfile() {
                                         strokeWidth={1}
                                         strokeDasharray="2 2"
                                     />
-                                    
+
                                     {/* Data Dot */}
                                     <Circle
                                         cx={p.x}

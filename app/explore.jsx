@@ -24,15 +24,15 @@ import { useTheme } from "../context/ThemeContext";
 const { width } = Dimensions.get("window");
 
 const getCategoryTheme = (category, isDark) => {
-  const themes = {
-    "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
-    "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
-    "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
-    "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
-    "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
-    "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
-  };
-  return themes[category] || themes["Other"];
+    const themes = {
+        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
+        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
+        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
+        "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
+        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+        "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+    };
+    return themes[category] || themes["Other"];
 };
 
 const COMMUNITY_INFO = {

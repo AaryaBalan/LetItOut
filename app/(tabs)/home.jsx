@@ -4,6 +4,7 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Easing,
   FlatList,
   Modal,
   Platform,
@@ -13,8 +14,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Easing
+  View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -304,7 +304,7 @@ export default function Home() {
                     autoFocus
                   />
                 </View>
-                
+
                 <TouchableOpacity
                   style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
                   onPress={() => setFilterModalVisible(true)}
@@ -397,7 +397,7 @@ export default function Home() {
                         Clear
                       </Text>
                     </TouchableOpacity>
-                )}
+                  )}
 
                 {categories.map((category) => {
                   const catTheme = getCategoryTheme(category, theme.isDark);

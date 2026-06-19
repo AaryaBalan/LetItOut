@@ -85,16 +85,16 @@ const CATEGORIES = [
 ];
 
 const getCategoryTheme = (category, isDark) => {
-  const themes = {
-    "All": { icon: "grid", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" },
-    "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
-    "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
-    "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
-    "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
-    "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
-    "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
-  };
-  return themes[category] || themes["Other"];
+    const themes = {
+        "All": { icon: "grid", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" },
+        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#1A73E8", bgColor: isDark ? "#174EA6" : "#E8F0FE" },
+        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#D93025", bgColor: isDark ? "#C5221F" : "#FCE8E6" },
+        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#C2185B", bgColor: isDark ? "#880E4F" : "#FCE4EC" },
+        "Study": { icon: "book", color: isDark ? "#81C995" : "#188038", bgColor: isDark ? "#137333" : "#E6F4EA" },
+        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#B06000", bgColor: isDark ? "#E37400" : "#FEF7E0" },
+        "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+    };
+    return themes[category] || themes["Other"];
 };
 
 export default function CommunityDetail() {
@@ -238,7 +238,7 @@ export default function CommunityDetail() {
     const listData = [
         { id: 'HEADER_KEY', type: 'header' },
         { id: 'FILTERS_KEY', type: 'filters' },
-        ...(filteredPosts.length > 0 
+        ...(filteredPosts.length > 0
             ? filteredPosts.map(p => ({ ...p, type: 'post' }))
             : [{ id: 'EMPTY_KEY', type: 'empty' }]
         )
@@ -253,7 +253,7 @@ export default function CommunityDetail() {
                         <View style={[styles.heroBanner, { backgroundColor: catTheme.bgColor }]}>
                             <Ionicons name={categoryData.icon} size={110} color={catTheme.color} style={styles.heroWatermark} />
                         </View>
-                        
+
                         {/* Absolute Overlay Nav Bar */}
                         <View style={styles.navHeader}>
                             <TouchableOpacity
@@ -263,7 +263,7 @@ export default function CommunityDetail() {
                             >
                                 <Ionicons name="chevron-back" size={24} color={theme.text} />
                             </TouchableOpacity>
-                            
+
                             <TouchableOpacity
                                 style={[styles.roundBackBtn, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)' }]}
                                 onPress={() => setShowFilterModal(true)}
@@ -306,7 +306,7 @@ export default function CommunityDetail() {
                             { label: "Venting (-100 to 0)", type: "latest", sort: "recent", mood: "depression" },
                             { label: "Happy (0 to 100)", type: "latest", sort: "recent", mood: "happiness" },
                         ].map((opt, idx) => {
-                            const isSelected = 
+                            const isSelected =
                                 selectedFilter === opt.type &&
                                 selectedSort === opt.sort &&
                                 selectedMood === opt.mood;
@@ -331,7 +331,7 @@ export default function CommunityDetail() {
                                 </TouchableOpacity>
                             );
                         })}
-                        
+
                         {/* Anonymous Only Toggle Pill */}
                         <TouchableOpacity
                             style={[
