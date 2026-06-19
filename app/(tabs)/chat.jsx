@@ -9,7 +9,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    Platform
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -169,22 +170,22 @@ export default function ChatTab() {
 
     const renderFriend = ({ item }) => (
         <TouchableOpacity
-            style={[styles.friendCard, { borderBottomColor: theme.border }]}
+            style={[styles.friendCard, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={() => router.push(`/chat/${item.id}`)}
             delayPressIn={0}
         >
             <View style={styles.avatarContainer}>
                 {item.profileCode ? (
-                    <Avatar seed={item.profileCode} size={48} />
+                    <Avatar seed={item.profileCode} size={55} />
                 ) : (
-                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#222' : '#EFE8FF' }]}>
-                        <Ionicons name="person" size={22} color="#111827" />
+                    <View style={[styles.defaultAvatar, { backgroundColor: theme.isDark ? '#222' : '#F8F5FF' }]}>
+                        <Ionicons name="person" size={28} color="#111827" />
                     </View>
                 )}
             </View>
             <View style={styles.infoContainer}>
                 <View style={styles.nameRow}>
-                    <Text style={[styles.name, { color: theme.text }]}>{item.name}</Text>
+                    <Text style={[styles.name, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>{item.name}</Text>
                     {item.lastMessageTimestamp && (
                         <Text style={[styles.timeText, { color: theme.textTertiary }]}>{getTimeString(item.lastMessageTimestamp)}</Text>
                     )}
@@ -194,12 +195,22 @@ export default function ChatTab() {
                         styles.subtext,
                         { color: item.unreadCount > 0 ? theme.text : theme.textSecondary },
                         item.unreadCount > 0 && styles.unreadSubtext
-                    ]} numberOfLines={1}>
+                    ]} numberOfLines={2}>
                         {item.lastMessage || "Tap to chat"}
                     </Text>
-                    {item.unreadCount > 0 && (
-                        <View style={styles.badge}>
+                    
+                    {/* Badge / Action Area */}
+                    {item.unreadCount > 0 ? (
+                        <View style={[styles.badge, { backgroundColor: '#8B5CF6' }]}>
                             <Text style={styles.badgeText}>{item.unreadCount}</Text>
+                        </View>
+                    ) : item.lastMessage ? (
+                        <View style={[styles.badge, { backgroundColor: theme.isDark ? '#333' : '#F3F4F6' }]}>
+                            <Ionicons name="checkmark-done" size={12} color={theme.textTertiary} />
+                        </View>
+                    ) : (
+                        <View style={[styles.chatBtn, { backgroundColor: '#F8F5FF' }]}>
+                            <Text style={[styles.chatBtnText, { color: '#8B5CF6' }]}>Chat</Text>
                         </View>
                     )}
                 </View>
@@ -212,13 +223,19 @@ export default function ChatTab() {
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 {/* Header */}
                 <View style={[styles.header, { backgroundColor: theme.background }]}>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Messages</Text>
+                    <View>
+                        <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>Messages</Text>
+                        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Connect, share & support</Text>
+                    </View>
+                    <TouchableOpacity style={[styles.composeButton, { backgroundColor: '#F8F5FF' }]}>
+                        <Ionicons name="create-outline" size={22} color="#8B5CF6" />
+                    </TouchableOpacity>
                 </View>
 
                 {/* Search */}
                 <View style={[styles.searchContainer, { backgroundColor: theme.background }]}>
-                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: theme.border }]}>
-                        <Ionicons name="search" size={18} color={theme.textSecondary} />
+                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB', borderWidth: 0 }]}>
+                        <Ionicons name="search" size={20} color={theme.textSecondary} />
                         <TextInput
                             style={[styles.searchInput, { color: theme.text }]}
                             placeholder="Search friends..."
@@ -265,33 +282,48 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
         paddingHorizontal: 20,
-        paddingVertical: 14,
+        paddingTop: 20,
+        paddingBottom: 16,
     },
     headerTitle: {
-        fontSize: 22,
+        fontSize: 32,
         fontWeight: "800",
-        letterSpacing: -0.5,
+        marginBottom: 4,
+    },
+    headerSubtitle: {
+        fontSize: 14,
+        fontWeight: "500",
+    },
+    composeButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: "center",
+        alignItems: "center",
     },
     searchContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 12,
+        paddingHorizontal: 16,
+        paddingBottom: 20,
     },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
-        borderRadius: 18,
-        paddingHorizontal: 12,
-        height: 38,
-        gap: 8,
-        borderWidth: 1,
+        borderRadius: 24,
+        paddingHorizontal: 16,
+        height: 48,
+        gap: 12,
     },
     searchInput: {
         flex: 1,
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "500",
-        padding: 0,
+        paddingHorizontal: 8,
+        paddingVertical: 0,
         height: '100%',
+        backgroundColor: "#d1c1f0ff",
+        borderRadius: 15,
     },
     listContent: {
         paddingBottom: 90,
@@ -299,17 +331,28 @@ const styles = StyleSheet.create({
     friendCard: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderBottomWidth: 1,
+        marginHorizontal: 8,
+        marginBottom: 8,
+        padding: 5,
+        paddingHorizontal: 10,
+        borderRadius: 15,
+        elevation: 1,
+        borderWidth: 1,
     },
     avatarContainer: {
-        marginRight: 14,
+        marginRight: 16,
+        width: 55,
+        height: 55,
+        borderRadius: 27.5,
+        backgroundColor: '#F8F5FF',
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     defaultAvatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: 55,
+        height: 55,
+        borderRadius: 27.5,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -321,41 +364,51 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 3,
+        marginBottom: 6,
     },
     name: {
-        fontSize: 15,
-        fontWeight: "700",
+        fontSize: 18,
+        fontWeight: "800",
     },
     timeText: {
         fontSize: 11,
+        fontWeight: "600",
     },
     messageRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-end',
     },
     subtext: {
         fontSize: 13,
+        lineHeight: 18,
         flex: 1,
-        marginRight: 8,
+        marginRight: 12,
     },
     unreadSubtext: {
         fontWeight: '700',
     },
     badge: {
-        backgroundColor: '#EF5350',
-        borderRadius: 9,
-        minWidth: 18,
-        height: 18,
+        borderRadius: 12,
+        minWidth: 24,
+        height: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 4,
+        paddingHorizontal: 6,
     },
     badgeText: {
         color: '#FFFFFF',
-        fontSize: 10,
+        fontSize: 12,
         fontWeight: '800',
+    },
+    chatBtn: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 16,
+    },
+    chatBtnText: {
+        fontSize: 12,
+        fontWeight: '700',
     },
     emptyContainer: {
         alignItems: "center",
