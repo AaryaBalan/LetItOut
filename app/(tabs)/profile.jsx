@@ -20,8 +20,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  Platform
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -155,7 +154,7 @@ export default function Profile() {
         profileCode: newSeed,
         email: user.email,
         displayName: user.displayName || "Anonymous",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }, { merge: true });
 
       setProfileCode(newSeed);
@@ -188,7 +187,7 @@ export default function Profile() {
             description: data.description,
             createdAt: data.createdAt,
             reactions: { like: 0, hug: 0, metoo: 0 },
-            reactionCount: data.reactionCount || 0,
+            reactionCount: data.reactionCount || 0
           };
         });
         setUserPosts(fetchedPosts);
@@ -253,7 +252,7 @@ export default function Profile() {
               postId: postId,
               postTitle: postData.title,
               postCategory: postData.category,
-              timestamp: data.createdAt || new Date().toISOString(),
+              timestamp: data.createdAt || new Date().toISOString()
             });
           }
         }
@@ -290,7 +289,7 @@ export default function Profile() {
               postTitle: postData.title,
               postCategory: postData.category,
               comment: data.comment,
-              timestamp: data.createdAt || new Date().toISOString(),
+              timestamp: data.createdAt || new Date().toISOString()
             });
           }
         }
@@ -356,7 +355,7 @@ export default function Profile() {
               postId: postId,
               postTitle: postData.title,
               postCategory: postData.category,
-              timestamp: data.createdAt || new Date().toISOString(),
+              timestamp: data.createdAt || new Date().toISOString()
             });
           }
         }
@@ -385,7 +384,7 @@ export default function Profile() {
               postTitle: postData.title,
               postCategory: postData.category,
               comment: data.comment,
-              timestamp: data.createdAt || new Date().toISOString(),
+              timestamp: data.createdAt || new Date().toISOString()
             });
           }
         }
@@ -519,7 +518,7 @@ export default function Profile() {
           } else {
             Alert.alert("Error", "Failed to logout");
           }
-        },
+        }
       },
     ]);
   };
@@ -547,7 +546,7 @@ export default function Profile() {
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
-      month: "long",
+      month: "long"
     });
   };
 
@@ -557,7 +556,7 @@ export default function Profile() {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
-      day: "numeric",
+      day: "numeric"
     });
   };
 
@@ -594,7 +593,7 @@ export default function Profile() {
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
           <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
           <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
-          <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontWeight: '600' }}>
+          <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontFamily: 'Fredoka-Bold' }}>
             Loading Profile...
           </Text>
         </SafeAreaView>
@@ -869,7 +868,7 @@ export default function Profile() {
                     timestamp: getTimeAgo(post.createdAt),
                     authorName: user?.displayName || userProfile?.displayName || "Anonymous",
                     authorId: user?.uid || null,
-                    isAnonymous: post.isAnonymous || false,
+                    isAnonymous: post.isAnonymous || false
                   };
 
                   return (
@@ -909,7 +908,7 @@ export default function Profile() {
                       timestamp: getTimeAgo(post.createdAt),
                       authorName: post.authorName || (post.isAnonymous ? "Anonymous" : "Unknown"),
                       authorId: post.authorId || null,
-                      isAnonymous: post.isAnonymous || false,
+                      isAnonymous: post.isAnonymous || false
                     };
 
                     return (
@@ -1067,7 +1066,7 @@ export default function Profile() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1
   },
   header: {
     flexDirection: "row",
@@ -1075,52 +1074,52 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 1
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: "800",
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: 'Frederick',
     color: "#111827",
-    letterSpacing: -0.5,
+    letterSpacing: -0.5
   },
   settingsButton: {
     width: 40,
     height: 40,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   scrollView: {
-    flex: 1,
+    flex: 1
   },
   scrollContent: {
     paddingHorizontal: 12,
-    paddingTop: 8,
+    paddingTop: 8
   },
   profileCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 15,
-    elevation: 0.5,
+    elevation: 0.5
   },
   profileHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
     marginBottom: 16,
+    fontFamily: 'Frederick'
   },
   profileInfo: {
-    flex: 1,
+    flex: 1
   },
   editProfileButtonCompact: {
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   avatarContainer: {
-    position: "relative",
+    position: "relative"
   },
   avatar: {
     width: 110,
@@ -1128,7 +1127,7 @@ const styles = StyleSheet.create({
     borderRadius: 55,
     backgroundColor: "#E1BEE7",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   editAvatarButton: {
     position: "absolute",
@@ -1146,26 +1145,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 3
   },
   username: {
     fontSize: 24,
-    fontWeight: "800",
+    fontWeight: '400',
     color: "#111827",
     marginBottom: 4,
     letterSpacing: -0.3,
+    fontFamily: 'Fredoka-Bold'
   },
   joinDate: {
     fontSize: 13,
     color: "#9E9E9E",
     marginBottom: 12,
-    fontWeight: "500",
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular'
   },
   bio: {
     fontSize: 14,
     color: "#616161",
     marginBottom: 16,
     lineHeight: 20,
+    fontFamily: 'Fredoka-Regular'
   },
   editProfileButton: {
     flexDirection: "row",
@@ -1180,12 +1182,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 2
   },
   editProfileText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#111827",
+    fontFamily: 'Fredoka-Regular'
   },
   infoSection: {
     width: "100%",
@@ -1193,30 +1196,31 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 8,
-    marginBottom: 16,
+    marginBottom: 16
   },
   infoItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-    paddingVertical: 14,
+    paddingVertical: 14
   },
   dashedBorderBottom: {
     borderBottomWidth: 1,
     borderStyle: "dashed",
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: "#E5E7EB"
   },
   infoText: {
     fontSize: 14,
     color: "#616161",
     flex: 1,
-    fontWeight: "500",
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular'
   },
   statsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginTop: 16,
+    marginTop: 16
   },
   statCardHorizontal: {
     flex: 1,
@@ -1230,7 +1234,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
-    elevation: 2,
+    elevation: 2
   },
   statIconCircle: {
     width: 48,
@@ -1238,47 +1242,52 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 12
   },
   statInfo: {
-    flex: 1,
+    flex: 1
   },
   statNumber: {
     fontSize: 24,
-    fontWeight: "800",
+    fontWeight: '400',
     marginBottom: 2,
     letterSpacing: -0.5,
+    fontFamily: 'Fredoka-Regular'
   },
   statLabel: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '400',
     letterSpacing: 0.3,
+    fontFamily: 'Fredoka-Regular'
   },
   section: {
-    marginBottom: 12,
+    marginBottom: 12
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 8,
+    fontFamily: 'Frederick'
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
     color: "#111827",
+    fontFamily: 'Frederick'
   },
   viewAllText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#111827",
     letterSpacing: 0.5,
+    fontFamily: 'Fredoka-Regular'
   },
   recentText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#9E9E9E",
     letterSpacing: 0.5,
+    fontFamily: 'Fredoka-Regular'
   },
   storyCard: {
     backgroundColor: "#FFFFFF",
@@ -1290,14 +1299,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-    marginBottom: 12,
+    marginBottom: 12
   },
   storyCategory: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#B39DDB",
     letterSpacing: 0.5,
     marginBottom: 8,
+    fontFamily: 'Fredoka-Regular'
   },
   storyTime: {
     position: "absolute",
@@ -1305,21 +1315,24 @@ const styles = StyleSheet.create({
     right: 16,
     fontSize: 12,
     color: "#BDBDBD",
+    fontFamily: 'Fredoka-Regular'
   },
   storyText: {
     fontSize: 15,
     color: "#4B5563",
     lineHeight: 22,
     marginBottom: 12,
+    fontFamily: 'Fredoka-Regular'
   },
   storyFooter: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 6
   },
   storyHugs: {
     fontSize: 13,
     color: "#9E9E9E",
+    fontFamily: 'Fredoka-Regular'
   },
   historyCard: {
     backgroundColor: "#FFFFFF",
@@ -1333,14 +1346,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 6,
-    elevation: 0.5,
+    elevation: 0.5
   },
   historyTag: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#FFB74D",
     letterSpacing: 0.5,
     marginBottom: 8,
+    fontFamily: 'Fredoka-Regular'
   },
   historyTime: {
     position: "absolute",
@@ -1348,28 +1362,31 @@ const styles = StyleSheet.create({
     right: 16,
     fontSize: 12,
     color: "#BDBDBD",
+    fontFamily: 'Fredoka-Regular'
   },
   historyText: {
     fontSize: 14,
     color: "#616161",
     lineHeight: 20,
-    fontStyle: "italic",
+    fontFamily: 'Fredoka-Regular'
   },
   commentPreview: {
     fontSize: 13,
     color: "#6B7280",
     lineHeight: 18,
     marginTop: 8,
-    fontStyle: "italic",
+    fontStyle: "",
+    fontFamily: 'Fredoka-Regular'
   },
   boldText: {
-    fontWeight: "700",
+    fontWeight: '400',
     fontStyle: "normal",
     color: "#111827",
+    fontFamily: 'Fredoka-Regular'
   },
   actionButtons: {
     marginTop: 8,
-    gap: 12,
+    gap: 12
   },
   privacyButton: {
     flexDirection: "row",
@@ -1383,12 +1400,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 4
   },
   privacyButtonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#FFFFFF",
+    fontFamily: 'Fredoka-Regular'
   },
   logoutButton: {
     flexDirection: "row",
@@ -1402,56 +1420,60 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 4
   },
   logoutButtonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#111827",
+    fontFamily: 'Fredoka-Regular'
   },
   deactivateButton: {
     paddingVertical: 16,
-    alignItems: "center",
+    alignItems: "center"
   },
   deactivateButtonText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#BDBDBD",
     letterSpacing: 0.5,
+    fontFamily: 'Fredoka-Regular'
   },
   notLoggedInContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 40
   },
   notLoggedInTitle: {
     fontSize: 24,
-    fontWeight: "700",
     color: "#111827",
     marginTop: 16,
     marginBottom: 8,
+    fontFamily: 'Frederick'
   },
   notLoggedInText: {
     fontSize: 15,
     color: "#6B7280",
     textAlign: "center",
     marginBottom: 24,
+    fontFamily: 'Fredoka-Regular'
   },
   loginButton: {
     backgroundColor: "#111827",
     paddingVertical: 14,
     paddingHorizontal: 32,
-    borderRadius: 24,
+    borderRadius: 24
   },
   loginButtonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#FFFFFF",
+    fontFamily: 'Fredoka-Regular'
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F3F4F6"
   },
   modalHeader: {
     flexDirection: "row",
@@ -1461,58 +1483,60 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 0,
+    fontFamily: 'Frederick'
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: "800",
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    color: "#111827",
+
+    fontFamily: 'Frederick',
+    color: "#111827"
   },
   modalScrollView: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: "#F7F7F7"
   },
   modalScrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 20
   },
   postCardWrapper: {
-    marginBottom: 0,
+    marginBottom: 0
   },
   emptyState: {
     padding: 40,
-    alignItems: "center",
+    alignItems: "center"
   },
   emptyStateTitle: {
     fontSize: 22,
-    fontWeight: "800",
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+
+    fontFamily: 'Frederick',
     color: "#111827",
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 8
   },
   emptyStateText: {
     color: "#9E9E9E",
     fontSize: 14,
     textAlign: "center",
+    fontFamily: 'Fredoka-Regular'
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "flex-end",
+    justifyContent: "flex-end"
   },
   modalContent75: {
     height: "75%",
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    overflow: "hidden",
+    overflow: "hidden"
   },
   modalContent80: {
     height: "80%",
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    overflow: "hidden",
+    overflow: "hidden"
   },
   friendItem: {
     flexDirection: "row",
@@ -1520,32 +1544,34 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: "#F3F4F6"
   },
   friendInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 12
   },
   friendName: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '400',
     color: "#111827",
     marginBottom: 4,
+    fontFamily: 'Fredoka-Regular'
   },
   friendBio: {
     fontSize: 13,
     color: "#9E9E9E",
+    fontFamily: 'Fredoka-Regular'
   },
   summaryCard: {
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 16,
-    marginBottom: 12,
+    marginBottom: 12
   },
   summaryRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 12
   },
   summaryIconContainer: {
     width: 56,
@@ -1554,33 +1580,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3E5F5",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: 16
   },
   summaryContent: {
-    flex: 1,
+    flex: 1
   },
   summaryCount: {
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: '400',
     color: "#111827",
     marginBottom: 4,
+    fontFamily: 'Fredoka-Regular'
   },
   summaryLabel: {
     fontSize: 14,
     color: "#6B7280",
-    fontWeight: "500",
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular'
   },
   summaryHint: {
     fontSize: 12,
     color: "#111827",
     textAlign: "center",
-    fontStyle: "italic",
+    fontStyle: "",
+    fontFamily: 'Fredoka-Regular'
   },
   cardsRow: {
     flexDirection: "row",
     gap: 12,
     marginBottom: 16,
-    marginTop: 16,
+    marginTop: 16
   },
   compactCard: {
     flex: 1,
@@ -1593,7 +1622,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 10,
-    elevation: 3,
+    elevation: 3
   },
   compactIconBadge: {
     width: 56,
@@ -1601,19 +1630,21 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 12
   },
   compactCount: {
     fontSize: 32,
-    fontWeight: "800",
+    fontWeight: '400',
     marginBottom: 4,
     letterSpacing: -1,
+    fontFamily: 'Fredoka-Regular'
   },
   compactLabel: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '400',
     textAlign: "center",
     letterSpacing: 0.2,
+    fontFamily: 'Fredoka-Regular'
   },
   arrowButton: {
     marginTop: 16,
@@ -1621,13 +1652,12 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "center"
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
-  },
-
+    paddingVertical: 40
+  }
 });

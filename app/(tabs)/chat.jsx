@@ -9,8 +9,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
-    Platform
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -98,8 +97,7 @@ export default function ChatTab() {
                         name: userData.displayName || "Anonymous",
                         username: userData.username,
                         email: userData.email,
-                        profileCode: userData.profileCode || userData.email || null,
-                    });
+                        profileCode: userData.profileCode || userData.email || null });
                 }
             }
 
@@ -185,7 +183,7 @@ export default function ChatTab() {
             </View>
             <View style={styles.infoContainer}>
                 <View style={styles.nameRow}>
-                    <Text style={[styles.name, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>{item.name}</Text>
+                    <Text style={[styles.name, { color: theme.text, fontFamily: 'Frederick' }]}>{item.name}</Text>
                     {item.lastMessageTimestamp && (
                         <Text style={[styles.timeText, { color: theme.textTertiary }]}>{getTimeString(item.lastMessageTimestamp)}</Text>
                     )}
@@ -198,7 +196,7 @@ export default function ChatTab() {
                     ]} numberOfLines={2}>
                         {item.lastMessage || "Tap to chat"}
                     </Text>
-                    
+
                     {/* Badge / Action Area */}
                     {item.unreadCount > 0 ? (
                         <View style={[styles.badge, { backgroundColor: '#8B5CF6' }]}>
@@ -224,7 +222,7 @@ export default function ChatTab() {
                 {/* Header */}
                 <View style={[styles.header, { backgroundColor: theme.background }]}>
                     <View>
-                        <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>Messages</Text>
+                        <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Frederick' }]}>Messages</Text>
                         <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Connect, share & support</Text>
                     </View>
                     <TouchableOpacity style={[styles.composeButton, { backgroundColor: '#F8F5FF' }]}>
@@ -277,57 +275,49 @@ export default function ChatTab() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-    },
+        flex: 1 },
     header: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 20,
         paddingTop: 20,
-        paddingBottom: 16,
-    },
+        paddingBottom: 16 },
     headerTitle: {
         fontSize: 32,
-        fontWeight: "800",
         marginBottom: 4,
-    },
+        fontFamily: 'Frederick' },
     headerSubtitle: {
         fontSize: 14,
-        fontWeight: "500",
-    },
+        fontFamily: 'Frederick' },
     composeButton: {
         width: 48,
         height: 48,
         borderRadius: 24,
         justifyContent: "center",
-        alignItems: "center",
-    },
+        alignItems: "center" },
     searchContainer: {
         paddingHorizontal: 16,
-        paddingBottom: 20,
-    },
+        paddingBottom: 20 },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
         borderRadius: 24,
         paddingHorizontal: 16,
         height: 48,
-        gap: 12,
-    },
+        gap: 12 },
     searchInput: {
         flex: 1,
         fontSize: 16,
-        fontWeight: "500",
+        fontWeight: '400',
         paddingHorizontal: 8,
         paddingVertical: 0,
         height: '100%',
         backgroundColor: "#d1cfd58e",
         borderRadius: 15,
-    },
+        fontFamily: 'Fredoka-Regular' },
     listContent: {
-        paddingBottom: 90,
-    },
+        paddingBottom: 90 },
     friendCard: {
         flexDirection: "row",
         alignItems: "center",
@@ -337,8 +327,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         borderRadius: 15,
         elevation: 1,
-        borderWidth: 1,
-    },
+        borderWidth: 1 },
     avatarContainer: {
         marginRight: 16,
         width: 55,
@@ -347,86 +336,76 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8F5FF',
         overflow: 'hidden',
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     defaultAvatar: {
         width: 55,
         height: 55,
         borderRadius: 27.5,
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     infoContainer: {
         flex: 1,
-        justifyContent: 'center',
-    },
+        justifyContent: 'center' },
     nameRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 6,
-    },
+        marginBottom: 6 },
     name: {
         fontSize: 18,
-        fontWeight: "800",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Bold' },
     timeText: {
         fontSize: 11,
-        fontWeight: "600",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     messageRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end',
-    },
+        alignItems: 'flex-end' },
     subtext: {
         fontSize: 13,
         lineHeight: 18,
         flex: 1,
         marginRight: 12,
-    },
+        fontFamily: 'Fredoka-Regular' },
     unreadSubtext: {
-        fontWeight: '700',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     badge: {
         borderRadius: 12,
         minWidth: 24,
         height: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 6,
-    },
+        paddingHorizontal: 6 },
     badgeText: {
         color: '#FFFFFF',
         fontSize: 12,
-        fontWeight: '800',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     chatBtn: {
         paddingVertical: 6,
         paddingHorizontal: 12,
-        borderRadius: 16,
-    },
+        borderRadius: 16 },
     chatBtnText: {
         fontSize: 12,
-        fontWeight: '700',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     emptyContainer: {
         alignItems: "center",
         paddingTop: 80,
-        gap: 8,
-    },
+        gap: 8 },
     emptyText: {
         fontSize: 16,
-        fontWeight: "700",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     emptySubtext: {
         fontSize: 13,
         textAlign: 'center',
         maxWidth: 240,
-    },
+        fontFamily: 'Fredoka-Regular' },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
         justifyContent: "center",
-        alignItems: "center",
-    },
-});
+        alignItems: "center" } });

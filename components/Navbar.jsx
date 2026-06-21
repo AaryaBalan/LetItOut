@@ -44,41 +44,35 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         elevation: 2,
         borderBottomWidth: 1,
-        borderBottomColor: '#f3f4f6',
-    },
+        borderBottomColor: '#f3f4f6' },
     container: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
-        paddingVertical: 16,
-    },
+        paddingVertical: 16 },
     logo: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: '400',
         color: '#6366f1',
-    },
+        fontFamily: 'Fredoka-Regular' },
     navLinks: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
-    },
+        gap: 16 },
     navLink: {
         paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
+        paddingVertical: 8 },
     navLinkText: {
         color: '#374151',
-        fontWeight: '500',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     loginButton: {
         backgroundColor: '#6366f1',
         paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 8,
-    },
+        borderRadius: 8 },
     loginButtonText: {
         color: '#ffffff',
-        fontWeight: '500',
-    },
-});
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' } });

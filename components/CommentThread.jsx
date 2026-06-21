@@ -55,8 +55,7 @@ const CommentThread = ({
                         ) : (
                             <View style={[styles.commentAvatarPlaceholder, {
                                 width: depth > 0 ? 24 : 28, // Smaller placeholders
-                                height: depth > 0 ? 24 : 28,
-                            }]}>
+                                height: depth > 0 ? 24 : 28 }]}>
                                 <Ionicons name="person" size={12} color="#111827" />
                             </View>
                         )}
@@ -169,8 +168,7 @@ const styles = StyleSheet.create({
     commentCard: {
         borderRadius: 8, // Smaller border radius
         padding: 8, // Reduced padding
-        borderWidth: 1,
-    },
+        borderWidth: 1 },
     commentHeaderSection: {
         flexDirection: 'row',
         gap: 8, // Reduced gap
@@ -179,33 +177,30 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         backgroundColor: '#F3F0FF',
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     commentHeaderContent: {
-        flex: 1,
-    },
+        flex: 1 },
     commentHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 2, // Reduced margin
-        gap: 6, // Reduced gap
-    },
+        gap: 6, // Reduced gap,
+        fontFamily: 'Frederick' },
     commentUsername: {
         fontSize: 13, // Slightly smaller
-        fontWeight: '600',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Bold' },
     commentTimestamp: {
-        fontSize: 11, // Slightly smaller
-    },
+        fontSize: 11, // Slightly smaller,
+        fontFamily: 'Fredoka-Regular' },
     collapseButton: {
         marginLeft: 'auto',
-        padding: 2,
-    },
+        padding: 2 },
     commentText: {
         fontSize: 13, // Slightly smaller
         lineHeight: 18, // Tighter line height
-        marginBottom: 4, // Reduced margin
-    },
+        marginBottom: 4, // Reduced margin,
+        fontFamily: 'Fredoka-Regular' },
     commentActions: {
         marginTop: 8,
         flexDirection: 'row',
@@ -215,41 +210,35 @@ const styles = StyleSheet.create({
     supportButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 3,
-    },
+        gap: 3 },
     supportText: {
         fontSize: 13, // Slightly smaller
-        fontWeight: '600',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     replyButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 3,
-    },
+        gap: 3 },
     replyText: {
         fontSize: 13, // Slightly smaller
-        fontWeight: '600',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     replyCount: {
         fontSize: 13, // Slightly smaller
         marginLeft: 'auto',
-    },
+        fontFamily: 'Fredoka-Regular' },
     verticalLine: {
         position: 'absolute',
         top: 0,
         bottom: 0,
         width: 1.5, // Thinner line
-        zIndex: 0,
-    },
+        zIndex: 0 },
     horizontalConnector: {
         position: 'absolute',
         height: 2,
-        zIndex: 1,
-    },
+        zIndex: 1 },
     repliesContainer: {
         position: 'relative',
-        marginTop: 4,
-    },
-});
+        marginTop: 4 } });
 
 export default CommentThread;

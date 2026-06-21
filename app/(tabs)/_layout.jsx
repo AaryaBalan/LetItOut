@@ -42,8 +42,7 @@ function TabsLayoutInner() {
                     style={[
                         styles.animatedTabBarContainer,
                         {
-                            transform: [{ translateY }],
-                        },
+                            transform: [{ translateY }] },
                     ]}
                 >
                     <BottomTabBar {...props} />
@@ -63,13 +62,10 @@ function TabsLayoutInner() {
                     borderTopColor: theme.border,
                     height: 65,
                     paddingBottom: 10,
-                    paddingTop: 8,
-                },
+                    paddingTop: 8 },
                 tabBarLabelStyle: {
                     fontSize: 11,
-                    fontWeight: "600",
-                },
-            }}
+                    fontFamily: 'Fredoka-Bold' } }}
         >
             <Tabs.Screen
                 name="home"
@@ -81,8 +77,7 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ),
-                }}
+                    ) }}
             />
             <Tabs.Screen
                 name="chat"
@@ -103,8 +98,7 @@ function TabsLayoutInner() {
                                 </View>
                             )}
                         </View>
-                    ),
-                }}
+                    ) }}
             />
             <Tabs.Screen
                 name="create"
@@ -116,8 +110,7 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ),
-                }}
+                    ) }}
             />
             <Tabs.Screen
                 name="notifications"
@@ -129,8 +122,7 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ),
-                }}
+                    ) }}
             />
             <Tabs.Screen
                 name="profile"
@@ -142,8 +134,7 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ),
-                }}
+                    ) }}
             />
         </Tabs>
     );
@@ -165,8 +156,7 @@ const styles = StyleSheet.create({
         right: 0,
         height: 65,
         zIndex: 1000,
-        elevation: 10,
-    },
+        elevation: 10 },
     badge: {
         position: "absolute",
         top: -4,
@@ -179,11 +169,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 4,
         borderWidth: 1.5,
-        borderColor: "#FFFFFF",
-    },
+        borderColor: "#FFFFFF" },
     badgeText: {
         color: "#FFFFFF",
         fontSize: 10,
-        fontWeight: "bold",
-    },
-});
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' } });

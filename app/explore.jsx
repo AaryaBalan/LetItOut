@@ -60,8 +60,7 @@ export default function Explore() {
                 id: doc.id,
                 ...doc.data(),
                 reactionCount: doc.data().reactionCount || 0,
-                commentCount: doc.data().commentCount || 0,
-            }));
+                commentCount: doc.data().commentCount || 0 }));
             setPosts(fetchedPosts);
         });
         return () => unsubscribe();
@@ -136,8 +135,8 @@ export default function Explore() {
                                     </View>
                                 </View>
                                 <View style={styles.headerRight}>
-                                    <TouchableOpacity 
-                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF' }]} 
+                                    <TouchableOpacity
+                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF' }]}
                                         onPress={() => router.push('/(tabs)/notifications')}
                                     >
                                         <Ionicons name="notifications-outline" size={20} color={theme.isDark ? '#B39DDB' : '#8B5CF6'} />
@@ -214,7 +213,7 @@ export default function Explore() {
                                                 <Text style={[styles.communityDesc, { color: theme.textSecondary, marginTop: 4 }]} numberOfLines={3}>
                                                     {info.desc}
                                                 </Text>
-                                                
+
                                                 {/* Overlapping Avatars instead of text */}
                                                 <View style={styles.communityAvatarsRow}>
                                                     {[1, 2, 3].map((num, i) => (
@@ -371,9 +370,8 @@ export default function Explore() {
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
                                                 borderWidth: 2,
-                                                borderColor: '#FFFFFF',
-                                            }}>
-                                                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>?</Text>
+                                                borderColor: '#FFFFFF' }}>
+                                                <Text style={{ color: '#FFFFFF', fontSize: 11, fontFamily: 'Fredoka-Bold' }}>?</Text>
                                             </View>
                                         </View>
 
@@ -472,72 +470,60 @@ export default function Explore() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
-    },
+        backgroundColor: "#FFFFFF" },
     scrollContent: {
-        paddingBottom: 80,
-    },
+        paddingBottom: 80 },
     headerWrapper: {
         backgroundColor: "#FFFFFF",
         paddingTop: 8,
-        marginBottom: 12,
-    },
+        marginBottom: 12 },
     header: {
         paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
+        paddingBottom: 16 },
     headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 16,
-        marginTop: 8,
-    },
+        marginTop: 8 },
     resultsSection: {
         paddingHorizontal: 16,
         paddingTop: 16,
-        gap: 16,
-    },
+        gap: 16 },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-    },
+        gap: 12 },
     logoContainer: {
         width: 48,
         height: 48,
         borderRadius: 24,
         backgroundColor: '#F3E5F5',
         alignItems: 'center',
-        justifyContent: 'center',
-    },
+        justifyContent: 'center' },
     headerTitle: {
         fontSize: 24,
-        fontWeight: '700',
         color: '#111827',
         letterSpacing: -0.5,
-    },
+        fontFamily: 'Frederick' },
     headerSubtitle: {
         fontSize: 12,
         color: '#9E9E9E',
         marginTop: 2,
-    },
+        fontFamily: 'Frederick' },
     headerRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-    },
+        gap: 12 },
     iconButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
         // backgroundColor removed - now set inline with theme
         alignItems: 'center',
-        justifyContent: 'center',
-    },
+        justifyContent: 'center' },
     searchContainer: {
-        paddingHorizontal: 0,
-    },
+        paddingHorizontal: 0 },
     searchBar: {
         flexDirection: "row",
         alignItems: "center",
@@ -550,14 +536,13 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
-        elevation: 3,
-    },
+        elevation: 3 },
     searchInput: {
         flex: 1,
         fontSize: 15,
         color: "#111827",
-        fontWeight: "500",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
 
     sectionHeader: {
         flexDirection: "row",
@@ -565,28 +550,24 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 24,
         marginBottom: 16,
-    },
+        fontFamily: 'Frederick' },
     sectionTitle: {
         fontSize: 11,
-        fontWeight: "800",
         color: "#9CA3AF",
         letterSpacing: 1.5,
-    },
+        fontFamily: 'Frederick' },
     swipeHint: {
         fontSize: 11,
-        fontStyle: "italic",
         color: "#D1D5DB",
-    },
+        fontFamily: 'Fredoka-Regular' },
 
     // Bento Grid
     bentoGrid: {
         paddingHorizontal: 24,
-        gap: 16,
-    },
+        gap: 16 },
     bentoRow: {
         flexDirection: "row",
-        gap: 16,
-    },
+        gap: 16 },
     bentoCard: {
         borderRadius: 24,
         padding: 20,
@@ -595,8 +576,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
-        elevation: 4,
-    },
+        elevation: 4 },
     iconCircle: {
         width: 44,
         height: 44,
@@ -604,19 +584,16 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(255,255,255,0.6)",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 12,
-    },
+        marginBottom: 12 },
     cardContentHorizontal: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        width: '100%',
-    },
+        width: '100%' },
     cardFeed: {
         height: 100,
         backgroundColor: "#E8EAF6", // Indigo 50
-        justifyContent: "center",
-    },
+        justifyContent: "center" },
     cardHealing: {
         flex: 1,
         height: 170,
@@ -631,8 +608,7 @@ const styles = StyleSheet.create({
         height: 120,
         backgroundColor: "#FFE8EE", // Relationships
         justifyContent: "center",
-        paddingHorizontal: 32,
-    },
+        paddingHorizontal: 32 },
     cardFamily: {
         flex: 1,
         height: 170,
@@ -655,36 +631,32 @@ const styles = StyleSheet.create({
     },
     bentoTitleSerif: {
         fontSize: 18,
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontFamily: 'Frederick',
         color: "#4A4A4A",
-        marginBottom: 4,
-    },
+        marginBottom: 4 },
     bentoTitleBig: {
         fontSize: 26,
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontFamily: 'Frederick',
         color: "#263238",
-        marginBottom: 4,
-    },
+        marginBottom: 4 },
     bentoSubtitle: {
         fontSize: 10,
-        fontWeight: "700",
         color: "#787878",
         letterSpacing: 0.5,
         opacity: 0.6,
-    },
+        fontFamily: 'Frederick' },
     bentoSubtitleDark: {
         fontSize: 10,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#546E7A",
         letterSpacing: 1,
         opacity: 0.7,
-    },
+        fontFamily: 'Fredoka-Regular' },
 
     // Top 10 Section
     top10List: {
         paddingHorizontal: 24,
-        paddingRight: 8,
-    },
+        paddingRight: 8 },
     top10Card: {
         width: width * 0.85,
         marginRight: 16,
@@ -697,8 +669,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
         shadowRadius: 10,
-        elevation: 3,
-    },
+        elevation: 3 },
     rankBadge: {
         position: 'absolute',
         top: 12,
@@ -707,79 +678,71 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        zIndex: 10,
-    },
+        zIndex: 10 },
     rankBadgeText: {
         fontSize: 11,
-        fontWeight: '800',
+        fontWeight: '400',
         color: '#FFFFFF',
         letterSpacing: 0.5,
-    },
+        fontFamily: 'Fredoka-Regular' },
     top10Title: {
         fontSize: 16,
-        fontWeight: "700",
         textAlign: "center",
         lineHeight: 22,
         marginBottom: 12,
-    },
+        fontFamily: 'Frederick' },
     top10Description: {
         fontSize: 13,
-        fontWeight: "400",
+        fontWeight: '400',
         textAlign: "center",
         lineHeight: 19,
         marginBottom: 16,
-    },
+        fontFamily: 'Fredoka-Regular' },
     top10QuoteAuthor: {
         fontSize: 13,
         marginTop: -8,
         marginBottom: 20,
-        fontStyle: "italic",
-    },
+        fontFamily: 'Fredoka-Regular' },
     top10Divider: {
         width: 40,
         height: 2,
-        marginBottom: 12,
-    },
+        marginBottom: 12 },
     top10Tag: {
         fontSize: 11,
-        fontWeight: "700",
+        fontWeight: '400',
         letterSpacing: 1.5,
         marginBottom: 16,
-    },
+        fontFamily: 'Fredoka-Regular' },
     top10Reactions: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 12,
-    },
+        gap: 12 },
     top10ReactionItem: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 4,
-    },
+        gap: 4 },
     top10ReactionText: {
         fontSize: 12,
-        fontWeight: "600",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     viewMoreCard: {
         justifyContent: "center",
         alignItems: "center",
-        gap: 12,
-    },
+        gap: 12 },
     viewMoreText: {
         fontSize: 18,
-        fontWeight: "700",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     viewMoreSubtext: {
         fontSize: 13,
         textAlign: "center",
         paddingHorizontal: 20,
-    },
+        fontFamily: 'Fredoka-Regular' },
 
     // Stories of the Day
     storiesList: {
-        paddingHorizontal: 24,
-    },
+        paddingHorizontal: 24 },
     storyCard: {
         width: width * 0.85,
         marginRight: 16,
@@ -792,11 +755,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
         shadowRadius: 10,
-        elevation: 3,
-    },
+        elevation: 3 },
     quoteIcon: {
-        marginBottom: 24,
-    },
+        marginBottom: 24 },
     top10ProfilePic: {
         width: 48,
         height: 48,
@@ -804,65 +765,57 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
-        overflow: 'hidden',
-    },
+        overflow: 'hidden' },
     storyQuote: {
         fontSize: 20,
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-        fontStyle: "italic",
+        fontFamily: 'Frederick',
         color: "#111827",
         textAlign: "center",
         lineHeight: 30,
-        marginBottom: 24,
-    },
+        marginBottom: 24 },
     storyAuthor: {
         fontSize: 14,
         color: "#6B7280",
         marginTop: -16,
         marginBottom: 24,
-        fontStyle: "italic",
-    },
+        fontFamily: 'Fredoka-Regular' },
     divider: {
         width: 40,
         height: 2,
         backgroundColor: "#E0E7FF",
-        marginBottom: 16,
-    },
+        marginBottom: 16 },
     storyTag: {
         fontSize: 10,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#9CA3AF",
         letterSpacing: 1.5,
-    },
+        fontFamily: 'Fredoka-Regular' },
 
     // Editorial Pick
     editorialSection: {
         padding: 32,
         alignItems: "center",
-        marginTop: 24,
-    },
+        marginTop: 24 },
     curatedTitle: {
         fontSize: 10,
-        fontWeight: "800",
         color: "#9CA3AF",
         letterSpacing: 2,
         marginBottom: 16,
-    },
+        fontFamily: 'Frederick' },
     editorialLabel: {
         fontSize: 12,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#A5B4FC",
         letterSpacing: 1,
         marginBottom: 16,
-    },
+        fontFamily: 'Fredoka-Regular' },
     articleTitle: {
         fontSize: 28,
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontFamily: 'Frederick',
         color: "#1F2937",
         textAlign: "center",
         lineHeight: 36,
-        marginBottom: 16,
-    },
+        marginBottom: 16 },
     articleSnippet: {
         fontSize: 14,
         color: "#6B7280",
@@ -870,23 +823,21 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         marginBottom: 32,
         paddingHorizontal: 16,
-    },
+        fontFamily: 'Fredoka-Regular' },
     readMoreButton: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 16,
-    },
+        gap: 16 },
     readMoreLine: {
         width: 40,
         height: 1,
-        backgroundColor: "#E5E7EB",
-    },
+        backgroundColor: "#E5E7EB" },
     readMoreText: {
         fontSize: 10,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#374151",
         letterSpacing: 1.5,
-    },
+        fontFamily: 'Fredoka-Regular' },
     pulseBanner: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -896,23 +847,20 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1,
         marginBottom: 16,
-        gap: 10,
-    },
+        gap: 10 },
     pulseDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#4CAF50',
-    },
+        backgroundColor: '#4CAF50' },
     pulseText: {
         fontSize: 12,
-        fontWeight: '600',
+        fontWeight: '400',
         flex: 1,
-    },
+        fontFamily: 'Fredoka-Regular' },
     communitiesCarousel: {
         paddingHorizontal: 24,
-        paddingBottom: 16,
-    },
+        paddingBottom: 16 },
     communityCard: {
         width: 220,
         borderRadius: 20,
@@ -924,20 +872,17 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
         shadowRadius: 10,
-        elevation: 3,
-    },
+        elevation: 3 },
     communityBanner: {
         height: 70,
         justifyContent: 'center',
         alignItems: 'flex-end',
-        paddingRight: 16,
-    },
+        paddingRight: 16 },
     bannerIconWatermark: {
         opacity: 0.15,
         position: 'absolute',
         bottom: -10,
-        right: -10,
-    },
+        right: -10 },
     communityIconContainer: {
         width: 46,
         height: 46,
@@ -946,40 +891,35 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 47,
         left: 16,
-        zIndex: 10,
-    },
+        zIndex: 10 },
     communityIconInner: {
         flex: 1,
         borderRadius: 20,
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     communityCardContent: {
         paddingTop: 30,
-        paddingHorizontal: 16,
-    },
+        paddingHorizontal: 16 },
     communityName: {
         fontSize: 18,
-        fontWeight: '800',
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-        marginBottom: 2,
-    },
+
+        fontFamily: 'Frederick',
+        marginBottom: 2 },
     communityStats: {
         fontSize: 10,
-        fontWeight: '600',
+        fontWeight: '400',
         marginBottom: 8,
-    },
+        fontFamily: 'Fredoka-Regular' },
     communityDesc: {
         fontSize: 12,
         lineHeight: 16,
         height: 48,
         marginBottom: 4,
-    },
+        fontFamily: 'Fredoka-Regular' },
     communityAvatarsRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
-    },
+        marginTop: 8 },
     communityAvatarWrapper: {
         width: 28,
         height: 28,
@@ -987,17 +927,14 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden',
-    },
+        overflow: 'hidden' },
     communityJoinBtn: {
         paddingVertical: 8,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
-    },
+        width: '100%' },
     communityJoinText: {
         fontSize: 12,
-        fontWeight: '700',
-    },
-});
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' } });

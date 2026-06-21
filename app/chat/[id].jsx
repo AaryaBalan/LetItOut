@@ -11,7 +11,7 @@ import {
     query,
     serverTimestamp,
     setDoc,
-    where,
+    where
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -43,7 +43,7 @@ const getCategoryColor = (category) => {
         Stress: "#FFAB91",
         Anxiety: "#B39DDB",
         Relationship: "#F48FB1",
-        Family: "#80CBC4",
+        Family: "#80CBC4"
     };
     return colors[category] || "#E5E7EB";
 };
@@ -142,7 +142,7 @@ function SharedPostCard({ postData, isMe }) {
             "Relationship": { bg: isDark ? "#FEF9E6" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
             "Study": { bg: isDark ? "#E9F7EF" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
             "Mental Health": { bg: isDark ? "#EEF2FF" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
-            "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
+            "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" }
         };
         return colors[normalized] || colors["Other"];
     };
@@ -247,7 +247,7 @@ export default function ChatScreen() {
                     setRecipient({
                         id: id,
                         name: userData.displayName || "Anonymous",
-                        profileCode: userData.profileCode || userData.email || null,
+                        profileCode: userData.profileCode || userData.email || null
                     });
                 }
             } catch (error) {
@@ -268,7 +268,7 @@ export default function ChatScreen() {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data(),
+                ...doc.data()
             }));
             setMessages(msgs);
             setLoading(false);
@@ -327,14 +327,14 @@ export default function ChatScreen() {
                 lastMessage: text,
                 lastMessageTimestamp: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                [`unreadCount_${id}`]: increment(1),
+                [`unreadCount_${id}`]: increment(1)
             }, { merge: true });
 
             const messageData = {
                 text: text,
                 senderId: user.uid,
                 senderName: user.displayName || "Anonymous",
-                createdAt: serverTimestamp(),
+                createdAt: serverTimestamp()
             };
 
             if (currentReply) {
@@ -522,7 +522,7 @@ export default function ChatScreen() {
                     )}
                 </View>
                 <View style={styles.headerContent}>
-                    <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase' }]}>{recipient ? recipient.name : "Chat"}</Text>
+                    <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Frederick', textTransform: 'uppercase' }]}>{recipient ? recipient.name : "Chat"}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                         <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Active now</Text>
                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#4CAF50', marginLeft: 6 }} />
@@ -642,7 +642,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#FFFFFF"
     },
     header: {
         flexDirection: "row",
@@ -651,80 +651,80 @@ const styles = StyleSheet.create({
         paddingTop: 16,
         paddingBottom: 8,
         borderBottomWidth: 2,
-        borderBottomColor: "#E5E7EB",
+        borderBottomColor: "#E5E7EB"
     },
     headerLeft: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'center'
     },
-    backButton: { 
-        marginRight: 12, 
-        width: 36, 
-        height: 36, 
-        borderRadius: 18, 
-        justifyContent: 'center', 
-        alignItems: 'center' 
+    backButton: {
+        marginRight: 12,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     headerAvatar: { marginRight: 12 },
     defaultHeaderAvatar: {
-        width: 44, height: 44, borderRadius: 22, backgroundColor: "#F3E5F5", justifyContent: "center", alignItems: "center",
+        width: 44, height: 44, borderRadius: 22, backgroundColor: "#F3E5F5", justifyContent: "center", alignItems: "center"
     },
     headerContent: { flex: 1, justifyContent: 'center' },
-    headerTitle: { fontSize: 16, fontWeight: "800", letterSpacing: 1 },
-    headerSubtitle: { fontSize: 11, fontWeight: "600", color: "#6B7280" },
+    headerTitle: { fontSize: 16, letterSpacing: 1 },
+    headerSubtitle: { fontSize: 11, color: "#6B7280" },
     moreButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
 
     messagesList: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
     dateHeaderContainer: { alignItems: 'center', marginBottom: 16, marginTop: 12 },
     dateHeaderBadge: { backgroundColor: '#F8F9FA', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16 },
-    dateHeaderText: { fontSize: 10, fontWeight: "800", color: "#9E9E9E", textTransform: 'uppercase', letterSpacing: 0.5 },
+    dateHeaderText: { fontSize: 10, fontFamily: 'Fredoka-Bold', color: "#9E9E9E", textTransform: 'uppercase', letterSpacing: 0.5 },
 
     messageRowContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 4,
+        marginBottom: 4
     },
     messageRow: { marginBottom: 4, maxWidth: '80%' },
     myMessageRow: { alignSelf: 'flex-end', alignItems: 'flex-end' },
     myMessageRowContainer: {
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-end'
     },
     theirMessageRowContainer: {
-        justifyContent: 'flex-start',
+        justifyContent: 'flex-start'
     },
 
     messageBubbleWrapper: {
-        maxWidth: '80%',
+        maxWidth: '80%'
     },
     myBubbleWrapper: {
-        alignItems: 'flex-end',
+        alignItems: 'flex-end'
     },
     theirBubbleWrapper: {
-        alignItems: 'flex-start',
+        alignItems: 'flex-start'
     },
 
     replyButton: {
-        padding: 8,
+        padding: 8
     },
 
     bubble: {
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderRadius: 20,
+        borderRadius: 20
     },
     myBubble: {
         backgroundColor: "#B39DDB",
-        borderBottomRightRadius: 4,
+        borderBottomRightRadius: 4
     },
     theirBubble: {
         backgroundColor: "#FFD5C6",
-        borderBottomLeftRadius: 4,
+        borderBottomLeftRadius: 4
     },
     sharedPostBubbleContainer: {
         paddingVertical: 4,
         paddingHorizontal: 4,
         borderRadius: 18,
-        backgroundColor: "transparent",
+        backgroundColor: "transparent"
     },
 
     messageText: { fontSize: 15, lineHeight: 20 },
@@ -734,13 +734,13 @@ const styles = StyleSheet.create({
     timestampContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 4,
+        marginTop: 4
     },
     myTimestampContainer: {
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-end'
     },
     theirTimestampContainer: {
-        justifyContent: 'flex-start',
+        justifyContent: 'flex-start'
     },
     timestamp: { fontSize: 10, color: "#9E9E9E" },
 
@@ -748,16 +748,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingVertical: 10
     },
-    emojiButton: { 
-        marginRight: 10, 
-        width: 36, 
-        height: 36, 
-        borderRadius: 18, 
+    emojiButton: {
+        marginRight: 10,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         borderWidth: 1.5,
-        justifyContent: 'center', 
-        alignItems: 'center' 
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     inputContainer: {
         flex: 1,
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         paddingHorizontal: 4,
         borderWidth: 1,
-        marginRight: 10,
+        marginRight: 10
     },
     input: { flex: 1, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100 },
     sendButton: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center", shadowColor: "#9F8BFF", shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 },
@@ -776,49 +776,51 @@ const styles = StyleSheet.create({
     },
     replyBannerLine: { width: 4, height: 36, backgroundColor: '#9F8BFF', borderRadius: 2, marginRight: 12 },
     replyBannerContent: { flex: 1 },
-    replyBannerSender: { fontSize: 12, fontWeight: '700', color: '#9F8BFF', marginBottom: 2 },
+    replyBannerSender: { fontSize: 12, fontFamily: 'Fredoka-Bold', color: '#9F8BFF', marginBottom: 2 },
     replyBannerText: { fontSize: 12, color: '#6B7280' },
 
     replyPreview: {
         marginBottom: 6,
         padding: 8,
         borderRadius: 8,
-        borderTopLeftRadius:0,
-        borderBottomLeftRadius:0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
         backgroundColor: 'rgba(0,0,0,0.08)',
-        borderLeftWidth: 3,
+        borderLeftWidth: 3
     },
     myReplyPreview: {
         backgroundColor: 'rgba(255,255,255,0.25)',
-        borderLeftColor: '#FFFFFF',
+        borderLeftColor: '#FFFFFF'
     },
     theirReplyPreview: {
         backgroundColor: '#FFD7C4',
-        borderLeftColor: '#FF8A65',
+        borderLeftColor: '#FF8A65'
     },
     replySender: {
         fontSize: 11,
-        fontWeight: '700',
+        fontWeight: '400',
         marginBottom: 3,
         letterSpacing: 0.3,
+        fontFamily: 'Fredoka-Regular'
     },
     myReplySender: {
         color: '#FFFFFF',
-        opacity: 0.95,
+        opacity: 0.95
     },
     theirReplySender: {
-        color: '#7C5FD9',
+        color: '#7C5FD9'
     },
     replyText: {
         fontSize: 12,
         lineHeight: 16,
-        fontStyle: 'italic',
+        fontStyle: '',
+        fontFamily: 'Fredoka-Regular'
     },
     myReplyText: {
-        color: 'rgba(255,255,255,0.85)',
+        color: 'rgba(255,255,255,0.85)'
     },
     theirReplyText: {
-        color: '#5A5A5A',
+        color: '#5A5A5A'
     },
     sharedPostCard: {
         backgroundColor: "#FFFFFF",
@@ -827,57 +829,60 @@ const styles = StyleSheet.create({
         minWidth: 280,
         width: '100%',
         marginTop: 4,
-        elevation: 0.5,
+        elevation: 0.5
     },
     postAuthorSection: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 16,
+        marginBottom: 16
     },
     postCategoryBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12,
+        borderRadius: 12
     },
     postCategoryText: {
         fontSize: 10,
-        fontWeight: "800",
+        fontWeight: '400',
         letterSpacing: 0.5,
+        fontFamily: 'Fredoka-Regular'
     },
     postAuthorName: {
         fontSize: 15,
-        fontWeight: "800",
+        fontWeight: '400',
         letterSpacing: -0.3,
+        fontFamily: 'Fredoka-Regular'
     },
     postTimestamp: {
         fontSize: 12,
         marginTop: 2,
-        fontWeight: '500',
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     postTitle: {
         fontSize: 18,
-        fontWeight: "800",
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontFamily: 'Frederick',
         marginBottom: 8,
         lineHeight: 28,
-        letterSpacing: -0.5,
+        letterSpacing: -0.5
     },
     postPreview: {
         fontSize: 14,
         lineHeight: 22,
         marginBottom: 20,
-        fontWeight: '500',
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     postFooter: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
+        alignItems: "center"
     },
     postReactions: {
         flexDirection: "row",
         gap: 10,
-        flexWrap: 'wrap',
+        flexWrap: 'wrap'
     },
     postReactionPill: {
         flexDirection: "row",
@@ -886,11 +891,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 24,
-        borderWidth: 1,
+        borderWidth: 1
     },
     postReactionCount: {
         fontSize: 13,
-        fontWeight: "700",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     // Empty Chat UI Styles
     emptyChatContainer: {
@@ -898,11 +904,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 40,
-        marginTop: 60,
+        marginTop: 60
     },
     emptyChatAvatarContainer: {
         marginBottom: 24,
-        position: "relative",
+        position: "relative"
     },
     onlineBadge: {
         position: "absolute",
@@ -913,14 +919,14 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: "#4CAF50",
         borderWidth: 2,
-        borderColor: "#FFFFFF",
+        borderColor: "#FFFFFF"
     },
     emptyChatTitle: {
         fontSize: 20,
-        fontWeight: "700",
         color: "#111827",
         marginBottom: 8,
         textAlign: "center",
+        fontFamily: 'Frederick'
     },
     emptyChatSubtitle: {
         fontSize: 14,
@@ -928,16 +934,18 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 32,
         lineHeight: 20,
+        fontFamily: 'Frederick'
     },
     waveButton: {
         paddingVertical: 12,
         paddingHorizontal: 24,
         backgroundColor: "#EFE8FF",
-        borderRadius: 24,
+        borderRadius: 24
     },
     waveButtonText: {
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#111827",
-    },
+        fontFamily: 'Fredoka-Regular'
+    }
 });

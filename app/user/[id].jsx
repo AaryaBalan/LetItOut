@@ -9,8 +9,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-    Platform
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, G, Line, Path, Text as SvgText } from "react-native-svg";
@@ -124,7 +123,7 @@ export default function UserProfile() {
                 return {
                     id: docSnap.id,
                     rating: data.rating ?? 0,
-                    createdAt: data.createdAt,
+                    createdAt: data.createdAt
                 };
             });
 
@@ -203,7 +202,7 @@ export default function UserProfile() {
                     followerId: currentUser.uid,
                     followingId: id,
                     status: 0, // 0: Requested, 1: Accepted
-                    createdAt: serverTimestamp(),
+                    createdAt: serverTimestamp()
                 });
 
                 // Send Friend Request Notification instead of generic follow notification
@@ -383,7 +382,7 @@ export default function UserProfile() {
                 <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F5FF' }]}>
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontSize: 24, fontWeight: '800' }]}>Profile</Text>
+                <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Frederick', fontSize: 24 }]}>Profile</Text>
                 <TouchableOpacity style={[styles.backButton, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F5FF' }]}>
                     <Ionicons name="settings-outline" size={22} color={theme.text} />
                 </TouchableOpacity>
@@ -498,12 +497,12 @@ export default function UserProfile() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flex: 1
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     header: {
         flexDirection: "row",
@@ -511,22 +510,22 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 20,
         paddingVertical: 12,
-        borderBottomWidth: 1,
+        borderBottomWidth: 1
     },
     backButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: "700",
         color: "#1F2937",
+        fontFamily: 'Frederick'
     },
     scrollContent: {
-        paddingBottom: 40,
+        paddingBottom: 40
     },
     profileCard: {
         marginHorizontal: 8,
@@ -546,55 +545,60 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
+        fontFamily: 'Frederick'
     },
     profileRow: {
         flexDirection: "row",
         alignItems: "center",
         gap: 16,
-        marginBottom: 16,
+        marginBottom: 16
     },
     profileInfo: {
-        flex: 1,
+        flex: 1
     },
     nameRoleRow: {
         flexDirection: "row",
         alignItems: "center",
         gap: 8,
-        flexWrap: "wrap",
+        flexWrap: "wrap"
     },
     avatarContainer: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 8,
-        elevation: 2,
+        elevation: 2
     },
     displayName: {
         fontSize: 18,
-        fontWeight: "800",
+        fontWeight: '400',
         color: "#111827",
+        fontFamily: 'Fredoka-Regular'
     },
     joinDate: {
         fontSize: 13,
         color: "#6B7280",
         marginTop: 2,
+        fontFamily: 'Fredoka-Regular'
     },
     roleBagde: {
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 6,
-        marginBottom: 8,
+        marginBottom: 8
     },
     roleText: {
         fontSize: 11,
-        fontWeight: "700",
+        fontWeight: '400',
         letterSpacing: 0.5,
+        fontFamily: 'Fredoka-Regular'
     },
     bioText: {
         fontSize: 13,
         color: "#6B7280",
         marginBottom: 12,
         lineHeight: 18,
+        fontFamily: 'Fredoka-Regular'
     },
     followButton: {
         flexDirection: "row",
@@ -609,16 +613,17 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
-        elevation: 2,
+        elevation: 2
     },
     followingButton: {
         borderWidth: 1,
         shadowOpacity: 0,
-        elevation: 0,
+        elevation: 0
     },
     followButtonText: {
         fontSize: 14,
-        fontWeight: "700",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     followingButtonText: {
     },
@@ -630,74 +635,80 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         paddingHorizontal: 16,
         borderRadius: 16,
-        borderWidth: 1,
+        borderWidth: 1
     },
     statBoxItem: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
+        gap: 16
     },
     statIconCircle: {
         width: 48,
         height: 48,
         borderRadius: 24,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     statNumber: {
         fontSize: 22,
-        fontWeight: "800",
+        fontWeight: '400',
         marginBottom: 2,
+        fontFamily: 'Fredoka-Regular'
     },
     statLabel: {
         fontSize: 12,
-        fontWeight: "600",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     statDivider: {
         width: 1,
-        height: 40,
+        height: 40
     },
     postsSection: {
         paddingHorizontal: 10,
-        paddingTop: 12,
+        paddingTop: 12
     },
     sectionHeaderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 16
     },
     sectionTitle: {
         fontSize: 18,
-        fontWeight: "800",
+        fontFamily: 'Frederick'
     },
     postCount: {
         fontSize: 16,
-        fontWeight: "500",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     seeAllText: {
         color: '#8B5CF6',
-        fontWeight: '700',
+        fontWeight: '400',
         fontSize: 14,
+        fontFamily: 'Fredoka-Regular'
     },
     emptyPostsState: {
         alignItems: "center",
         paddingVertical: 40,
-        gap: 12,
+        gap: 12
     },
     emptyPostsText: {
         fontSize: 14,
+        fontFamily: 'Fredoka-Regular'
     },
     errorContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        gap: 16,
+        gap: 16
     },
     errorText: {
         fontSize: 16,
+        fontFamily: 'Fredoka-Regular'
     },
     chartContainer: {
         marginHorizontal: 8,
@@ -706,26 +717,28 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderWidth: 1,
         padding: 20,
-        elevation: 0.5,
+        elevation: 0.5
     },
     chartTitle: {
         fontSize: 15,
-        fontWeight: "800",
         letterSpacing: -0.2,
         marginBottom: 4,
+        fontFamily: 'Frederick'
     },
     chartSubtitle: {
         fontSize: 12,
         marginBottom: 16,
+        fontFamily: 'Frederick'
     },
     emptyChartText: {
         fontSize: 13,
-        fontStyle: "italic",
+        fontStyle: "",
         textAlign: "center",
         paddingVertical: 20,
+        fontFamily: 'Fredoka-Regular'
     },
     chartScroll: {
-        paddingVertical: 10,
+        paddingVertical: 10
     },
     chartWrapper: {
         height: 120,
@@ -733,7 +746,7 @@ const styles = StyleSheet.create({
         alignItems: "flex-end",
         position: "relative",
         paddingHorizontal: 10,
-        gap: 16,
+        gap: 16
     },
     zeroBaseline: {
         position: "absolute",
@@ -741,29 +754,31 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 50,
         height: 1,
-        opacity: 0.5,
+        opacity: 0.5
     },
     chartCol: {
         width: 32,
         alignItems: "center",
         height: "100%",
-        position: "relative",
+        position: "relative"
     },
     chartBar: {
         width: 14,
-        position: "absolute",
+        position: "absolute"
     },
     barValueText: {
         fontSize: 10,
-        fontWeight: "700",
+        fontWeight: '400',
         position: "absolute",
         width: 40,
         textAlign: "center",
+        fontFamily: 'Fredoka-Regular'
     },
     chartColLabel: {
         fontSize: 9,
-        fontWeight: "600",
+        fontWeight: '400',
         position: "absolute",
         bottom: 0,
-    },
+        fontFamily: 'Fredoka-Regular'
+    }
 });

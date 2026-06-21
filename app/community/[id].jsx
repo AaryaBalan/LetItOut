@@ -26,7 +26,7 @@ const CATEGORIES = [
         iconColor: "#78909C",
         bgColor: "#ECEFF1",
         gradientColors: ["#B0BEC5", "#78909C"],
-        quote: "We are all in this together. You are never alone.",
+        quote: "We are all in this together. You are never alone."
     },
     {
         id: "Family",
@@ -35,7 +35,7 @@ const CATEGORIES = [
         iconColor: "#F48FB1",
         bgColor: "#FFE8EE",
         gradientColors: ["#F48FB1", "#F06292"],
-        quote: "Family isn't always blood. It's the people who love you unconditionally.",
+        quote: "Family isn't always blood. It's the people who love you unconditionally."
     },
     {
         id: "Stress",
@@ -44,7 +44,7 @@ const CATEGORIES = [
         iconColor: "#9B8BC9",
         bgColor: "#E8E4F3",
         gradientColors: ["#B39DDB", "#111827"],
-        quote: "Take a deep breath. You're doing the best you can, and that's enough.",
+        quote: "Take a deep breath. You're doing the best you can, and that's enough."
     },
     {
         id: "Relationship",
@@ -53,7 +53,7 @@ const CATEGORIES = [
         iconColor: "#F48FB1",
         bgColor: "#FFE8EE",
         gradientColors: ["#F48FB1", "#F06292"],
-        quote: "Love and connection are what make life meaningful.",
+        quote: "Love and connection are what make life meaningful."
     },
     {
         id: "Study",
@@ -62,7 +62,7 @@ const CATEGORIES = [
         iconColor: "#80CBC4",
         bgColor: "#E0F2F1",
         gradientColors: ["#80CBC4", "#4DB6AC"],
-        quote: "Every expert was once a beginner. Keep learning and growing.",
+        quote: "Every expert was once a beginner. Keep learning and growing."
     },
     {
         id: "Mental Health",
@@ -71,7 +71,7 @@ const CATEGORIES = [
         iconColor: "#FFE082",
         bgColor: "#FFF9E6",
         gradientColors: ["#FFE082", "#FFD54F"],
-        quote: "Your mental health matters. It's okay to not be okay.",
+        quote: "Your mental health matters. It's okay to not be okay."
     },
     {
         id: "Other",
@@ -80,7 +80,7 @@ const CATEGORIES = [
         iconColor: "#B0BEC5",
         bgColor: "#ECEFF1",
         gradientColors: ["#B0BEC5", "#90A4AE"],
-        quote: "Every story deserves to be heard. Share what's on your mind.",
+        quote: "Every story deserves to be heard. Share what's on your mind."
     },
 ];
 
@@ -135,7 +135,7 @@ export default function CommunityDetail() {
                     commentCount: data.commentCount || 0,
                     reactionCount: data.reactionCount || 0,
                     helpNeeded: data.helpNeeded || false,
-                    feelPercentage: data.feelPercentage ?? 0,
+                    feelPercentage: data.feelPercentage ?? 0
                 };
             });
             setPosts(fetched);
@@ -325,7 +325,7 @@ export default function CommunityDetail() {
                                         setSelectedMood(opt.mood);
                                     }}
                                 >
-                                    <Text style={[styles.filterPillText, { color: theme.isDark ? '#FFF' : theme.textSecondary }, isSelected && { color: catTheme.color, fontWeight: '700' }]}>
+                                    <Text style={[styles.filterPillText, { color: theme.isDark ? '#FFF' : theme.textSecondary }, isSelected && { color: catTheme.color, fontFamily: 'Fredoka-Bold' }]}>
                                         {opt.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -343,7 +343,7 @@ export default function CommunityDetail() {
                             onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
                         >
                             <Ionicons name="eye-off-outline" size={14} color={showAnonymousOnly ? catTheme.color : (theme.isDark ? '#FFF' : theme.textSecondary)} style={{ marginRight: 4 }} />
-                            <Text style={[styles.filterPillText, { color: theme.isDark ? '#FFF' : theme.textSecondary }, showAnonymousOnly && { color: catTheme.color, fontWeight: '700' }]}>
+                            <Text style={[styles.filterPillText, { color: theme.isDark ? '#FFF' : theme.textSecondary }, showAnonymousOnly && { color: catTheme.color, fontFamily: 'Fredoka-Bold' }]}>
                                 Anonymous Only
                             </Text>
                         </TouchableOpacity>
@@ -444,7 +444,7 @@ export default function CommunityDetail() {
                                             }}
                                         >
                                             <Ionicons name={opt.icon} size={16} color={isSelected ? catTheme.color : theme.textSecondary} />
-                                            <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: catTheme.color, fontWeight: '700' }]}>
+                                            <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: catTheme.color, fontFamily: 'Fredoka-Bold' }]}>
                                                 {opt.label}
                                             </Text>
                                         </TouchableOpacity>
@@ -467,7 +467,7 @@ export default function CommunityDetail() {
                                     onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
                                 >
                                     <Ionicons name="eye-off-outline" size={16} color={showAnonymousOnly ? catTheme.color : theme.textSecondary} />
-                                    <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: catTheme.color, fontWeight: '700' }]}>
+                                    <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: catTheme.color, fontFamily: 'Fredoka-Bold' }]}>
                                         Anonymous Stories Only
                                     </Text>
                                 </TouchableOpacity>
@@ -496,7 +496,7 @@ export default function CommunityDetail() {
                                             onPress={() => setSelectedMood(opt.value)}
                                         >
                                             <Ionicons name={opt.icon} size={16} color={isSelected ? catTheme.color : theme.textSecondary} />
-                                            <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: catTheme.color, fontWeight: '700' }]}>
+                                            <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: catTheme.color, fontFamily: 'Fredoka-Bold' }]}>
                                                 {opt.label}
                                             </Text>
                                         </TouchableOpacity>
@@ -538,21 +538,21 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     heroContainer: {
         position: 'relative',
-        paddingBottom: 0,
+        paddingBottom: 0
     },
     heroBanner: {
         height: 120,
         justifyContent: 'center',
         alignItems: 'flex-end',
         paddingRight: 32,
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
     heroWatermark: {
         opacity: 0.12,
         transform: [{ rotate: '-15deg' }],
         position: 'absolute',
         right: -10,
-        bottom: -20,
+        bottom: -20
     },
     navHeader: {
         position: 'absolute',
@@ -563,13 +563,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         zIndex: 100,
+        fontFamily: 'Frederick'
     },
     roundBackBtn: {
         width: 38,
         height: 38,
         borderRadius: 19,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     communityDetailsCard: {
         marginHorizontal: 16,
@@ -581,38 +582,40 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-        elevation: 3,
+        elevation: 3
     },
     titleRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
-        marginBottom: 10,
+        marginBottom: 10
     },
     emblemBadge: {
         width: 36,
         height: 36,
         borderRadius: 18,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     communityTitleText: {
         fontSize: 22,
-        fontWeight: '800',
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     communityDescriptionText: {
         fontSize: 13,
         lineHeight: 18,
-        fontStyle: 'italic',
+        fontStyle: '',
+        fontFamily: 'Fredoka-Regular'
     },
     filtersContainer: {
         paddingVertical: 12,
         borderBottomWidth: 1,
-        marginBottom: 8,
+        marginBottom: 8
     },
     filtersScrollContent: {
         paddingHorizontal: 16,
-        gap: 10,
+        gap: 10
     },
     filterPill: {
         paddingHorizontal: 16,
@@ -621,16 +624,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: 'transparent'
     },
     filterPillText: {
         fontSize: 13,
-        fontWeight: '600',
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "flex-end",
+        justifyContent: "flex-end"
     },
     modalContent: {
         borderTopLeftRadius: 24,
@@ -638,7 +642,7 @@ const styles = StyleSheet.create({
         paddingTop: 20,
         paddingBottom: 40,
         paddingHorizontal: 20,
-        maxHeight: "80%",
+        maxHeight: "80%"
     },
     modalHeader: {
         flexDirection: "row",
@@ -646,28 +650,29 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingBottom: 16,
         marginBottom: 20,
+        fontFamily: 'Frederick'
     },
     modalTitle: {
         fontSize: 20,
-        fontWeight: "800",
         letterSpacing: -0.5,
+        fontFamily: 'Frederick'
     },
     modalCloseBtn: {
-        padding: 4,
+        padding: 4
     },
     modalSection: {
-        marginBottom: 24,
+        marginBottom: 24
     },
     modalSectionTitle: {
         fontSize: 11,
-        fontWeight: "800",
         letterSpacing: 1,
         marginBottom: 12,
+        fontFamily: 'Frederick'
     },
     modalChipsRow: {
         flexDirection: "row",
         gap: 10,
-        flexWrap: "wrap",
+        flexWrap: "wrap"
     },
     modalChip: {
         paddingHorizontal: 16,
@@ -676,27 +681,29 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
+        gap: 8
     },
     modalChipText: {
         fontSize: 13,
-        fontWeight: "600",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     modalFooter: {
         flexDirection: 'row',
         gap: 12,
-        marginTop: 20,
+        marginTop: 20
     },
     modalResetBtn: {
         flex: 1,
         paddingVertical: 14,
         borderRadius: 12,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'center'
     },
     modalResetText: {
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     modalApplyBtn: {
         flex: 2,
@@ -704,12 +711,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#111827',
+        backgroundColor: '#111827'
     },
     modalApplyText: {
         fontSize: 15,
-        fontWeight: '700',
+        fontWeight: '400',
         color: '#FFFFFF',
+        fontFamily: 'Fredoka-Regular'
     },
     postsListContainer: { paddingTop: 12, paddingBottom: 100 },
     postItemList: { marginBottom: 12 },
@@ -717,16 +725,17 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         paddingVertical: 60,
-        paddingHorizontal: 32,
+        paddingHorizontal: 32
     },
     emptyStateTitle: {
         fontSize: 18,
-        fontWeight: "600",
         marginTop: 16,
         marginBottom: 8,
+        fontFamily: 'Frederick'
     },
     emptyStateText: {
         fontSize: 14,
         textAlign: "center",
-    },
+        fontFamily: 'Fredoka-Regular'
+    }
 });

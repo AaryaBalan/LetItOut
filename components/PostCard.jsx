@@ -9,7 +9,7 @@ import {
     where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -23,8 +23,7 @@ const getCategoryColors = (category, isDark) => {
         "Relationship": { bg: isDark ? "#FEF9E6" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
         "Study": { bg: isDark ? "#E9F7EF" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
         "Mental Health": { bg: isDark ? "#EEF2FF" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
-        "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" },
-    };
+        "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" } };
     return colors[normalized] || colors["Other"];
 };
 
@@ -32,8 +31,7 @@ const getCategoryLabel = (category) => {
     const labels = {
         Study: "STUDY SUPPORT",
         "Mental Health": "MENTAL HEALTH",
-        Mindfulness: "MINDFULNESS",
-    };
+        Mindfulness: "MINDFULNESS" };
     return labels[category] || category.toUpperCase();
 };
 
@@ -333,8 +331,7 @@ const styles = StyleSheet.create({
         // shadowRadius: 10,
         elevation: 0.5,
         position: 'relative',
-        overflow: 'hidden',
-    },
+        overflow: 'hidden' },
     blobContainer: {
         position: 'absolute',
         bottom: -20,
@@ -343,18 +340,15 @@ const styles = StyleSheet.create({
         height: 150,
         zIndex: 0,
         justifyContent: 'flex-end',
-        alignItems: 'flex-end',
-    },
+        alignItems: 'flex-end' },
     blobIcon: {
-        opacity: 0.8,
-    },
+        opacity: 0.8 },
     otherBlobWrapper: {
         position: 'relative',
         width: '100%',
         height: '100%',
         alignItems: 'flex-end',
-        justifyContent: 'flex-end',
-    },
+        justifyContent: 'flex-end' },
     otherBlobShape: {
         position: 'absolute',
         bottom: 0,
@@ -365,14 +359,12 @@ const styles = StyleSheet.create({
         borderRadius: 100,
         borderTopLeftRadius: 150,
         borderBottomLeftRadius: 20,
-        transform: [{ scaleX: 1.2 }],
-    },
+        transform: [{ scaleX: 1.2 }] },
     otherBlobGhost: {
         position: 'absolute',
         bottom: 25,
         right: 25,
-        opacity: 0.7,
-    },
+        opacity: 0.7 },
     card: {
         paddingVertical: 15,
         paddingHorizontal: 10,
@@ -382,104 +374,90 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 16,
-    },
+        marginBottom: 16 },
     authorInfo: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
-        flex: 1,
-    },
+        flex: 1 },
     avatarWrapperGhost: {
         width: 40,
         height: 40,
         borderRadius: 20,
         backgroundColor: '#E5E7EB',
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     avatarWrapper: {
         // Just holding the avatar
     },
     authorName: {
         fontSize: 15,
-        fontWeight: "800",
+        // fontWeight: '400',
         letterSpacing: -0.3,
-    },
+        fontFamily: 'Fredoka-Bold' },
     timestamp: {
         fontSize: 12,
         marginTop: 2,
-        fontWeight: '500',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     headerRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-    },
+        gap: 12 },
     categoryBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12,
-    },
+        borderRadius: 12 },
     categoryText: {
         fontSize: 10,
-        fontWeight: "800",
+        fontWeight: '400',
         letterSpacing: 0.5,
         textTransform: 'uppercase',
-    },
+        fontFamily: 'Fredoka-Bold' },
     moreButton: {
-        padding: 4,
-    },
+        padding: 4 },
     title: {
         fontSize: 20,
-        fontWeight: "800",
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontFamily: 'Frederick',
         marginBottom: 8,
         lineHeight: 28,
-        letterSpacing: -0.5,
-    },
+        letterSpacing: -0.5 },
     preview: {
         fontSize: 14,
         lineHeight: 22,
         marginBottom: 20,
-        fontWeight: '500',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     commentsPreview: {
         borderRadius: 20,
         padding: 12,
         marginBottom: 20,
-        gap: 12,
-    },
+        gap: 12 },
     commentItem: {
         flexDirection: "row",
-        gap: 10,
-    },
+        gap: 10 },
     commentAvatar: {
-        marginTop: 2,
-    },
+        marginTop: 2 },
     commentTextContainer: {
         flex: 1,
-        gap: 2,
-    },
+        gap: 2 },
     commentUsername: {
         fontSize: 13,
-        fontWeight: "800",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Bold' },
     commentText: {
         fontSize: 12,
         lineHeight: 18,
-        fontWeight: '500',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     footer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-    },
+        alignItems: "center" },
     reactions: {
         flexDirection: "row",
         gap: 10,
-        flexWrap: 'wrap',
-    },
+        flexWrap: 'wrap' },
     reactionPill: {
         flexDirection: "row",
         alignItems: "center",
@@ -489,11 +467,9 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        backgroundColor: '#FFFFFF',
-    },
+        backgroundColor: '#FFFFFF' },
     reactionCount: {
         fontSize: 13,
-        fontWeight: "700",
+        fontWeight: '400',
         color: '#111827',
-    },
-});
+        fontFamily: 'Fredoka-Regular' } });

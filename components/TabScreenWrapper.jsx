@@ -16,14 +16,10 @@ export default function TabScreenWrapper({ children }) {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-    },
+        flex: 1 },
     content: {
-        flex: 1,
-    },
+        flex: 1 },
     adContainer: {
         backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-    },
-});
+        borderTopColor: '#E5E7EB' } });

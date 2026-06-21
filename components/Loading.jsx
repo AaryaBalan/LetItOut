@@ -12,8 +12,7 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 400,
-            useNativeDriver: true,
-        }).start();
+            useNativeDriver: true }).start();
 
         // Clockwise rotation (Inner ring)
         Animated.loop(
@@ -21,8 +20,7 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
                 toValue: 1,
                 duration: 1200,
                 easing: Easing.bezier(0.4, 0, 0.2, 1),
-                useNativeDriver: true,
-            })
+                useNativeDriver: true })
         ).start();
 
         // Counter-clockwise rotation (Outer ring)
@@ -31,8 +29,7 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
                 toValue: 1,
                 duration: 1800,
                 easing: Easing.bezier(0.4, 0, 0.2, 1),
-                useNativeDriver: true,
-            })
+                useNativeDriver: true })
         ).start();
 
         // Pulsing logo
@@ -42,32 +39,27 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
                     toValue: 1,
                     duration: 800,
                     easing: Easing.inOut(Easing.ease),
-                    useNativeDriver: true,
-                }),
+                    useNativeDriver: true }),
                 Animated.timing(pulseAnim, {
                     toValue: 0,
                     duration: 800,
                     easing: Easing.inOut(Easing.ease),
-                    useNativeDriver: true,
-                })
+                    useNativeDriver: true })
             ])
         ).start();
     }, [rotateAnim, counterRotateAnim, pulseAnim, fadeAnim]);
 
     const spin = rotateAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
+        outputRange: ['0deg', '360deg'] });
 
     const spinCounter = counterRotateAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: ['360deg', '0deg'],
-    });
+        outputRange: ['360deg', '0deg'] });
 
     const logoScale = pulseAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [0.9, 1.1],
-    });
+        outputRange: [0.9, 1.1] });
 
     // Determine dimensions based on size prop
     const containerSize = size === 'large' ? 68 : 36;
@@ -90,8 +82,7 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
                         borderTopColor: 'transparent',
                         borderBottomColor: 'transparent',
                         opacity: 0.4,
-                        transform: [{ rotate: spinCounter }],
-                    },
+                        transform: [{ rotate: spinCounter }] },
                 ]}
             />
 
@@ -107,8 +98,7 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
                         borderColor: color,
                         borderLeftColor: 'transparent',
                         borderRightColor: 'transparent',
-                        transform: [{ rotate: spin }],
-                    },
+                        transform: [{ rotate: spin }] },
                 ]}
             />
 
@@ -119,8 +109,7 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
                     style={{
                         width: '100%',
                         height: '100%',
-                        borderRadius: logoSize / 2,
-                    }}
+                        borderRadius: logoSize / 2 }}
                     resizeMode="cover"
                 />
             </Animated.View>
@@ -132,17 +121,13 @@ const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         alignItems: 'center',
-        position: 'relative',
-    },
+        position: 'relative' },
     ring: {
-        position: 'absolute',
-    },
+        position: 'absolute' },
     logoContainer: {
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
-        backgroundColor: 'transparent',
-    },
-});
+        backgroundColor: 'transparent' } });
 
 export default Loading;

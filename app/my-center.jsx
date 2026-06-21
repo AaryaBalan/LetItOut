@@ -34,6 +34,7 @@ export default function MyCenter() {
   const [selectedPost, setSelectedPost] = useState(null); // Selected post for comments detail view
   const [ratingFeedback, setRatingFeedback] = useState({}); // Track saved status: { [commentId]: 'Saved!' }
   const [expandedCommentId, setExpandedCommentId] = useState(null);
+  const [commentSort, setCommentSort] = useState("impactful"); // "impactful" or "recent"
 
   // 1. Fetch current user's posts
   useEffect(() => {
@@ -53,8 +54,7 @@ export default function MyCenter() {
             description: data.description,
             feelPercentage: data.feelPercentage ?? 0,
             category: data.category || "Other",
-            createdAt: data.createdAt,
-          };
+            createdAt: data.createdAt };
         });
 
         fetchedPosts.sort((a, b) => {
@@ -96,17 +96,15 @@ export default function MyCenter() {
             commentorId: data.commentorId,
             commentorName: data.commentorName || "Anonymous",
             commentorAvatar: data.commentorAvatar || "anonymous",
-            perspectiveRating: data.perspectiveRating, 
+            perspectiveRating: data.perspectiveRating,
             createdAt: data.createdAt,
             postId: post.id,
-            postTitle: post.title,
-          };
+            postTitle: post.title };
         });
 
         setCommentsByPost((prev) => ({
           ...prev,
-          [post.id]: postComments,
-        }));
+          [post.id]: postComments }));
       });
     });
 
@@ -123,8 +121,7 @@ export default function MyCenter() {
 
       const commentRef = doc(db, "comments", comment.id);
       await updateDoc(commentRef, {
-        perspectiveRating: val,
-      });
+        perspectiveRating: val });
 
       if (delta !== 0) {
         await createPerspectiveNotification(
@@ -168,8 +165,7 @@ export default function MyCenter() {
       "Relationship": { bg: isDark ? "#78350F" : "#FFFBEB", text: isDark ? "#FCD34D" : "#D97706" },
       "Study": { bg: isDark ? "#14532D" : "#F0FDF4", text: isDark ? "#86EFAC" : "#16A34A" },
       "Mental Health": { bg: isDark ? "#4C1D95" : "#F5F3FF", text: isDark ? "#C4B5FD" : "#7C3AED" },
-      "Other": { bg: isDark ? "#374151" : "#F3F4F6", text: isDark ? "#D1D5DB" : "#4B5563" },
-    };
+      "Other": { bg: isDark ? "#374151" : "#F3F4F6", text: isDark ? "#D1D5DB" : "#4B5563" } };
     return colors[normalized] || colors["Other"];
   };
 
@@ -177,8 +173,7 @@ export default function MyCenter() {
     const labels = {
       Study: "STUDY SUPPORT",
       "Mental Health": "MENTAL HEALTH",
-      Mindfulness: "MINDFULNESS",
-    };
+      Mindfulness: "MINDFULNESS" };
     return labels[category] || (category ? category.toUpperCase() : "OTHER");
   };
 
@@ -272,7 +267,7 @@ export default function MyCenter() {
           <View style={styles.miniTrackLabels}>
             <Text style={[styles.miniTrackText, { color: '#6B7280' }]}>INITIAL: <Text style={{ color: '#6B7280' }}>{initial}</Text></Text>
             <Text style={[styles.miniTrackText, { color: isImprovement ? '#10B981' : '#EF4444' }]}>
-              CURRENT: <Text style={{ fontWeight: '800' }}>{current} ({delta >= 0 ? `+${delta}` : delta})</Text>
+              CURRENT: <Text style={{ fontFamily: 'Fredoka-Bold' }}>{current} ({delta >= 0 ? `+${delta}` : delta})</Text>
             </Text>
           </View>
         </View>
@@ -280,40 +275,40 @@ export default function MyCenter() {
     }
 
     return (
-      <View style={styles.moodTrackContainer}>
+      <View style={[styles.moodTrackContainer, { backgroundColor: theme.isDark ? '#1F2937' : '#FFFFFF', borderWidth: 1, borderColor: theme.isDark ? '#374151' : '#F3F4F6', borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}>
         <View style={styles.moodTrackLabelRow}>
           <View style={styles.moodLabelGroup}>
-            <Text style={[styles.moodTrackLabel, { color: theme.textSecondary }]}>Initial Mood</Text>
-            <Text style={[styles.moodTrackVal, { color: getMoodColor(initial) }]}>
+            <Text style={[styles.moodTrackLabel, { color: theme.textSecondary, textTransform: 'uppercase', fontSize: 10, letterSpacing: 0.5 }]}>Initial Mood</Text>
+            <Text style={[styles.moodTrackVal, { color: getMoodColor(initial), fontSize: 20, fontFamily: 'Fredoka-Bold', marginTop: 4 }]}>
               {initial > 0 ? `+${initial}` : initial}
             </Text>
           </View>
 
           <View style={[styles.moodLabelGroup, { alignItems: 'flex-end' }]}>
-            <Text style={[styles.moodTrackLabel, { color: theme.text }]}>Cumulative Mood</Text>
-            <Text style={[styles.moodTrackVal, { color: getMoodColor(current), fontWeight: '800' }]}>
+            <Text style={[styles.moodTrackLabel, { color: theme.textSecondary, textTransform: 'uppercase', fontSize: 10, letterSpacing: 0.5 }]}>Cumulative Mood</Text>
+            <Text style={[styles.moodTrackVal, { color: getMoodColor(current), fontFamily: 'Fredoka-Bold', fontSize: 20, marginTop: 4 }]}>
               {current > 0 ? `+${current}` : current}
             </Text>
           </View>
         </View>
 
-          <View style={{ height: 6, backgroundColor: theme.isDark ? '#2A2A2F' : '#E5E7EB', borderRadius: 3, position: 'relative', marginVertical: 8 }}>
-            <View style={[
-              styles.moodTrackConnector,
-              {
-                left: delta >= 0 ? initialPct : currentPct,
-                width: `${Math.abs(delta) / 2}%`,
-                backgroundColor: isImprovement ? '#10B981' : '#EF4444'
-              }
-            ]} />
+        <View style={{ height: 6, backgroundColor: theme.isDark ? '#2A2A2F' : '#E5E7EB', borderRadius: 3, position: 'relative', marginVertical: 16 }}>
+          <View style={[
+            styles.moodTrackConnector,
+            {
+              left: 0,
+              width: `${Math.max(initialPct, currentPct)}%`,
+              backgroundColor: isImprovement ? '#10B981' : '#EF4444',
+              height: '100%',
+              borderRadius: 3
+            }
+          ]} />
+          <View style={[styles.moodPoint, { left: currentPct, backgroundColor: '#8B5CF6', zIndex: 2, width: 14, height: 14, borderRadius: 7, top: -4 }]} />
+        </View>
 
-            <View style={[styles.moodPoint, { left: initialPct, backgroundColor: '#8B5CF6' }]} />
-            <View style={[styles.moodPoint, { left: currentPct, backgroundColor: isImprovement ? '#10B981' : '#EF4444', zIndex: 2 }]} />
-          </View>
-
-        <View style={styles.moodTrackInfoRow}>
+        <View style={[styles.moodTrackInfoRow, { marginTop: 4 }]}>
           <Ionicons name={isImprovement ? "trending-up" : "trending-down"} size={16} color={isImprovement ? '#10B981' : '#EF4444'} />
-          <Text style={[styles.moodShiftText, { color: isImprovement ? '#10B981' : '#EF4444' }]}>
+          <Text style={[styles.moodShiftText, { color: isImprovement ? '#10B981' : '#EF4444', fontSize: 12, fontFamily: 'Fredoka-Bold' }]}>
             {delta === 0 ? "No shift in perspective yet" : `Perspective shifted by ${delta > 0 ? '+' : ''}${delta} points`}
           </Text>
         </View>
@@ -404,7 +399,7 @@ export default function MyCenter() {
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
-          <Text style={[styles.headerTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase' }]}>
+          <Text style={[styles.headerTitle, { color: theme.text, fontFamily: 'Frederick', textTransform: 'uppercase' }]}>
             {selectedPost ? "Post Comments" : "My Center"}
           </Text>
           {!selectedPost && (
@@ -447,41 +442,72 @@ export default function MyCenter() {
       {selectedPost ? (
         // --- 1. SINGLE POST COMMENTS DETAIL VIEW ---
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={[styles.selectedPostContainer, { borderBottomColor: theme.divider }]}>
-            <View style={styles.postHeader}>
+          <View style={[styles.selectedPostContainer, { paddingHorizontal: 20, paddingTop: 10 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
+              <Avatar seed={selectedPost.authorProfileCode || selectedPost.authorName || "anonymous"} size={54} />
+              
               <View style={{ flex: 1 }}>
-                <Text style={[styles.postTitleLarge, { color: getCategoryColors(selectedPost.category, theme.isDark).text }]}>
-                  {selectedPost.title}
-                </Text>
-                <View style={{ flexDirection: 'row', marginTop: 8, alignItems: 'center', gap: 8 }}>
-                  <View style={[styles.categoryBadge, { backgroundColor: getCategoryColors(selectedPost.category, theme.isDark).bg }]}>
-                    <Text style={[styles.categoryText, { color: getCategoryColors(selectedPost.category, theme.isDark).text }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <Text style={[styles.postTitleLarge, { color: '#F59E0B', flex: 1, marginRight: 10, lineHeight: 26, fontSize: 18, fontFamily: 'Frederick' }]}>
+                    {selectedPost.title}
+                  </Text>
+                  <View style={{ backgroundColor: '#FFEDD5', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, position: 'relative' }}>
+                    <Text style={{ color: '#EA580C', fontSize: 14, fontFamily: 'Fredoka-Bold' }}>
+                      {selectedPost.feelPercentage > 0 ? `+${selectedPost.feelPercentage}` : selectedPost.feelPercentage}
+                    </Text>
+                    <Ionicons name="sunny-outline" size={16} color="#EA580C" style={{ position: 'absolute', top: -8, right: -8, transform: [{ rotate: '15deg' }] }} />
+                  </View>
+                </View>
+                
+                <View style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center', gap: 12 }}>
+                  <View style={[styles.categoryBadge, { backgroundColor: '#FEF3C7', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 8 }]}>
+                    <Text style={[styles.categoryText, { color: '#D97706', fontSize: 10, fontFamily: 'Fredoka-Bold' }]}>
                       {getCategoryLabel(selectedPost.category)}
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 12, color: theme.textTertiary, fontWeight: '500' }}>
+                  <Text style={{ fontSize: 12, color: theme.textTertiary, fontFamily: 'Fredoka-Bold' }}>
                     {formatTimestamp(selectedPost.createdAt)}
                   </Text>
                 </View>
               </View>
-              <View style={[styles.moodBadge, { backgroundColor: getMoodColor(selectedPost.feelPercentage) + "22" }]}>
-                <Text style={[styles.moodText, { color: getMoodColor(selectedPost.feelPercentage) }]}>
-                  {selectedPost.feelPercentage > 0 ? `+${selectedPost.feelPercentage}` : selectedPost.feelPercentage}
-                </Text>
-              </View>
             </View>
-            <Text style={[styles.postDescriptionLarge, { color: theme.textSecondary }]}>
+
+            {/* Dotted Divider */}
+            <View style={{ width: '100%', height: 1, borderBottomWidth: 1, borderStyle: 'dashed', borderBottomColor: '#D1D5DB', marginVertical: 20 }} />
+
+            <Text style={[styles.postDescriptionLarge, { color: theme.textSecondary, lineHeight: 24, fontSize: 14 }]}>
               {selectedPost.description}
             </Text>
 
-            {/* Mood Shift Track Visualizer */}
-            {renderMoodShiftTrack(selectedPost)}
+            {/* Mood Shift Track Visualizer with Doodles */}
+            <View style={{ position: 'relative', marginBottom: 10 }}>
+              <Ionicons name="heart-outline" size={40} color="#A855F7" style={{ position: 'absolute', left: -10, top: 40, zIndex: 1, transform: [{ rotate: '-15deg' }] }} />
+              <Ionicons name="star-outline" size={45} color="#FBBF24" style={{ position: 'absolute', right: -10, top: -20, zIndex: 1, transform: [{ rotate: '15deg' }] }} />
+              
+              <View>
+                {renderMoodShiftTrack(selectedPost)}
+              </View>
+            </View>
           </View>
 
           {/* Comments List for Selected Post */}
-          <Text style={[styles.commentsSectionTitle, { color: theme.text }]}>
-            Comments ({(commentsByPost[selectedPost.id] || []).length})
-          </Text>
+          {/* Comments List for Selected Post */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={[styles.commentsSectionTitle, { color: theme.text, marginBottom: 0, fontFamily: 'Fredoka-Bold' }]}>
+                Comments ({(commentsByPost[selectedPost.id] || []).length})
+              </Text>
+              <Ionicons name="chatbubble-outline" size={18} color="#8B5CF6" />
+            </View>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              onPress={() => setCommentSort(prev => prev === 'impactful' ? 'recent' : 'impactful')}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.isDark ? '#374151' : '#F3F4F6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, gap: 4 }}
+            >
+              <Text style={{ fontSize: 12, color: theme.textSecondary }}>{commentSort === 'impactful' ? 'Most Impactful' : 'Most Recent'}</Text>
+              <Ionicons name="swap-vertical" size={14} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </View>
 
           {(commentsByPost[selectedPost.id] || []).length === 0 ? (
             <View style={styles.emptyCommentsBox}>
@@ -490,94 +516,142 @@ export default function MyCenter() {
               </Text>
             </View>
           ) : (
-            (commentsByPost[selectedPost.id] || []).map((comment) => {
+            (() => {
               const baselineVal = selectedPost.feelPercentage ?? 0;
+              const commentsToRender = [...(commentsByPost[selectedPost.id] || [])];
+              
+              if (commentSort === "impactful") {
+                commentsToRender.sort((a, b) => {
+                  const shiftA = (a.perspectiveRating ?? baselineVal) - baselineVal;
+                  const shiftB = (b.perspectiveRating ?? baselineVal) - baselineVal;
+                  return shiftB - shiftA;
+                });
+              } else {
+                commentsToRender.sort((a, b) => {
+                  const aTime = a.createdAt?.seconds || 0;
+                  const bTime = b.createdAt?.seconds || 0;
+                  return bTime - aTime;
+                });
+              }
+
+              return commentsToRender.map((comment) => {
               const currentVal = comment.perspectiveRating !== undefined ? comment.perspectiveRating : baselineVal;
               return (
-                <TouchableOpacity
+                  <TouchableOpacity
                   key={comment.id}
                   activeOpacity={0.9}
                   onPress={() => setExpandedCommentId(prev => prev === comment.id ? null : comment.id)}
-                  style={[styles.commentItem, { backgroundColor: theme.surface }]}
+                  style={[
+                    styles.commentItem, 
+                    { 
+                      backgroundColor: theme.isDark ? '#1F2937' : '#FFFFFF', 
+                      marginHorizontal: 8, 
+                      borderRadius: 10, 
+                      padding: 10, 
+                      marginBottom: 8,
+                      shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+                      borderLeftWidth: 3,
+                      borderLeftColor: currentVal > baselineVal ? '#10B981' : currentVal < baselineVal ? '#EF4444' : '#8B5CF6'
+                    }
+                  ]}
                 >
-                  <View style={{ flexDirection: 'row' }}>
-                    <View style={styles.timelineLeftColumn}>
-                      <Avatar seed={comment.commentorAvatar || comment.commentorName} size={36} />
-                      <View style={[styles.timelineVerticalLine, { backgroundColor: theme.divider }]} />
-                    </View>
+                  <View style={{ flexDirection: 'column' }}>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                      <Avatar seed={comment.commentorAvatar || comment.commentorName} size={40} />
 
-                    <View style={styles.timelineRightColumn}>
-                      <View style={styles.commentHeader}>
-                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={[styles.commentorName, { color: theme.text }]}>
-                            {comment.commentorName}
-                          </Text>
-                          <Text style={{ fontSize: 12, color: theme.textTertiary }}>
-                            • {formatTimestamp(comment.createdAt)}
-                          </Text>
-                        </View>
-                        {ratingFeedback[comment.id] && (
-                          <View style={styles.savedBadge}>
-                            <Text style={styles.savedBadgeText}>{ratingFeedback[comment.id]}</Text>
+                      <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={[styles.commentorName, { color: theme.text, fontFamily: 'Fredoka-Bold', fontSize: 15 }]}>
+                              {comment.commentorName}
+                            </Text>
+                            <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+                              • {formatTimestamp(comment.createdAt)}
+                            </Text>
                           </View>
-                        )}
-                        <Ionicons
-                          name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"}
-                          size={18}
-                          color={theme.textTertiary}
-                        />
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            {ratingFeedback[comment.id] ? (
+                              <View style={[styles.savedBadge, { backgroundColor: '#D1FAE5' }]}>
+                                <Text style={[styles.savedBadgeText, { color: '#059669', fontFamily: 'Fredoka-Bold', fontSize: 10 }]}>{ratingFeedback[comment.id]}</Text>
+                              </View>
+                            ) : (
+                              currentVal !== baselineVal && (
+                                <View style={[styles.savedBadge, { backgroundColor: currentVal > baselineVal ? '#D1FAE5' : '#FEE2E2', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }]}>
+                                  <Text style={[styles.savedBadgeText, { color: currentVal > baselineVal ? '#059669' : '#DC2626', fontFamily: 'Fredoka-Bold', fontSize: 10 }]}>
+                                    {currentVal > baselineVal ? `+${currentVal - baselineVal} SHIFT` : `${currentVal - baselineVal} SHIFT`}
+                                  </Text>
+                                </View>
+                              )
+                            )}
+                            <Ionicons
+                              name={expandedCommentId === comment.id ? "chevron-up" : "chevron-down"}
+                              size={18}
+                              color={theme.textTertiary}
+                            />
+                          </View>
+                        </View>
+
+                        <Text style={[styles.commentText, { color: theme.textSecondary, fontSize: 14, lineHeight: 20 }]}>
+                          {comment.text}
+                        </Text>
                       </View>
-
-                      <Text style={[styles.commentText, { color: theme.textSecondary }]}>
-                        {comment.text}
-                      </Text>
-
-                      {expandedCommentId === comment.id && (
-                        <View style={styles.ratingSection}>
-                          <View style={[styles.reflectionNote, { backgroundColor: theme.isDark ? '#374151' : '#F3F4F6' }]}>
-                            <Ionicons name="bulb-outline" size={16} color={theme.text} style={{ marginRight: 8 }} />
-                            <Text style={[styles.reflectionNoteText, { color: theme.textSecondary }]}>
-                              How did this comment shift your perspective? Rate below.
-                            </Text>
-                          </View>
-
-                          <View style={styles.ratingLabelRow}>
-                            <Text style={[styles.ratingLabel, { color: theme.textSecondary }]}>
-                              Perspective:
-                            </Text>
-                            <Text style={[styles.ratingValue, { color: getMoodColor(currentVal) }]}>
-                              {currentVal === 0
-                                ? "Neutral (0)"
-                                : currentVal < 0
-                                  ? `Negative (${currentVal})`
-                                  : `Positive (+${currentVal})`}
-                            </Text>
-                          </View>
-
-                          <Slider
-                            style={styles.slider}
-                            minimumValue={-100}
-                            maximumValue={100}
-                            step={5}
-                            value={currentVal}
-                            onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
-                            minimumTrackTintColor="#7986CB"
-                            maximumTrackTintColor="#FFB74D"
-                            thumbTintColor="#111827"
-                          />
-
-                          <View style={styles.ticksRow}>
-                            <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
-                            <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
-                            <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
-                          </View>
-                        </View>
-                      )}
                     </View>
+
+                    {expandedCommentId === comment.id ? (
+                      <View style={[styles.ratingSection, { marginTop: 16, backgroundColor: theme.isDark ? '#374151' : '#F5F3FF', borderRadius: 12, padding: 10 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 }}>
+                          <Ionicons name="bulb-outline" size={16} color="#8B5CF6" style={{ marginRight: 8, marginTop: 2 }} />
+                          <Text style={[styles.reflectionNoteText, { color: theme.isDark ? '#D1D5DB' : '#4B5563', flex: 1, fontFamily: 'Fredoka-Bold' }]}>
+                            How did this comment shift your perspective? Rate below.
+                          </Text>
+                        </View>
+
+                        <View style={styles.ratingLabelRow}>
+                          <Text style={[styles.ratingLabel, { color: theme.textSecondary, fontFamily: 'Fredoka-Bold' }]}>
+                            Perspective
+                          </Text>
+                          <Text style={[styles.ratingValue, { color: getMoodColor(currentVal), fontFamily: 'Fredoka-Bold' }]}>
+                            {currentVal === 0
+                              ? "Neutral (0)"
+                              : currentVal < 0
+                                ? `Negative (${currentVal})`
+                                : `Positive (+${currentVal})`}
+                          </Text>
+                        </View>
+
+                        <Slider
+                          style={styles.slider}
+                          minimumValue={-100}
+                          maximumValue={100}
+                          step={5}
+                          value={currentVal}
+                          onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
+                          minimumTrackTintColor="#8B5CF6"
+                          maximumTrackTintColor="#FBBF24"
+                          thumbTintColor="#8B5CF6"
+                        />
+
+                        <View style={styles.ticksRow}>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>-100</Text>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>0</Text>
+                          <Text style={[styles.tickText, { color: theme.textTertiary }]}>+100</Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={{ flexDirection: 'column', marginTop:2 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.isDark ? '#374151' : '#F5F3FF', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, width: '100%' }}>
+                          <Ionicons name="bulb-outline" size={16} color="#8B5CF6" style={{ marginRight: 8 }} />
+                          <Text style={{ fontSize: 12, color: theme.isDark ? '#D1D5DB' : '#4B5563', flex: 1 }}>
+                            This comment helped shift your perspective <Text style={{ color: currentVal > baselineVal ? '#10B981' : currentVal < baselineVal ? '#EF4444' : '#8B5CF6', fontFamily: 'Fredoka-Bold' }}>{currentVal > baselineVal ? 'positively' : currentVal < baselineVal ? 'negatively' : 'neutrally'}</Text>.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </TouchableOpacity>
               );
-            })
+            });
+          })()
           )}
         </ScrollView>
       ) : activeTab === "posts" ? (
@@ -593,7 +667,7 @@ export default function MyCenter() {
               Below are the feelings you've shared. Tap any post to view replies and rate how comments shifted your perspective.
             </Text>
           </View>
-          
+
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <View style={[styles.emptyIconCircle, { backgroundColor: theme.isDark ? '#374151' : '#F3F4F6' }]}>
@@ -609,7 +683,7 @@ export default function MyCenter() {
               const commentsCount = (commentsByPost[post.id] || []).length;
               const catColors = getCategoryColors(post.category, theme.isDark);
               const { current } = getPostInsights(post);
-              
+
               const renderBackgroundBlob = (mood) => {
                 const color = mood >= 0 ? (theme.isDark ? '#064E3B' : '#ECFDF5') : (theme.isDark ? '#7F1D1D' : '#FEF2F2');
                 return (
@@ -621,8 +695,7 @@ export default function MyCenter() {
                     height: 160,
                     backgroundColor: color,
                     borderTopLeftRadius: 160,
-                    zIndex: 0,
-                  }} pointerEvents="none" />
+                    zIndex: 0 }} pointerEvents="none" />
                 );
               };
 
@@ -635,14 +708,14 @@ export default function MyCenter() {
                 >
                   <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? '#10B981' : '#EF4444' }]} />
                   {renderBackgroundBlob(current)}
-                  
+
                   <View style={styles.postCardContent}>
                     <View style={styles.postHeader}>
                       <Avatar seed={user.uid} size={50} />
                       <View style={{ flex: 1, marginLeft: 14 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
                           <View style={{ flex: 1, marginRight: 40 }}>
-                            <Text style={[styles.postTitle, { color: current >= 0 ? '#10B981' : '#EF4444', fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]} numberOfLines={2}>
+                            <Text style={[styles.postTitle, { color: current >= 0 ? '#10B981' : '#EF4444', fontFamily: 'Frederick' }]} numberOfLines={2}>
                               {post.title}
                             </Text>
                           </View>
@@ -659,7 +732,7 @@ export default function MyCenter() {
                               {getCategoryLabel(post.category)}
                             </Text>
                           </View>
-                          <Text style={{ fontSize: 11, color: theme.textTertiary, fontWeight: '600' }}>
+                          <Text style={{ fontSize: 11, color: theme.textTertiary, fontFamily: 'Fredoka-Bold' }}>
                             {formatTimestamp(post.createdAt)}
                           </Text>
                         </View>
@@ -675,7 +748,7 @@ export default function MyCenter() {
                     {/* MINI MOOD SHIFT TRACK */}
                     <View style={{ marginTop: 4 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <Text style={{ fontSize: 12, color: current >= 0 ? '#10B981' : '#EF4444', fontWeight: '800', fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        <Text style={{ fontSize: 12, color: current >= 0 ? '#10B981' : '#EF4444', fontFamily: 'Frederick', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Perspective Shift
                         </Text>
                         {renderMoodIcon(current)}
@@ -714,7 +787,7 @@ export default function MyCenter() {
                 </View>
                 <Text style={[styles.statVal, { color: theme.text }]} numberOfLines={1}>{posts.length}</Text>
               </View>
-              <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>POSTS SHARED</Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>POSTS SHARED</Text>
             </View>
 
             <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
@@ -726,7 +799,7 @@ export default function MyCenter() {
                   {avgShift >= 0 ? `+${avgShift}` : avgShift}
                 </Text>
               </View>
-              <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>AVG SHIFT</Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>AVG SHIFT</Text>
             </View>
 
             <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
@@ -738,12 +811,12 @@ export default function MyCenter() {
                   {Object.values(commentsByPost).flat().filter(c => c.perspectiveRating !== undefined).length}
                 </Text>
               </View>
-              <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>RATED</Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>RATED</Text>
             </View>
           </View>
 
           {/* Post Insights Breakdown */}
-          <Text style={[styles.commentsSectionTitle, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase', fontSize: 16, marginTop: 16, marginBottom: 16 }]}>
+          <Text style={[styles.commentsSectionTitle, { color: theme.text, fontFamily: 'Frederick', textTransform: 'uppercase', fontSize: 16, marginTop: 16, marginBottom: 16 }]}>
             Post-by-Post Insights
           </Text>
 
@@ -763,7 +836,7 @@ export default function MyCenter() {
               const postComments = commentsByPost[post.id] || [];
               const ratedCount = postComments.filter(c => c.perspectiveRating !== undefined).length;
               const catColors = getCategoryColors(post.category, theme.isDark);
-              
+
               const renderBackgroundBlob = (mood) => {
                 const color = mood >= 0 ? (theme.isDark ? '#064E3B' : '#ECFDF5') : (theme.isDark ? '#7F1D1D' : '#FEF2F2');
                 return (
@@ -775,8 +848,7 @@ export default function MyCenter() {
                     height: 140,
                     backgroundColor: color,
                     borderTopLeftRadius: 140,
-                    zIndex: 0,
-                  }} pointerEvents="none" />
+                    zIndex: 0 }} pointerEvents="none" />
                 );
               };
 
@@ -784,14 +856,14 @@ export default function MyCenter() {
                 <View key={post.id} style={[styles.postCard, { backgroundColor: theme.surface }]}>
                   <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? '#10B981' : '#EF4444' }]} />
                   {renderBackgroundBlob(current)}
-                  
+
                   <View style={styles.postCardContent}>
                     <View style={styles.postHeader}>
                       <Avatar seed={user.uid} size={50} />
                       <View style={{ flex: 1, marginLeft: 14 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
                           <View style={{ flex: 1, marginRight: 40 }}>
-                            <Text style={[styles.postTitle, { color: current >= 0 ? '#10B981' : '#EF4444', fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]} numberOfLines={2}>
+                            <Text style={[styles.postTitle, { color: current >= 0 ? '#10B981' : '#EF4444', fontFamily: 'Frederick' }]} numberOfLines={2}>
                               {post.title}
                             </Text>
                           </View>
@@ -808,7 +880,7 @@ export default function MyCenter() {
                               {getCategoryLabel(post.category)}
                             </Text>
                           </View>
-                          <Text style={{ fontSize: 11, color: theme.textTertiary, fontWeight: '600' }}>
+                          <Text style={{ fontSize: 11, color: theme.textTertiary, fontFamily: 'Fredoka-Bold' }}>
                             {formatTimestamp(post.createdAt)}
                           </Text>
                         </View>
@@ -817,7 +889,7 @@ export default function MyCenter() {
 
                     <View style={{ marginTop: 12 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <Text style={{ fontSize: 12, color: current >= 0 ? '#10B981' : '#EF4444', fontWeight: '800', fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        <Text style={{ fontSize: 12, color: current >= 0 ? '#10B981' : '#EF4444', fontFamily: 'Frederick', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Perspective Shift
                         </Text>
                         {renderMoodIcon(current)}
@@ -830,23 +902,23 @@ export default function MyCenter() {
                     <View style={[styles.journeyBox, { backgroundColor: theme.isDark ? '#374151' : '#F8F5FF' }]}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                         <Ionicons name="heart-circle" size={20} color={theme.text} />
-                        <Text style={[styles.journeyLabel, { color: theme.text, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', textTransform: 'uppercase' }]}>Your Emotional Journey</Text>
+                        <Text style={[styles.journeyLabel, { color: theme.text, fontFamily: 'Frederick', textTransform: 'uppercase' }]}>Your Emotional Journey</Text>
                       </View>
                       {postComments.length === 0 ? (
                         <Text style={[styles.journeyText, { color: theme.textSecondary }]}>
-                          You shared this feeling at <Text style={{ fontWeight: '800', color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text>. When people comment, open the Posts tab, tap this post, and rate each comment to track how they shift your perspective.
+                          You shared this feeling at <Text style={{ fontFamily: 'Fredoka-Bold',  color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text>. When people comment, open the Posts tab, tap this post, and rate each comment to track how they shift your perspective.
                         </Text>
                       ) : (
                         <Text style={[styles.journeyText, { color: theme.textSecondary }]}>
-                          You started at <Text style={{ fontWeight: '800', color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text>. After rating <Text style={{ fontWeight: '800', color: theme.text }}>{ratedCount === 0 ? postComments.length : ratedCount} COMMENTS</Text>, your perspective moved to <Text style={{ fontWeight: '800', color: getMoodColor(current) }}>{current > 0 ? `+${current}` : current}</Text>. 
+                          You started at <Text style={{ fontFamily: 'Fredoka-Bold', color: getMoodColor(initial) }}>{initial > 0 ? `+${initial}` : initial}</Text>. After rating <Text style={{ fontFamily: 'Fredoka-Bold', color: theme.text }}>{ratedCount === 0 ? postComments.length : ratedCount} COMMENTS</Text>, your perspective moved to <Text style={{ fontFamily: 'Fredoka-Bold', color: getMoodColor(current) }}>{current > 0 ? `+${current}` : current}</Text>.
                           {shift > 0 ? " Community support helped lift your spirits! 🌟" : shift < 0 ? " You reflected on the feedback and processed your feelings. 🌧️" : " Your perspective remained steady after reflecting. ⚖️"}
                         </Text>
                       )}
                     </View>
 
                     {hasRatedComments && bestComment && (
-                      <View style={{ marginTop: 20 }}>
-                        <Text style={[styles.insightLabel, { color: theme.textTertiary, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }]}>MOST IMPACTFUL COMMENT</Text>
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={[styles.insightLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>MOST IMPACTFUL COMMENT</Text>
                         <View style={[styles.insightQuoteBox, { backgroundColor: theme.isDark ? '#1F2937' : '#F9FAFB' }]}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                             <Avatar seed={bestComment.commentorAvatar || bestComment.commentorName} size={28} />
@@ -881,54 +953,45 @@ export default function MyCenter() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
+    flex: 1 },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
-  },
+    alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
+    paddingVertical: 16 },
   backButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: "center",
-    alignItems: "center",
-  },
+    alignItems: "center" },
   settingsButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
+    alignItems: 'center' },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "800",
     letterSpacing: 1,
-  },
+    fontFamily: 'Frederick' },
   headerSubtitle: {
     fontSize: 13,
-    fontWeight: "500",
     marginTop: 4,
-  },
+    fontFamily: 'Frederick' },
   tabBarContainer: {
     alignItems: 'center',
-    borderBottomWidth: 1,
-  },
+    borderBottomWidth: 1 },
   tabBar: {
     flexDirection: "row",
     alignItems: "center",
     width: '100%',
-    paddingHorizontal: 20,
-  },
+    paddingHorizontal: 20 },
   tabItem: {
     flex: 1,
     flexDirection: "row",
@@ -937,88 +1000,76 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 3,
     borderBottomColor: "transparent",
-    gap: 10,
-  },
+    gap: 10 },
   activeTabItem: {
-    borderBottomColor: '#8B5CF6',
-  },
+    borderBottomColor: '#8B5CF6' },
   tabText: {
     fontSize: 15,
-    fontWeight: "700",
     letterSpacing: 0.5,
-  },
+    fontFamily: 'Fredoka-Bold' },
   activeTabText: {
-    color: "#8B5CF6",
-  },
+    color: "#8B5CF6" },
   scrollContent: {
     paddingHorizontal: 0,
     paddingTop: 20,
-    paddingBottom: 60,
-  },
+    paddingBottom: 60 },
   selectedPostContainer: {
     paddingVertical: 24,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    marginBottom: 20,
-  },
+    borderBottomColor: "rgba(0, 0, 0, 0.07)",
+    marginBottom: 20 },
   postHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 12,
-  },
+    fontFamily: 'Frederick' },
   postTitleLarge: {
     fontSize: 22,
-    fontWeight: "800",
     marginBottom: 6,
     letterSpacing: -0.3,
-  },
+    fontFamily: 'Frederick' },
   postTitle: {
     fontSize: 18,
-    fontWeight: "800",
     marginBottom: 4,
     lineHeight: 24,
-  },
+    fontFamily: 'Frederick' },
   moodBadge: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 14,
-    marginLeft: 12,
-  },
+    marginLeft: 12 },
   moodText: {
     fontSize: 15,
-    fontWeight: "800",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   postDescriptionLarge: {
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 20,
-  },
+    fontFamily: 'Fredoka-Regular' },
   postDescription: {
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 16,
-  },
+    fontFamily: 'Fredoka-Regular' },
   divider: {
     height: 1,
-    marginVertical: 16,
-  },
+    marginVertical: 16 },
   commentsSectionTitle: {
     fontSize: 16,
-    fontWeight: "800",
     marginBottom: 16,
     letterSpacing: -0.2,
     paddingHorizontal: 20,
-  },
+    fontFamily: 'Frederick' },
   emptyCommentsBox: {
     paddingVertical: 30,
-    alignItems: "center",
-  },
+    alignItems: "center" },
   noCommentsText: {
     fontSize: 15,
-    fontStyle: "italic",
     paddingVertical: 10,
-  },
+    fontFamily: 'Fredoka-Regular' },
   commentItem: {
     borderRadius: 20,
     padding: 20,
@@ -1028,93 +1079,83 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
-    elevation: 3,
-  },
+    elevation: 3 },
   commentHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
-  },
+    fontFamily: 'Frederick' },
   commentorName: {
     fontSize: 15,
-    fontWeight: "700",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   savedBadge: {
     backgroundColor: "#10B981",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 10,
-  },
+    borderRadius: 10 },
   savedBadgeText: {
     color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: "800",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   commentText: {
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 16,
-  },
+    fontFamily: 'Fredoka-Regular' },
   ratingSection: {
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
-  },
+    borderTopColor: "rgba(0,0,0,0.05)" },
   ratingLabelRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
-  },
+    marginBottom: 12 },
   ratingLabel: {
     fontSize: 14,
-    fontWeight: "600",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   ratingValue: {
     fontSize: 14,
-    fontWeight: "800",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   slider: {
     width: "100%",
     height: 40,
     ...Platform.select({
-      web: { outlineStyle: "none" },
-    }),
-  },
+      web: { outlineStyle: "none" } }) },
   ticksRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 6,
-    marginTop: -4,
-  },
+    marginTop: -4 },
   tickText: {
     fontSize: 11,
-    fontWeight: "700",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 100,
-    paddingHorizontal: 30,
-  },
+    paddingHorizontal: 30 },
   emptyIconCircle: {
     width: 100,
     height: 100,
     borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 24,
-  },
+    marginBottom: 24 },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: "800",
     marginBottom: 10,
-  },
+    fontFamily: 'Frederick' },
   emptySubtitle: {
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
-  },
+    fontFamily: 'Frederick' },
   postCard: {
     borderRadius: 15,
     marginBottom: 10,
@@ -1125,11 +1166,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 4,
     position: 'relative',
-    overflow: 'hidden',
-  },
+    overflow: 'hidden' },
   postCardContent: {
-    padding: 24,
-  },
+    padding: 24 },
   cardLeftStrip: {
     position: 'absolute',
     left: 0,
@@ -1138,166 +1177,143 @@ const styles = StyleSheet.create({
     width: 4,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
-    zIndex: 5,
-  },
+    zIndex: 5 },
   timelineCommentItem: {
     flexDirection: 'row',
     paddingVertical: 16,
     paddingHorizontal: 20,
-    marginBottom: 10,
-  },
+    marginBottom: 10 },
   timelineLeftColumn: {
     alignItems: 'center',
     marginRight: 16,
-    width: 36,
-  },
+    width: 36 },
   timelineVerticalLine: {
     width: 2,
     flex: 1,
     marginTop: 10,
     alignSelf: 'center',
-    borderRadius: 1,
-  },
+    borderRadius: 1 },
   timelineRightColumn: {
-    flex: 1,
-  },
+    flex: 1 },
   metaItem: {
     flexDirection: "row",
-    alignItems: "center",
-  },
+    alignItems: "center" },
   metaText: {
     fontSize: 14,
-    fontWeight: "800",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   categoryBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
-    alignSelf: "flex-start",
-  },
+    alignSelf: "flex-start" },
   categoryText: {
     fontSize: 9,
-    fontWeight: "800",
+    fontWeight: '400',
     letterSpacing: 0.5,
-  },
+    fontFamily: 'Fredoka-Bold' },
   staticNoteBox: {
-    marginHorizontal: 16,
+    marginHorizontal: 8,
     marginBottom: 24,
     borderRadius: 16,
     padding: 20,
-    borderWidth: 1,
-  },
+    borderWidth: 1 },
   staticNoteTitle: {
     fontSize: 14,
-    fontWeight: '800',
     color: '#111827',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: 'Frederick',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+    letterSpacing: 0.5 },
   staticNoteText: {
     fontSize: 13,
     lineHeight: 20,
-  },
+    fontFamily: 'Fredoka-Regular' },
   moodTrackContainer: {
-    marginTop: 12,
-  },
+    marginTop: 12 },
   moodTrackLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
-  },
+    marginBottom: 16 },
   moodLabelGroup: {
-    flexDirection: 'column',
-  },
+    flexDirection: 'column' },
   moodTrackLabel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '400',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
-  },
+    fontFamily: 'Fredoka-Regular' },
   moodTrackVal: {
     fontSize: 18,
-    fontWeight: '800',
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   moodTrackConnector: {
     height: 6,
     borderRadius: 3,
-    position: 'absolute',
-  },
+    position: 'absolute' },
   moodPoint: {
     width: 14,
     height: 14,
     borderRadius: 7,
     position: 'absolute',
     top: -4,
-    marginLeft: -7,
-  },
+    marginLeft: -7 },
   moodTrackInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 8,
-  },
+    marginTop: 8 },
   moodShiftText: {
     fontSize: 13,
-    fontWeight: '700',
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   miniTrackContainer: {
-    marginTop: 6,
-  },
+    marginTop: 6 },
   miniTrackBar: {
     height: 6,
     backgroundColor: '#F3F4F6',
     borderRadius: 3,
     position: 'relative',
     justifyContent: 'center',
-    marginVertical: 6,
-  },
+    marginVertical: 6 },
   moodTrackLine: {
     position: 'absolute',
     left: 0,
     right: 0,
     height: 6,
-    borderRadius: 3,
-  },
+    borderRadius: 3 },
   miniMoodPoint: {
     position: 'absolute',
     width: 14,
     height: 14,
     borderRadius: 7,
     top: -4,
-    marginLeft: -7,
-  },
+    marginLeft: -7 },
   miniTrackLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
-  },
+    marginTop: 12 },
   miniTrackText: {
     fontSize: 12,
-    fontWeight: '800',
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   reflectionNote: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     borderRadius: 12,
-    marginBottom: 16,
-  },
+    marginBottom: 16 },
   reflectionNoteText: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '400',
     flex: 1,
     lineHeight: 18,
-  },
+    fontFamily: 'Fredoka-Regular' },
   statsGrid: {
     flexDirection: "row",
     gap: 16,
     paddingHorizontal: 16,
-    marginBottom: 24,
-  },
+    marginBottom: 24 },
   statItem: {
     flex: 1,
     flexDirection: 'column',
@@ -1309,84 +1325,75 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
-    elevation: 2,
-  },
+    elevation: 2 },
   statIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
+    justifyContent: 'center' },
   statVal: {
     fontSize: 22,
-    fontWeight: "800",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   statLabel: {
     fontSize: 10,
-    fontWeight: "800",
+    fontWeight: '400',
     marginTop: 6,
     letterSpacing: 0.5,
-  },
+    fontFamily: 'Fredoka-Regular' },
   journeyBox: {
     borderRadius: 16,
     padding: 20,
-    marginBottom: 8,
-  },
+    marginBottom: 8 },
   journeyLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '400',
     letterSpacing: 0.5,
-  },
+    fontFamily: 'Fredoka-Regular' },
   journeyText: {
     fontSize: 14,
     lineHeight: 22,
-  },
+    fontFamily: 'Fredoka-Regular' },
   insightLabel: {
     fontSize: 12,
-    fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 10,
-  },
+    fontFamily: 'Fredoka-Bold' },
   insightQuoteBox: {
-    padding: 16,
-    borderRadius: 20,
-  },
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 20 },
   insightQuoteAuthor: {
     fontSize: 14,
-    fontWeight: "800",
-  },
+    fontFamily: 'Fredoka-Bold' },
   insightQuoteText: {
     fontSize: 15,
     lineHeight: 24,
-    fontStyle: "italic",
-    marginTop: 8,
-  },
+    fontFamily: 'Fredoka-Regular' },
   shiftIndicator: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 10,
-  },
+    borderRadius: 10 },
   shiftIndicatorText: {
     fontSize: 11,
-    fontWeight: "800",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   insightNotice: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 16,
-    gap: 10,
-  },
+    gap: 10 },
   insightNoticeText: {
     fontSize: 13,
     flex: 1,
     lineHeight: 20,
-  },
+    fontFamily: 'Fredoka-Regular' },
   stickerDoodleContainer: {
     position: 'absolute',
     right: 24,
     top: 24,
-    zIndex: 10,
-  }
+    zIndex: 10 }
 });

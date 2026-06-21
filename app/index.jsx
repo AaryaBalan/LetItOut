@@ -2,12 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
-    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
@@ -26,9 +25,9 @@ export default function Index() {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
-            
+
             {/* Background Geometric Shapes */}
-            
+
             {/* Top Left Yellow Flower (Approximation using intersecting circles) */}
             <View style={styles.shapeYellowFlower}>
                 <View style={styles.flowerPetal1} />
@@ -71,7 +70,7 @@ export default function Index() {
                     >
                         <Text style={styles.primaryButtonText}>Get started</Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity
                         style={styles.loginLink}
                         onPress={() => router.push("/auth/login")}
@@ -88,9 +87,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F9FAFB",
-        position: 'relative',
-    },
-    
+        position: 'relative' },
+
     // Geometric Shapes Styles
     shapeYellowFlower: {
         position: 'absolute',
@@ -98,8 +96,7 @@ const styles = StyleSheet.create({
         left: -30,
         width: 140,
         height: 140,
-        zIndex: 1,
-    },
+        zIndex: 1 },
     flowerPetal1: {
         position: 'absolute',
         top: 0,
@@ -107,8 +104,7 @@ const styles = StyleSheet.create({
         width: 70,
         height: 70,
         backgroundColor: '#F2C94C',
-        borderRadius: 35,
-    },
+        borderRadius: 35 },
     flowerPetal2: {
         position: 'absolute',
         top: 40,
@@ -116,8 +112,7 @@ const styles = StyleSheet.create({
         width: 70,
         height: 70,
         backgroundColor: '#F2C94C',
-        borderRadius: 35,
-    },
+        borderRadius: 35 },
     flowerPetal3: {
         position: 'absolute',
         top: 60,
@@ -125,16 +120,14 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         backgroundColor: '#F2C94C',
-        borderRadius: 40,
-    },
+        borderRadius: 40 },
     flowerCenter: {
         position: 'absolute',
         top: 30,
         left: 30,
         width: 60,
         height: 60,
-        backgroundColor: '#F2C94C',
-    },
+        backgroundColor: '#F2C94C' },
 
     shapeIndigoMoon: {
         position: 'absolute',
@@ -146,8 +139,7 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderTopRightRadius: 10,
         transform: [{ rotate: '45deg' }],
-        zIndex: 1,
-    },
+        zIndex: 1 },
 
     shapeBlueCircle: {
         position: 'absolute',
@@ -157,23 +149,20 @@ const styles = StyleSheet.create({
         height: 180,
         backgroundColor: '#2F80ED',
         borderRadius: 90,
-        zIndex: 1,
-    },
+        zIndex: 1 },
 
     shapeRedStar: {
         position: 'absolute',
         bottom: 260,
         left: 100,
-        zIndex: 1,
-    },
+        zIndex: 1 },
 
     shapeGreenSquiggle: {
         position: 'absolute',
         bottom: 150,
         right: 20,
         zIndex: 1,
-        transform: [{ rotate: '-15deg' }],
-    },
+        transform: [{ rotate: '-15deg' }] },
 
     // Content Layout
     contentContainer: {
@@ -182,50 +171,42 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingBottom: 40,
         paddingTop: '50%', // Push text to middle-top like image
-        zIndex: 10,
-    },
+        zIndex: 10 },
     textContainer: {
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     heroTitle: {
         fontSize: 42,
-        fontWeight: "800",
         color: "#111827",
         textAlign: "center",
         marginBottom: 16,
         lineHeight: 48,
         letterSpacing: -1,
-    },
+        fontFamily: 'Frederick' },
     heroSubtitle: {
         fontSize: 16,
-        fontWeight: "600",
         color: "#111827",
         textAlign: "center",
         lineHeight: 24,
-    },
+        fontFamily: 'Frederick' },
     buttonContainer: {
         gap: 16,
-        width: '100%',
-    },
+        width: '100%' },
     primaryButton: {
         backgroundColor: "#111827",
         paddingVertical: 18,
         borderRadius: 30,
         alignItems: "center",
-        width: '100%',
-    },
+        width: '100%' },
     primaryButtonText: {
         color: "#FFFFFF",
         fontSize: 16,
-        fontWeight: "700",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     loginLink: {
         alignItems: 'center',
-        paddingVertical: 10,
-    },
+        paddingVertical: 10 },
     loginLinkText: {
         color: "#111827",
         fontSize: 14,
-        fontWeight: "600",
-    },
-});
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' } });
