@@ -11,6 +11,15 @@ import {
 import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
+const AVATAR_COLORS = [
+    '#EFE8FF', // Purple
+    '#D1FAE5', // Green
+    '#FEE2E2', // Red
+    '#FFEDD5', // Orange
+    '#DBEAFE', // Blue
+    '#FEF9C3', // Yellow
+];
+
 export default function AvatarSelectionModal({
     visible,
     onClose,
@@ -18,7 +27,8 @@ export default function AvatarSelectionModal({
     currentSeed }) {
     const { theme } = useTheme();
     const [randomSeeds, setRandomSeeds] = useState([]);
-    const [selectedSeed, setSelectedSeed] = useState(currentSeed);
+    const [selectedSeed, setSelectedSeed] = useState('');
+    const [selectedBg, setSelectedBg] = useState(AVATAR_COLORS[0]);
 
     const generateRandomSeeds = () => {
         const seeds = Array.from({ length: 12 }, () =>
@@ -30,12 +40,19 @@ export default function AvatarSelectionModal({
     useEffect(() => {
         if (visible) {
             generateRandomSeeds();
-            setSelectedSeed(currentSeed);
+            if (typeof currentSeed === 'string' && currentSeed.includes('|')) {
+                const parts = currentSeed.split('|');
+                setSelectedSeed(parts[0]);
+                setSelectedBg(parts[1] || AVATAR_COLORS[0]);
+            } else {
+                setSelectedSeed(currentSeed);
+                setSelectedBg(AVATAR_COLORS[0]);
+            }
         }
     }, [visible, currentSeed]);
 
     const handleSelect = () => {
-        onSelect(selectedSeed);
+        onSelect(`${selectedSeed}|${selectedBg}`);
         onClose();
     };
 
@@ -77,13 +94,12 @@ export default function AvatarSelectionModal({
                                 key={seed}
                                 style={[
                                     styles.avatarOption,
-                                    { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F9FA' },
                                     selectedSeed === seed && styles.selectedAvatar,
                                 ]}
                                 onPress={() => setSelectedSeed(seed)}
                                 activeOpacity={0.7}
                             >
-                                <Avatar seed={seed} size={90} square={true} />
+                                <Avatar seed={seed} size={90} square={true} bgColor={selectedBg} />
                                 {selectedSeed === seed && (
                                     <View style={styles.checkmarkContainer}>
                                         <Ionicons name="checkmark-circle" size={28} color="#111827" />
@@ -92,6 +108,23 @@ export default function AvatarSelectionModal({
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
+
+                    <View style={styles.colorPalette}>
+                        <Text style={[styles.paletteTitle, { color: theme.textSecondary }]}>Avatar Background Color</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteColors}>
+                            {AVATAR_COLORS.map(color => (
+                                <TouchableOpacity
+                                    key={color}
+                                    style={[
+                                        styles.colorCircle,
+                                        { backgroundColor: color },
+                                        selectedBg === color && styles.selectedColorCircle
+                                    ]}
+                                    onPress={() => setSelectedBg(color)}
+                                />
+                            ))}
+                        </ScrollView>
+                    </View>
 
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
@@ -173,18 +206,27 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
-        position: "relative",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 2 },
+        position: "relative" },
     selectedAvatar: {
-        borderColor: "#111827",
-        shadowColor: "#111827",
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4 },
+        borderColor: "#111827" },
+    colorPalette: {
+        marginTop: 16,
+        marginBottom: 8 },
+    paletteTitle: {
+        fontSize: 14,
+        fontFamily: 'Fredoka-Bold',
+        marginBottom: 10 },
+    paletteColors: {
+        flexDirection: 'row',
+        gap: 12 },
+    colorCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: 'transparent' },
+    selectedColorCircle: {
+        borderColor: '#111827' },
     checkmarkContainer: {
         position: "absolute",
         top: 8,
