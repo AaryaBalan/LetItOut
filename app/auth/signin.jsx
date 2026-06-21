@@ -11,8 +11,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
-} from "react-native";
+    View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
@@ -231,8 +230,7 @@ export default function SignIn() {
                                             if (errors.confirmPassword)
                                                 setErrors({
                                                     ...errors,
-                                                    confirmPassword: null,
-                                                });
+                                                    confirmPassword: null });
                                         }}
                                         secureTextEntry={!showConfirmPassword}
                                         autoCapitalize="none"
@@ -339,51 +337,43 @@ export default function SignIn() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F3F4F6",
-    },
+        backgroundColor: "#F3F4F6" },
     keyboardView: {
-        flex: 1,
-    },
+        flex: 1 },
     scrollContent: {
-        flexGrow: 1,
-    },
+        flexGrow: 1 },
     topBar: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
+        paddingVertical: 12 },
     backButton: {
         width: 40,
         height: 40,
         justifyContent: "center",
-        alignItems: "flex-start",
-    },
+        alignItems: "flex-start" },
     appName: {
         fontSize: 20,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#111827",
-    },
+        fontFamily: 'Fredoka-Regular' },
     placeholder: {
-        width: 40,
-    },
+        width: 40 },
     content: {
         flex: 1,
         paddingHorizontal: 24,
-        paddingTop: 20,
-    },
+        paddingTop: 20 },
     title: {
         fontSize: 42,
-        fontWeight: "700",
         color: "#111827",
         marginBottom: 8,
-    },
+        fontFamily: 'Frederick' },
     subtitle: {
         fontSize: 16,
         color: "#6B7280",
         marginBottom: 32,
-    },
+        fontFamily: 'Frederick' },
     formCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 24,
@@ -392,22 +382,20 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
-        elevation: 3,
-    },
+        elevation: 3 },
     inputContainer: {
-        marginBottom: 20,
-    },
+        marginBottom: 20 },
     label: {
         fontSize: 12,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#111827",
         marginBottom: 8,
         letterSpacing: 0.5,
-    },
+        fontFamily: 'Fredoka-Regular' },
     optional: {
         color: "#9E9E9E",
-        fontWeight: "400",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     input: {
         backgroundColor: "#F3F4F6",
         borderRadius: 16,
@@ -417,13 +405,11 @@ const styles = StyleSheet.create({
         color: "#111827",
         borderWidth: 1,
         borderColor: "transparent",
-    },
+        fontFamily: 'Fredoka-Regular' },
     inputError: {
-        borderColor: "#EF5350",
-    },
+        borderColor: "#EF5350" },
     passwordContainer: {
-        position: "relative",
-    },
+        position: "relative" },
     passwordInput: {
         backgroundColor: "#F3F4F6",
         borderRadius: 16,
@@ -434,18 +420,17 @@ const styles = StyleSheet.create({
         color: "#111827",
         borderWidth: 1,
         borderColor: "transparent",
-    },
+        fontFamily: 'Fredoka-Regular' },
     eyeIcon: {
         position: "absolute",
         right: 16,
-        top: 16,
-    },
+        top: 16 },
     errorText: {
         color: "#EF5350",
         fontSize: 12,
         marginTop: 4,
         marginLeft: 4,
-    },
+        fontFamily: 'Fredoka-Regular' },
     createButton: {
         backgroundColor: "#FFD54F",
         paddingVertical: 18,
@@ -459,32 +444,28 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 4,
-    },
+        elevation: 4 },
     buttonDisabled: {
-        opacity: 0.6,
-    },
+        opacity: 0.6 },
     createButtonText: {
         color: "#111827",
         fontSize: 16,
-        fontWeight: "700",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     dividerContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginVertical: 24,
-    },
+        marginVertical: 24 },
     divider: {
         flex: 1,
         height: 1,
-        backgroundColor: "#E5E7EB",
-    },
+        backgroundColor: "#E5E7EB" },
     dividerText: {
         color: "#BDBDBD",
         paddingHorizontal: 16,
         fontSize: 12,
-        fontWeight: "500",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     googleButton: {
         backgroundColor: "#FFFFFF",
         borderWidth: 2,
@@ -494,44 +475,39 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 12,
-    },
+        gap: 12 },
     googleIconBox: {
         width: 24,
         height: 24,
         backgroundColor: "#E8E8E8",
         borderRadius: 4,
         justifyContent: "center",
-        alignItems: "center",
-    },
+        alignItems: "center" },
     googleIcon: {
         fontSize: 14,
-        fontWeight: "bold",
+        fontWeight: '400',
         color: "#6B7280",
-    },
+        fontFamily: 'Fredoka-Regular' },
     googleButtonText: {
         color: "#111827",
         fontSize: 16,
-        fontWeight: "600",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     footer: {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 32,
-    },
+        marginTop: 32 },
     footerText: {
         color: "#9E9E9E",
         fontSize: 15,
-    },
+        fontFamily: 'Fredoka-Regular' },
     linkText: {
         color: "#111827",
         fontSize: 15,
-        fontWeight: "700",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     heartContainer: {
         alignItems: "center",
         marginTop: 24,
-        marginBottom: 20,
-    },
-});
+        marginBottom: 20 } });

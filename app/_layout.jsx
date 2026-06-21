@@ -8,15 +8,37 @@ import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 import "../global.css";
 
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
+
 function RootLayoutContent() {
     const { isDark } = useTheme();
+
+    const [loaded] = useFonts({
+        'Ribeye': require('../assets/fonts/Ribeye-Regular.ttf'),
+        'AutourOne-Regular': require('../assets/fonts/AutourOne-Regular.ttf'),
+        'Frederick': require('../assets/fonts/FrederickatheGreat-Regular.ttf'),
+        'Fredoka-Bold': require('../assets/fonts/Fredoka-Bold.ttf'),
+        'Fredoka-Regular': require('../assets/fonts/Fredoka-Regular.ttf')
+    });
+
+    useEffect(() => {
+        if (loaded) {
+            SplashScreen.hideAsync();
+        }
+    }, [loaded]);
+
+    if (!loaded) {
+        return null;
+    }
 
     return (
         <AuthProvider>
             <Stack
                 screenOptions={{
-                    headerShown: false,
-                }}
+                    headerShown: false }}
             >
                 <Stack.Screen name="index" />
                 <Stack.Screen name="welcome" />

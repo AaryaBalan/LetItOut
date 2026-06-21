@@ -21,24 +21,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#f3f4f6',
         paddingVertical: 32,
         paddingHorizontal: 24,
-        marginTop: 48,
-    },
+        marginTop: 48 },
     container: {
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     logo: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: '400',
         color: '#6366f1',
         marginBottom: 8,
-    },
+        fontFamily: 'Fredoka-Regular' },
     tagline: {
         color: '#4b5563',
         textAlign: 'center',
         marginBottom: 16,
-    },
+        fontFamily: 'Fredoka-Regular' },
     copyright: {
         fontSize: 14,
         color: '#6b7280',
-    },
-});
+        fontFamily: 'Fredoka-Regular' } });

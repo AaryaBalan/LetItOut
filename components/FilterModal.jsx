@@ -5,8 +5,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-} from "react-native";
+    View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 
 export default function FilterModal({
@@ -19,8 +18,7 @@ export default function FilterModal({
     selectedMood,
     setSelectedMood,
     showAnonymousOnly,
-    setShowAnonymousOnly,
-}) {
+    setShowAnonymousOnly }) {
     const { theme } = useTheme();
 
     return (
@@ -71,7 +69,7 @@ export default function FilterModal({
                                         }}
                                     >
                                         <Ionicons name={opt.icon} size={16} color={isSelected ? '#111827' : theme.textSecondary} />
-                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#111827', fontWeight: '700' }]}>
+                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#111827', fontFamily: 'Fredoka-Bold' }]}>
                                             {opt.label}
                                         </Text>
                                     </TouchableOpacity>
@@ -94,7 +92,7 @@ export default function FilterModal({
                                 onPress={() => setShowAnonymousOnly(!showAnonymousOnly)}
                             >
                                 <Ionicons name="eye-off-outline" size={16} color={showAnonymousOnly ? '#111827' : theme.textSecondary} />
-                                <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: '#111827', fontWeight: '700' }]}>
+                                <Text style={[styles.modalChipText, { color: theme.textSecondary }, showAnonymousOnly && { color: '#111827', fontFamily: 'Fredoka-Bold' }]}>
                                     Anonymous Stories Only
                                 </Text>
                             </TouchableOpacity>
@@ -123,7 +121,7 @@ export default function FilterModal({
                                         onPress={() => setSelectedMood(opt.value)}
                                     >
                                         <Ionicons name={opt.icon} size={16} color={isSelected ? '#111827' : theme.textSecondary} />
-                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#111827', fontWeight: '700' }]}>
+                                        <Text style={[styles.modalChipText, { color: theme.textSecondary }, isSelected && { color: '#111827', fontFamily: 'Fredoka-Bold' }]}>
                                             {opt.label}
                                         </Text>
                                     </TouchableOpacity>
@@ -164,45 +162,38 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "flex-end",
-    },
+        justifyContent: "flex-end" },
     modalContent: {
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         paddingTop: 20,
         paddingBottom: 40,
         paddingHorizontal: 20,
-        maxHeight: "85%",
-    },
+        maxHeight: "85%" },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingBottom: 16,
         marginBottom: 20,
-    },
+        fontFamily: 'Frederick' },
     modalTitle: {
         fontSize: 18,
-        fontWeight: '800',
         letterSpacing: -0.5,
-    },
+        fontFamily: 'Frederick' },
     modalCloseBtn: {
-        padding: 4,
-    },
+        padding: 4 },
     modalSection: {
-        marginBottom: 20,
-    },
+        marginBottom: 20 },
     modalSectionTitle: {
         fontSize: 11,
-        fontWeight: '800',
         letterSpacing: 1,
         marginBottom: 10,
-    },
+        fontFamily: 'Frederick' },
     modalChipsRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
-    },
+        gap: 8 },
     modalChip: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -210,38 +201,33 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderRadius: 20,
-        borderWidth: 1,
-    },
+        borderWidth: 1 },
     modalChipText: {
         fontSize: 13,
-        fontWeight: '600',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     modalFooter: {
         flexDirection: 'row',
         gap: 12,
-        marginTop: 12,
-    },
+        marginTop: 12 },
     modalResetBtn: {
         flex: 1,
         height: 48,
         borderRadius: 24,
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     modalResetText: {
         fontSize: 15,
-        fontWeight: '700',
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     modalApplyBtn: {
         flex: 2,
         height: 48,
         borderRadius: 24,
         justifyContent: 'center',
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     modalApplyText: {
         color: '#FFF',
         fontSize: 15,
-        fontWeight: '700',
-    },
-});
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' } });

@@ -21,7 +21,6 @@ import { useEffect, useState } from "react";
 import {
     Alert,
     FlatList,
-    Image,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -47,7 +46,7 @@ import {
     createCommentNotification,
     createHugNotification,
     createLikeNotification,
-    createMeTooNotification,
+    createMeTooNotification
 } from "../../utils/notifications";
 
 const getCategoryColors = (category, isDark) => {
@@ -120,7 +119,7 @@ export default function PostDetail() {
                         comments: data.comments || [],
                         isAnonymous: data.isAnonymous,
                         authorName: data.authorName || "Anonymous",
-                        authorId: data.authorId,
+                        authorId: data.authorId
                     };
                     setPost(fetchedPost);
                     // Reactions are fetched separately in real-time
@@ -187,7 +186,7 @@ export default function PostDetail() {
                     const data = doc.data();
                     console.log("Comment data:", {
                         postId: data.postId,
-                        comment: data.comment,
+                        comment: data.comment
                     });
                     return {
                         id: doc.id,
@@ -198,7 +197,7 @@ export default function PostDetail() {
                             : "Just now",
                         commentorId: data.commentorId,
                         createdAt: data.createdAt,
-                        reactionCount: data.reactionCount || 0,
+                        reactionCount: data.reactionCount || 0
                     };
                 });
                 // Sort by createdAt on client side
@@ -412,7 +411,7 @@ export default function PostDetail() {
                         friendsList.push({
                             id: friendId,
                             name: userData.displayName || "Anonymous",
-                            profileCode: userData.profileCode || userData.email || null,
+                            profileCode: userData.profileCode || userData.email || null
                         });
                     }
                 }
@@ -441,7 +440,7 @@ export default function PostDetail() {
                 lastMessage: shareText,
                 lastMessageTimestamp: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                [`unreadCount_${friendId}`]: increment(1),
+                [`unreadCount_${friendId}`]: increment(1)
             }, { merge: true });
 
             await addDoc(collection(db, "chats", chatId, "messages"), {
@@ -458,7 +457,7 @@ export default function PostDetail() {
                     timestamp: post.timestamp || "",
                     authorName: post.authorName || "Anonymous",
                     isAnonymous: post.isAnonymous ?? true,
-                    authorId: post.authorId || "",
+                    authorId: post.authorId || ""
                 }
             });
 
@@ -577,11 +576,11 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "reactions", userReactions.hug));
                 // Decrement reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1),
+                    reactionCount: increment(-1)
                 });
                 // Decrement user's loveSent count
                 await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(-1),
+                    loveSent: increment(-1)
                 });
             } else {
                 // Add reaction
@@ -591,15 +590,15 @@ export default function PostDetail() {
                     userName: user.displayName || "Anonymous",
                     type: "hug",
                     timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString(),
+                    createdAt: new Date().toISOString()
                 });
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1),
+                    reactionCount: increment(1)
                 });
                 // Increment user's loveSent count
                 await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(1),
+                    loveSent: increment(1)
                 });
 
                 // Create notification for post author
@@ -631,11 +630,11 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "reactions", userReactions.metoo));
                 // Decrement reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1),
+                    reactionCount: increment(-1)
                 });
                 // Decrement user's loveSent count
                 await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(-1),
+                    loveSent: increment(-1)
                 });
             } else {
                 // Add reaction
@@ -645,15 +644,15 @@ export default function PostDetail() {
                     userName: user.displayName || "Anonymous",
                     type: "metoo",
                     timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString(),
+                    createdAt: new Date().toISOString()
                 });
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1),
+                    reactionCount: increment(1)
                 });
                 // Increment user's loveSent count
                 await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(1),
+                    loveSent: increment(1)
                 });
 
                 // Create notification for post author
@@ -685,11 +684,11 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "reactions", userReactions.like));
                 // Decrement reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1),
+                    reactionCount: increment(-1)
                 });
                 // Decrement user's loveSent count
                 await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(-1),
+                    loveSent: increment(-1)
                 });
             } else {
                 // Add reaction
@@ -699,15 +698,15 @@ export default function PostDetail() {
                     userName: user.displayName || "Anonymous",
                     type: "like",
                     timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString(),
+                    createdAt: new Date().toISOString()
                 });
                 // Increment reactionCount
                 await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1),
+                    reactionCount: increment(1)
                 });
                 // Increment user's loveSent count
                 await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(1),
+                    loveSent: increment(1)
                 });
 
                 // Create notification for post author
@@ -756,12 +755,12 @@ export default function PostDetail() {
 
             // Increment reactionCount (comments count towards total)
             await updateDoc(doc(db, "posts", String(id)), {
-                reactionCount: increment(1),
+                reactionCount: increment(1)
             });
 
             // Increment user's loveSent count
             await updateDoc(doc(db, "users", user.uid), {
-                loveSent: increment(1),
+                loveSent: increment(1)
             });
 
             // Create notification for post author or parent comment author
@@ -812,7 +811,7 @@ export default function PostDetail() {
                 await deleteDoc(doc(db, "commentSupports", userCommentSupports[commentId]));
                 // Decrement reactionCount
                 await updateDoc(commentDocRef, {
-                    reactionCount: increment(-1),
+                    reactionCount: increment(-1)
                 });
             } else {
                 // Add support
@@ -821,11 +820,11 @@ export default function PostDetail() {
                     userId: user.uid,
                     userName: user.displayName || "Anonymous",
                     timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString(),
+                    createdAt: new Date().toISOString()
                 });
                 // Increment reactionCount
                 await updateDoc(commentDocRef, {
-                    reactionCount: increment(1),
+                    reactionCount: increment(1)
                 });
             }
         } catch (error) {
@@ -898,7 +897,7 @@ export default function PostDetail() {
                                 "Failed to delete post. Please try again.",
                             );
                         }
-                    },
+                    }
                 },
             ],
         );
@@ -918,7 +917,7 @@ export default function PostDetail() {
         textTertiary: "#6B7280",
         placeholder: "#6B7280",
         inputBorder: "#333333",
-        statusBar: "light-content",
+        statusBar: "light-content"
     };
 
     const activeTheme = theme.isDark ? blackTheme : theme;
@@ -1092,7 +1091,7 @@ export default function PostDetail() {
                                     <TouchableOpacity
                                         style={[
                                             styles.actionButton,
-                                            { 
+                                            {
                                                 backgroundColor: likeActive ? (activeTheme.isDark ? "#2E224D" : "#EFE8FF") : "transparent",
                                                 borderWidth: 1,
                                                 borderColor: likeActive ? "transparent" : "#6366F1"
@@ -1107,7 +1106,7 @@ export default function PostDetail() {
                                     <TouchableOpacity
                                         style={[
                                             styles.actionButton,
-                                            { 
+                                            {
                                                 backgroundColor: hugActive ? (activeTheme.isDark ? "#2A271E" : "#FEF9E6") : "transparent",
                                                 borderWidth: 1,
                                                 borderColor: hugActive ? "transparent" : "#F2C94C"
@@ -1122,7 +1121,7 @@ export default function PostDetail() {
                                     <TouchableOpacity
                                         style={[
                                             styles.actionButton,
-                                            { 
+                                            {
                                                 backgroundColor: meTooActive ? (activeTheme.isDark ? "#1E2A22" : "#E9F7EF") : "transparent",
                                                 borderWidth: 1,
                                                 borderColor: meTooActive ? "transparent" : "#27AE60"
@@ -1198,7 +1197,7 @@ export default function PostDetail() {
                             <View style={styles.replyIndicatorContent}>
                                 <Ionicons name="arrow-undo" size={16} color="#111827" />
                                 <Text style={[styles.replyingToText, { color: activeTheme.textSecondary }]}>
-                                    Replying to <Text style={{ color: '#111827', fontWeight: '600' }}>@{replyingTo.username || 'Anonymous'}</Text>
+                                    Replying to <Text style={{ color: '#111827', fontFamily: 'Fredoka-Bold' }}>@{replyingTo.username || 'Anonymous'}</Text>
                                 </Text>
                             </View>
                             <TouchableOpacity onPress={() => setReplyingTo(null)}>
@@ -1290,18 +1289,19 @@ export default function PostDetail() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flex: 1
     },
     flex1: {
-        flex: 1,
+        flex: 1
     },
     errorContainer: {
         flex: 1,
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     errorText: {
         fontSize: 16,
+        fontFamily: 'Fredoka-Regular'
     },
     header: {
         flexDirection: "row",
@@ -1309,29 +1309,29 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderBottomWidth: 1,
+        borderBottomWidth: 1
     },
     backButton: {
         width: 40,
         height: 40,
         justifyContent: "center",
-        alignItems: "flex-start",
+        alignItems: "flex-start"
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: "700",
+        fontFamily: 'Frederick'
     },
     moreButton: {
         width: 40,
         height: 40,
         justifyContent: "center",
-        alignItems: "flex-end",
+        alignItems: "flex-end"
     },
     scrollView: {
-        flex: 1,
+        flex: 1
     },
     scrollContent: {
-        paddingBottom: 100,
+        paddingBottom: 100
     },
     postCard: {
         backgroundColor: "#FFFFFF",
@@ -1341,12 +1341,12 @@ const styles = StyleSheet.create({
         marginTop: 16,
         elevation: 0.5,
         position: 'relative',
-        overflow: 'hidden',
+        overflow: 'hidden'
     },
     postCardContent: {
         paddingVertical: 20,
         paddingHorizontal: 10,
-        zIndex: 1,
+        zIndex: 1
     },
     blobContainer: {
         position: 'absolute',
@@ -1356,12 +1356,12 @@ const styles = StyleSheet.create({
         height: 200,
         zIndex: 0,
         justifyContent: 'flex-start',
-        alignItems: 'flex-end',
+        alignItems: 'flex-end'
     },
     studyBlobWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative',
+        position: 'relative'
     },
     studyBlobShape: {
         position: 'absolute',
@@ -1370,18 +1370,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#E9F7EF',
         borderRadius: 125,
         top: -50,
-        right: -50,
+        right: -50
     },
     studyBlobIcon: {
         position: 'absolute',
         top: 30,
         right: 30,
-        opacity: 0.7,
+        opacity: 0.7
     },
     stressBlobWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative',
+        position: 'relative'
     },
     stressBlobShape: {
         position: 'absolute',
@@ -1391,18 +1391,18 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 100,
         top: 0,
         right: 0,
-        transform: [{ rotate: '-45deg' }],
+        transform: [{ rotate: '-45deg' }]
     },
     stressBlobIcon: {
         position: 'absolute',
         top: 30,
         right: 40,
-        opacity: 0.7,
+        opacity: 0.7
     },
     relationshipBlobWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative',
+        position: 'relative'
     },
     relationshipBlobShape: {
         position: 'absolute',
@@ -1411,18 +1411,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#FEF9E6',
         borderRadius: 110,
         top: -20,
-        right: -50,
+        right: -50
     },
     relationshipBlobIcon: {
         position: 'absolute',
         top: 40,
         right: 30,
-        opacity: 0.7,
+        opacity: 0.7
     },
     familyBlobWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative',
+        position: 'relative'
     },
     familyBlobShape: {
         position: 'absolute',
@@ -1432,18 +1432,18 @@ const styles = StyleSheet.create({
         borderRadius: 100,
         top: -60,
         right: -40,
-        transform: [{ skewX: '-15deg' }],
+        transform: [{ skewX: '-15deg' }]
     },
     familyBlobIcon: {
         position: 'absolute',
         top: 40,
         right: 40,
-        opacity: 0.7,
+        opacity: 0.7
     },
     mentalBlobWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative',
+        position: 'relative'
     },
     mentalBlobShape: {
         position: 'absolute',
@@ -1452,18 +1452,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#EEF2FF',
         borderRadius: 100,
         top: -30,
-        right: -30,
+        right: -30
     },
     mentalBlobIcon: {
         position: 'absolute',
         top: 30,
         right: 30,
-        opacity: 0.7,
+        opacity: 0.7
     },
     otherBlobWrapper: {
         width: '100%',
         height: '100%',
-        position: 'relative',
+        position: 'relative'
     },
     otherBlobShape: {
         position: 'absolute',
@@ -1476,40 +1476,43 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 20,
         top: -30,
         right: -40,
-        transform: [{ rotate: '-15deg' }],
+        transform: [{ rotate: '-15deg' }]
     },
     otherBlobGhost: {
         position: 'absolute',
         top: 40,
         right: 30,
-        opacity: 0.7,
+        opacity: 0.7
     },
     postHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 16,
+        fontFamily: 'Frederick'
     },
     categoryBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12,
+        borderRadius: 12
     },
     categoryText: {
         fontSize: 11,
-        fontWeight: "700",
+        fontWeight: '400',
         letterSpacing: 0.5,
+        fontFamily: 'Fredoka-Bold'
     },
     timestamp: {
         fontSize: 13,
+        fontFamily: 'Fredoka-Regular'
     },
     authorSection: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 16,
+        marginBottom: 16
     },
     avatarWrapper: {
-        marginRight: 10,
+        marginRight: 10
     },
     avatarContainer: {
         width: 36,
@@ -1517,32 +1520,34 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 10,
+        marginRight: 10
     },
     avatarText: {
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     authorName: {
         fontSize: 15,
-        fontWeight: "600",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Bold'
     },
     postTitle: {
         fontSize: 24,
-        fontWeight: "800",
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+        fontFamily: 'Frederick',
         marginBottom: 12,
-        lineHeight: 32,
+        lineHeight: 32
     },
     postDescription: {
         fontSize: 15,
         lineHeight: 24,
         marginBottom: 20,
+        fontFamily: 'Fredoka-Regular'
     },
     hugsSentContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 20,
+        marginBottom: 20
     },
     hugsSentPill: {
         flexDirection: "row",
@@ -1551,7 +1556,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
-        borderWidth: 1,
+        borderWidth: 1
     },
     hugIcon: {
         width: 24,
@@ -1559,17 +1564,18 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 2,
+        borderWidth: 2
     },
     hugsSentText: {
         fontSize: 10,
-        fontWeight: "700",
+        fontWeight: '400',
         marginLeft: 10,
         letterSpacing: 0.5,
+        fontFamily: 'Fredoka-Regular'
     },
     actionButtons: {
         flexDirection: "row",
-        gap: 12,
+        gap: 12
     },
     actionButton: {
         borderWidth: 1,
@@ -1580,24 +1586,25 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         paddingVertical: 12,
         borderRadius: 20,
-        gap: 6,
+        gap: 6
     },
     actionButtonActive: {
         backgroundColor: "#4A148C",
         borderWidth: 1,
-        borderColor: "#4A148C",
+        borderColor: "#4A148C"
     },
     actionButtonText: {
         fontSize: 13,
-        fontWeight: "600",
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular'
     },
     actionButtonTextActive: {
-        color: "#E1BEE7",
+        color: "#E1BEE7"
     },
     repliesSection: {
         padding: 20,
         marginTop: 0,
-        borderTopWidth: 1,
+        borderTopWidth: 1
     },
     repliesHeader: {
         flexDirection: "row",
@@ -1606,16 +1613,18 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         paddingBottom: 12,
         borderBottomWidth: 1,
+        fontFamily: 'Frederick'
     },
     repliesTitle: {
         fontSize: 18,
-        fontWeight: "700",
+        fontFamily: 'Frederick'
     },
     repliesCountText: {
         fontSize: 11,
-        fontWeight: "700",
+        fontWeight: '400',
         letterSpacing: 0.5,
         color: "#6366F1",
+        fontFamily: 'Fredoka-Regular'
     },
     commentsContainer: {
         position: 'relative',
@@ -1628,20 +1637,20 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: 1.5,
-        zIndex: 0,
+        zIndex: 0
     },
     commentItem: {
-        paddingLeft: 0,
+        paddingLeft: 0
     },
     commentCard: {
         backgroundColor: "#F8F9FA",
         padding: 16,
         borderLeftWidth: 3,
-        borderLeftColor: "#E8E4F3",
+        borderLeftColor: "#E8E4F3"
     },
     commentHeaderSection: {
         flexDirection: "row",
-        gap: 12,
+        gap: 12
     },
     commentAvatarPlaceholder: {
         width: 32,
@@ -1649,78 +1658,85 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         backgroundColor: "#E8E4F3",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     commentHeaderContent: {
-        flex: 1,
+        flex: 1
     },
     commentHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 8,
+        fontFamily: 'Frederick'
     },
     headerRight: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
+        gap: 8
     },
     headerButton: {
-        padding: 4,
+        padding: 4
     },
     commentUsername: {
         fontSize: 14,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#111827",
+        fontFamily: 'Fredoka-Bold'
     },
     commentTimestamp: {
         fontSize: 12,
         color: "#9CA3AF",
+        fontFamily: 'Fredoka-Regular'
     },
     commentText: {
         fontSize: 14,
         color: "#374151",
         lineHeight: 20,
         marginBottom: 12,
+        fontFamily: 'Fredoka-Regular'
     },
     commentActions: {
         flexDirection: "row",
         alignItems: "center",
-        marginTop: 8,
+        marginTop: 8
     },
     supportButton: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 6,
+        gap: 6
     },
     supportText: {
         fontSize: 13,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#66BB6A",
         letterSpacing: 0.5,
+        fontFamily: 'Fredoka-Regular'
     },
     noCommentsContainer: {
         alignItems: "center",
-        paddingVertical: 40,
+        paddingVertical: 40
     },
     noCommentsText: {
         fontSize: 14,
         color: "#9CA3AF",
         textAlign: "center",
-        fontStyle: "italic",
+        fontStyle: "",
+        fontFamily: 'Fredoka-Regular'
     },
     reportButton: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         paddingVertical: 16,
-        gap: 8,
+        gap: 8
     },
     reportText: {
         fontSize: 12,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#9E9E9E",
         letterSpacing: 0.5,
+        fontFamily: 'Fredoka-Regular'
     },
     replyIndicator: {
         flexDirection: 'row',
@@ -1728,15 +1744,16 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderTopWidth: 1,
+        borderTopWidth: 1
     },
     replyIndicatorContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 8
     },
     replyingToText: {
         fontSize: 14,
+        fontFamily: 'Fredoka-Regular'
     },
     bottomInput: {
         flexDirection: "row",
@@ -1744,7 +1761,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderTopWidth: 1,
-        borderTopColor: "#333333",
+        borderTopColor: "#333333"
     },
     input: {
         flex: 1,
@@ -1755,9 +1772,10 @@ const styles = StyleSheet.create({
         marginRight: 10,
         borderWidth: 1,
         borderColor: "#333333",
+        fontFamily: 'Fredoka-Regular'
     },
     emojiButton: {
-        padding: 8,
+        padding: 8
     },
     sendButton: {
         width: 44,
@@ -1771,18 +1789,18 @@ const styles = StyleSheet.create({
         shadowColor: "#6366F1",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
-        shadowRadius: 4,
+        shadowRadius: 4
     },
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.7)",
-        justifyContent: "flex-end",
+        justifyContent: "flex-end"
     },
     modalContent: {
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         paddingBottom: 40,
-        maxHeight: "80%",
+        maxHeight: "80%"
     },
     modalHeader: {
         flexDirection: "row",
@@ -1791,21 +1809,23 @@ const styles = StyleSheet.create({
         padding: 20,
         borderBottomWidth: 1,
         borderBottomColor: "#333333",
+        fontFamily: 'Frederick'
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: "700",
         color: "#FFFFFF",
+        fontFamily: 'Frederick'
     },
     emptyState: {
         padding: 40,
         alignItems: "center",
-        gap: 16,
+        gap: 16
     },
     emptyText: {
         fontSize: 16,
         color: "#BDBDBD",
         textAlign: "center",
+        fontFamily: 'Fredoka-Regular'
     },
     friendItem: {
         flexDirection: "row",
@@ -1813,7 +1833,7 @@ const styles = StyleSheet.create({
         padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: "#333333",
-        gap: 12,
+        gap: 12
     },
     defaultAvatar: {
         width: 40,
@@ -1821,12 +1841,13 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: "#333333",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     friendName: {
         flex: 1,
         fontSize: 16,
-        fontWeight: "500",
+        fontWeight: '400',
         color: "#FFFFFF",
-    },
+        fontFamily: 'Fredoka-Regular'
+    }
 });

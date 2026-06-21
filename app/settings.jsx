@@ -12,8 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-} from "react-native";
+  View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -225,98 +224,83 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
+    flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
+    borderBottomWidth: 1 },
   backButton: {
-    padding: 4,
-  },
+    padding: 4 },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "700",
-  },
+    fontFamily: 'Frederick' },
   placeholder: {
-    width: 32,
-  },
+    width: 32 },
   content: {
-    flex: 1,
-  },
+    flex: 1 },
   section: {
     marginTop: 20,
-    paddingVertical: 8,
-  },
+    paddingVertical: 8 },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: "700",
     paddingHorizontal: 20,
     paddingBottom: 12,
     letterSpacing: 1,
-  },
+    fontFamily: 'Frederick' },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
+    borderBottomWidth: 1 },
   settingInfo: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
-  },
+    flex: 1 },
   iconContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
-  },
+    marginRight: 16 },
   settingText: {
-    flex: 1,
-  },
+    flex: 1 },
   settingLabel: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '400',
     marginBottom: 4,
-  },
+    fontFamily: 'Fredoka-Regular' },
   settingDescription: {
     fontSize: 13,
-  },
+    fontFamily: 'Fredoka-Regular' },
   infoItem: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
+    borderBottomWidth: 1 },
   infoLabel: {
     fontSize: 12,
     marginBottom: 6,
-    fontWeight: "600",
+    fontWeight: '400',
     textTransform: "uppercase",
     letterSpacing: 0.5,
-  },
+    fontFamily: 'Fredoka-Regular' },
   infoValue: {
     fontSize: 15,
-    fontWeight: "500",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
+    justifyContent: "flex-end" },
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: "85%",
-  },
+    maxHeight: "85%" },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -324,45 +308,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderBottomWidth: 1,
-  },
+    fontFamily: 'Frederick' },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "700",
-  },
+    fontFamily: 'Frederick' },
   modalBody: {
-    padding: 20,
-  },
+    padding: 20 },
   inputLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '400',
     marginBottom: 8,
     marginTop: 12,
-  },
+    fontFamily: 'Fredoka-Regular' },
   input: {
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
     borderWidth: 1,
-  },
+    fontFamily: 'Fredoka-Regular' },
   changeButton: {
     backgroundColor: "#111827",
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
-    marginTop: 24,
-  },
+    marginTop: 24 },
   buttonDisabled: {
-    opacity: 0.6,
-  },
+    opacity: 0.6 },
   changeButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "700",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   passwordHint: {
     fontSize: 12,
     textAlign: "center",
     marginTop: 12,
-  },
-});
+    fontFamily: 'Fredoka-Regular' } });

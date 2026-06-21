@@ -7,8 +7,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-} from "react-native";
+    View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import Avatar from "./Avatar";
 
@@ -16,8 +15,7 @@ export default function AvatarSelectionModal({
     visible,
     onClose,
     onSelect,
-    currentSeed,
-}) {
+    currentSeed }) {
     const { theme } = useTheme();
     const [randomSeeds, setRandomSeeds] = useState([]);
     const [selectedSeed, setSelectedSeed] = useState(currentSeed);
@@ -120,8 +118,7 @@ const styles = StyleSheet.create({
     backdrop: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "flex-end",
-    },
+        justifyContent: "flex-end" },
     modalContainer: {
         width: "100%",
         backgroundColor: "#FFFFFF",
@@ -135,43 +132,38 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
-        elevation: 8,
-    },
+        elevation: 8 },
     handleBar: {
         width: 40,
         height: 4,
         backgroundColor: "#E5E7EB",
         borderRadius: 2,
         alignSelf: "center",
-        marginBottom: 20,
-    },
+        marginBottom: 20 },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        marginBottom: 24,
-    },
+        marginBottom: 24 },
     title: {
         fontSize: 26,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#1F2937",
         marginBottom: 4,
-    },
+        fontFamily: 'Fredoka-Regular' },
     subtitle: {
         fontSize: 14,
         color: "#9E9E9E",
-        fontWeight: "400",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     refreshButton: {
-        padding: 4,
-    },
+        padding: 4 },
     avatarGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
         justifyContent: "space-between",
         gap: 10,
-        paddingBottom: 12,
-    },
+        paddingBottom: 12 },
     avatarOption: {
         width: "31%",
         aspectRatio: 1,
@@ -186,15 +178,13 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 4,
-        elevation: 2,
-    },
+        elevation: 2 },
     selectedAvatar: {
         borderColor: "#111827",
         shadowColor: "#111827",
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 4,
-    },
+        elevation: 4 },
     checkmarkContainer: {
         position: "absolute",
         top: 8,
@@ -205,13 +195,11 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
-        elevation: 3,
-    },
+        elevation: 3 },
     buttonContainer: {
         flexDirection: "row",
         gap: 12,
-        marginTop: 24,
-    },
+        marginTop: 24 },
     button: {
         flex: 1,
         paddingVertical: 16,
@@ -223,24 +211,20 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        elevation: 2,
-    },
+        elevation: 2 },
     cancelButton: {
-        backgroundColor: "#F3F4F6",
-    },
+        backgroundColor: "#F3F4F6" },
     selectButton: {
         backgroundColor: "#111827",
         shadowColor: "#111827",
-        shadowOpacity: 0.3,
-    },
+        shadowOpacity: 0.3 },
     cancelButtonText: {
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#6B7280",
-    },
+        fontFamily: 'Fredoka-Regular' },
     selectButtonText: {
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#FFFFFF",
-    },
-});
+        fontFamily: 'Fredoka-Regular' } });

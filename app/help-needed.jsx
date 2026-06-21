@@ -30,8 +30,7 @@ export default function HelpNeeded() {
         const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
             const fetchedPosts = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data(),
-            }));
+                ...doc.data() }));
 
             // Sort by most recent
             fetchedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -92,60 +91,49 @@ export default function HelpNeeded() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-    },
+        flex: 1 },
     header: {
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderBottomWidth: 1,
-    },
+        borderBottomWidth: 1 },
     backButton: {
         padding: 8,
-        marginRight: 8,
-    },
+        marginRight: 8 },
     headerContent: {
-        flex: 1,
-    },
+        flex: 1 },
     headerTitle: {
         fontSize: 20,
-        fontWeight: "700",
         marginBottom: 2,
-    },
+        fontFamily: 'Frederick' },
     headerSubtitle: {
         fontSize: 13,
-        fontWeight: "400",
-    },
+        fontFamily: 'Frederick' },
     content: {
-        flex: 1,
-    },
+        flex: 1 },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingTop: 100,
-    },
+        paddingTop: 100 },
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
         paddingTop: 100,
-        paddingHorizontal: 40,
-    },
+        paddingHorizontal: 40 },
     emptyText: {
         fontSize: 18,
-        fontWeight: "600",
+        fontWeight: '400',
         marginTop: 24,
         textAlign: "center",
-    },
+        fontFamily: 'Fredoka-Regular' },
     emptySubtext: {
         fontSize: 14,
         marginTop: 8,
         textAlign: "center",
-    },
+        fontFamily: 'Fredoka-Regular' },
     postsContainer: {
         padding: 16,
-        gap: 16,
-    },
-});
+        gap: 16 } });

@@ -14,8 +14,7 @@ export default function Avatar({ seed, size = 40, style, square = false }) {
                     width: size,
                     height: size,
                     borderRadius: borderRadius,
-                    backgroundColor: "#EFE8FF",
-                },
+                    backgroundColor: "#EFE8FF" },
                 style,
             ]}
         />

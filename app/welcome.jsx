@@ -6,8 +6,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-} from "react-native";
+    View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 
@@ -118,39 +117,34 @@ export default function Welcome() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#ffffff",
-    },
+        backgroundColor: "#ffffff" },
     content: {
         flex: 1,
         paddingHorizontal: 24,
         justifyContent: "space-between",
-        paddingVertical: 40,
-    },
+        paddingVertical: 40 },
     header: {
         alignItems: "center",
-        marginTop: 40,
-    },
+        marginTop: 40 },
     logo: {
         fontSize: 32,
-        fontWeight: "bold",
+        fontWeight: '400',
         color: "#6366f1",
         marginBottom: 32,
-    },
+        fontFamily: 'Fredoka-Regular' },
     title: {
         fontSize: 28,
-        fontWeight: "bold",
         color: "#1f2937",
         marginBottom: 12,
-    },
+        fontFamily: 'Frederick' },
     subtitle: {
         fontSize: 16,
         color: "#6b7280",
         textAlign: "center",
         paddingHorizontal: 20,
-    },
+        fontFamily: 'Frederick' },
     buttonContainer: {
-        width: "100%",
-    },
+        width: "100%" },
     googleButton: {
         backgroundColor: "#ffffff",
         borderWidth: 2,
@@ -165,37 +159,33 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
-        elevation: 2,
-    },
+        elevation: 2 },
     googleIconContainer: {
-        marginRight: 12,
-    },
+        marginRight: 12 },
     googleIcon: {
         fontSize: 24,
-        fontWeight: "bold",
+        fontWeight: '400',
         color: "#4285f4",
-    },
+        fontFamily: 'Fredoka-Regular' },
     googleButtonText: {
         color: "#1f2937",
         fontSize: 16,
-        fontWeight: "600",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     dividerContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginVertical: 24,
-    },
+        marginVertical: 24 },
     divider: {
         flex: 1,
         height: 1,
-        backgroundColor: "#e5e7eb",
-    },
+        backgroundColor: "#e5e7eb" },
     dividerText: {
         color: "#9ca3af",
         paddingHorizontal: 16,
         fontSize: 14,
-        fontWeight: "500",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     signUpButton: {
         backgroundColor: "#6366f1",
         paddingVertical: 16,
@@ -206,32 +196,27 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 5,
-    },
+        elevation: 5 },
     signUpButtonText: {
         color: "#ffffff",
         fontSize: 16,
-        fontWeight: "bold",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     loginButton: {
         paddingVertical: 16,
-        alignItems: "center",
-    },
+        alignItems: "center" },
     loginButtonText: {
         color: "#6366f1",
         fontSize: 14,
-        fontWeight: "600",
-    },
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' },
     buttonDisabled: {
-        opacity: 0.6,
-    },
+        opacity: 0.6 },
     footer: {
-        paddingHorizontal: 20,
-    },
+        paddingHorizontal: 20 },
     footerText: {
         fontSize: 12,
         color: "#9ca3af",
         textAlign: "center",
         lineHeight: 18,
-    },
-});
+        fontFamily: 'Fredoka-Regular' } });

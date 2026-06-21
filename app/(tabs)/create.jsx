@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -17,7 +16,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
@@ -111,8 +110,7 @@ export default function CreatePost() {
         feelPercentage: moodLevel, // Stored as -100 to 100
         timestamp: serverTimestamp(),
         createdAt: new Date().toISOString(),
-        reactionCount: 0,
-      };
+        reactionCount: 0 };
 
       // Add authorId only if not anonymous (Firestore doesn't accept undefined)
       if (!isAnonymous) {
@@ -127,8 +125,7 @@ export default function CreatePost() {
       // Increment postCount for non-anonymous posts
       if (!isAnonymous && user.uid) {
         await updateDoc(doc(db, "users", user.uid), {
-          postCount: increment(1),
-        });
+          postCount: increment(1) });
       }
 
       Alert.alert(
@@ -137,8 +134,7 @@ export default function CreatePost() {
         [
           {
             text: "View Feed",
-            onPress: () => router.push("/(tabs)/home"),
-          },
+            onPress: () => router.push("/(tabs)/home") },
           { text: "OK", style: "cancel" },
         ],
       );
@@ -470,63 +466,52 @@ export default function CreatePost() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
+    flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
+    paddingVertical: 12 },
   cancelButton: {
-    padding: 4,
-  },
+    padding: 4 },
   headerTitle: {
     fontSize: 16,
-    fontWeight: "700",
-  },
+    fontFamily: 'Frederick' },
   postButton: {
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 24,
     justifyContent: "center",
-    alignItems: "center",
-  },
+    alignItems: "center" },
   postButtonText: {
     fontSize: 14,
-    fontWeight: "700",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   keyboardView: {
-    flex: 1,
-  },
+    flex: 1 },
   scrollView: {
-    flex: 1,
-  },
+    flex: 1 },
   scrollContent: {
     paddingTop: 12,
     paddingBottom: 100,
-    flexGrow: 1,
-  },
+    flexGrow: 1 },
   identityRow: {
     marginHorizontal: 16,
-    marginVertical: 6,
-  },
+    marginVertical: 6 },
   identityPill: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
-    alignSelf: "flex-start",
-  },
+    alignSelf: "flex-start" },
   identityAvatar: {
-    marginRight: 6,
-  },
+    marginRight: 6 },
   identityText: {
     fontSize: 12,
-    fontWeight: "600",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   mainCard: {
     marginHorizontal: 16,
     borderRadius: 20,
@@ -536,38 +521,34 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
     shadowRadius: 10,
-    elevation: 2,
-  },
+    elevation: 2 },
   inputLabel: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '400',
     marginBottom: 8,
-  },
+    fontFamily: 'Fredoka-Regular' },
   titleInput: {
     fontSize: 26,
-    fontWeight: "700",
+    fontWeight: '400',
     marginBottom: 20,
     padding: 0,
-  },
+    fontFamily: 'Fredoka-Regular' },
   flairRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-  },
+    flexWrap: "wrap" },
   flairPill: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    gap: 6,
-  },
+    gap: 6 },
   flairText: {
     fontSize: 13,
-    fontWeight: "600",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   flairClose: {
-    marginLeft: 2,
-  },
+    marginLeft: 2 },
   addFlairPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -576,12 +557,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderStyle: "dashed",
-    gap: 6,
-  },
+    gap: 6 },
   addFlairText: {
     fontSize: 13,
-    fontWeight: "600",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   bodyInput: {
     fontSize: 16,
     marginTop: 12,
@@ -590,12 +570,12 @@ const styles = StyleSheet.create({
     minHeight: 120,
     textAlignVertical: "top",
     padding: 0,
-  },
+    fontFamily: 'Fredoka-Regular' },
   characterCount: {
     fontSize: 12,
     textAlign: "right",
     marginBottom: 0,
-  },
+    fontFamily: 'Fredoka-Regular' },
   bottomCard: {
     marginHorizontal: 16,
     borderRadius: 20,
@@ -606,84 +586,73 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
     shadowRadius: 10,
-    elevation: 2,
-  },
+    elevation: 2 },
   moodSection: {
-    gap: 8,
-  },
+    gap: 8 },
   moodHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-  },
+    fontFamily: 'Frederick' },
   moodLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '400',
     flex: 1,
-  },
+    fontFamily: 'Fredoka-Regular' },
   moodValue: {
     fontSize: 14,
-    fontWeight: "700",
-  },
+    fontWeight: '400',
+    fontFamily: 'Fredoka-Regular' },
   slider: {
     width: "100%",
-    height: 40,
-  },
+    height: 40 },
   sliderTicks: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 4,
-  },
+    paddingHorizontal: 4 },
   tickText: {
     fontSize: 10,
     color: "#9E9E9E",
-  },
+    fontFamily: 'Fredoka-Regular' },
   separator: {
     height: 1,
-    marginVertical: 14,
-  },
+    marginVertical: 14 },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-  },
+    justifyContent: "space-between" },
   toggleTextContainer: {
     flex: 1,
-    paddingRight: 10,
-  },
+    paddingRight: 10 },
   toggleTitle: {
     fontSize: 15,
-    fontWeight: "600",
-  },
+    fontFamily: 'Frederick' },
   toggleSubtitle: {
     fontSize: 12,
     marginTop: 2,
-  },
+    fontFamily: 'Frederick' },
   infoBox: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
     borderRadius: 12,
     padding: 12,
-    marginTop: 16,
-  },
+    marginTop: 16 },
   infoText: {
     flex: 1,
     fontSize: 12,
     lineHeight: 16,
-  },
+    fontFamily: 'Fredoka-Regular' },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
+    justifyContent: "flex-end" },
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 40,
-  },
+    paddingBottom: 40 },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -691,17 +660,15 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
     marginBottom: 16,
-  },
+    fontFamily: 'Frederick' },
   modalTitle: {
     fontSize: 18,
-    fontWeight: "700",
-  },
+    fontFamily: 'Frederick' },
   modalScroll: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    paddingBottom: 20,
-  },
+    paddingBottom: 20 },
   categoryOption: {
     flexDirection: "row",
     alignItems: "center",
@@ -712,16 +679,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6,
     flexGrow: 1,
-    minWidth: "28%",
-  },
+    minWidth: "28%" },
   categoryOptionIcon: {
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: "center",
-    alignItems: "center",
-  },
+    alignItems: "center" },
   categoryOptionText: {
     fontSize: 13,
-  },
-});
+    fontFamily: 'Fredoka-Regular' } });

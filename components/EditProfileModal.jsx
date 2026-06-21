@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     Modal,
@@ -10,8 +10,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
-} from "react-native";
+    View } from "react-native";
 import { db } from "../config/firebase";
 import { useTheme } from "../context/ThemeContext";
 
@@ -58,8 +57,7 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
                 displayName: displayName.trim(),
                 bio: bio.trim(),
                 phoneNumber: phoneNumber.trim(),
-                updatedAt: new Date(),
-            });
+                updatedAt: new Date() });
 
             Alert.alert("Success", "Profile updated successfully!");
             onUpdate();
@@ -172,39 +170,34 @@ const styles = StyleSheet.create({
     backdrop: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "flex-end",
-    },
+        justifyContent: "flex-end" },
     modalContainer: {
         backgroundColor: "#FFFFFF",
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         paddingTop: 20,
-        paddingBottom: 16,
-    },
+        paddingBottom: 16 },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingHorizontal: 24,
-        marginBottom: 16,
-    },
+        marginBottom: 16 },
     title: {
         fontSize: 22,
-        fontWeight: "bold",
+        fontWeight: '400',
         color: "#1F2937",
-    },
+        fontFamily: 'Fredoka-Regular' },
     content: {
-        paddingHorizontal: 24,
-    },
+        paddingHorizontal: 24 },
     inputGroup: {
-        marginBottom: 16,
-    },
+        marginBottom: 16 },
     label: {
         fontSize: 13,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#374151",
         marginBottom: 6,
-    },
+        fontFamily: 'Fredoka-Regular' },
     input: {
         borderWidth: 1,
         borderColor: "#E5E7EB",
@@ -214,47 +207,40 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: "#1F2937",
         backgroundColor: "#F9FAFB",
-    },
+        fontFamily: 'Fredoka-Regular' },
     disabledInput: {
         backgroundColor: "#F3F4F6",
-        color: "#9CA3AF",
-    },
+        color: "#9CA3AF" },
     textArea: {
         minHeight: 70,
-        paddingTop: 10,
-    },
+        paddingTop: 10 },
     charCount: {
         fontSize: 11,
         color: "#9CA3AF",
         textAlign: "right",
         marginTop: 4,
-    },
+        fontFamily: 'Fredoka-Regular' },
     footer: {
         flexDirection: "row",
         gap: 12,
         paddingHorizontal: 24,
-        marginTop: 12,
-    },
+        marginTop: 12 },
     button: {
         flex: 1,
         paddingVertical: 12,
         borderRadius: 10,
-        alignItems: "center",
-    },
+        alignItems: "center" },
     cancelButton: {
-        backgroundColor: "#F3F4F6",
-    },
+        backgroundColor: "#F3F4F6" },
     saveButton: {
-        backgroundColor: "#8B5CF6",
-    },
+        backgroundColor: "#8B5CF6" },
     cancelButtonText: {
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#6B7280",
-    },
+        fontFamily: 'Fredoka-Regular' },
     saveButtonText: {
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: '400',
         color: "#FFFFFF",
-    },
-});
+        fontFamily: 'Fredoka-Regular' } });

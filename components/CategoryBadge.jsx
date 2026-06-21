@@ -6,8 +6,7 @@ const categoryColors = {
     'Relationship': { bg: '#ffd9e8', text: '#d9699f' },
     'Study': { bg: '#d4f0e3', text: '#5cb885' },
     'Mental Health': { bg: '#e8dff5', text: '#111827' },
-    'Other': { bg: '#F3F4F6', text: '#7d7d7d' },
-};
+    'Other': { bg: '#F3F4F6', text: '#7d7d7d' } };
 
 export default function CategoryBadge({ category }) {
     const colors = categoryColors[category] || categoryColors['Other'];
@@ -24,10 +23,8 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         paddingHorizontal: 12,
         paddingVertical: 4,
-        borderRadius: 16,
-    },
+        borderRadius: 16 },
     badgeText: {
         fontSize: 12,
-        fontWeight: '500',
-    },
-});
+        fontWeight: '400',
+        fontFamily: 'Fredoka-Regular' } });

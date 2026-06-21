@@ -10,8 +10,7 @@ import {
     query,
     updateDoc,
     where,
-    writeBatch,
-} from "firebase/firestore";
+    writeBatch } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -20,8 +19,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-    Platform
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -63,8 +61,7 @@ export default function Notifications() {
                 const fetchedNotifications = snapshot.docs
                     .map((docSnap) => ({
                         id: docSnap.id,
-                        ...docSnap.data(),
-                    }))
+                        ...docSnap.data() }))
                     .filter((n) =>
                         ["like", "hug", "metoo", "comment", "follow", "friend_request", "friend_request_accepted", "perspective_change"].includes(n.type)
                     );
@@ -240,8 +237,7 @@ export default function Notifications() {
             // Mark as read
             if (!notification.read) {
                 await updateDoc(doc(db, "notifications", notification.id), {
-                    read: true,
-                });
+                    read: true });
             }
             // Navigate based on type
             if (notification.type === 'follow' || notification.type === 'friend_request' || notification.type === 'friend_request_accepted') {
@@ -347,7 +343,7 @@ export default function Notifications() {
         return (
             <TouchableOpacity
                 style={[
-                    styles.notificationCard, 
+                    styles.notificationCard,
                     { backgroundColor: theme.isDark ? "#2A2A2A" : "#FFFFFF", borderColor: theme.border }
                 ]}
                 onPress={() => !isProcessing && handleNotificationPress(item)}
@@ -551,52 +547,44 @@ export default function Notifications() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-    },
+        flex: 1 },
     header: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 20,
-        paddingVertical: 16,
-    },
+        paddingVertical: 16 },
     headerTitle: {
         fontSize: 26,
-        fontWeight: "800",
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-        color: "#111827",
-    },
+        fontFamily: 'Frederick',
+        color: "#111827" },
     settingsButton: {
         width: 40,
         height: 40,
         justifyContent: "center",
-        alignItems: "center",
-    },
+        alignItems: "center" },
     scrollView: {
-        flex: 1,
-    },
+        flex: 1 },
     section: {
-        marginTop: 0,
-    },
+        marginTop: 0 },
     sectionHeader: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 24,
         paddingVertical: 12,
-    },
+        fontFamily: 'Frederick' },
     sectionTitle: {
         fontSize: 12,
-        fontWeight: "800",
         color: "#9E9E9E",
         letterSpacing: 1,
-    },
+        fontFamily: 'Frederick' },
     markAllRead: {
         fontSize: 12,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#6366F1",
         letterSpacing: 0.3,
-    },
+        fontFamily: 'Fredoka-Regular' },
     notificationCard: {
         flexDirection: "row",
         alignItems: "flex-start",
@@ -609,22 +597,19 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
         shadowRadius: 10,
-        elevation: 1,
-    },
+        elevation: 1 },
     avatarWithIcon: {
         position: "relative",
         width: 44, // Slightly smaller for compact feel
         height: 44,
-        marginRight: 14,
-    },
+        marginRight: 14 },
     defaultAvatar: {
         width: 44,
         height: 44,
         borderRadius: 22,
         backgroundColor: "#F3F4F6",
         justifyContent: "center",
-        alignItems: "center",
-    },
+        alignItems: "center" },
     notificationIcon: {
         position: "absolute",
         bottom: -2,
@@ -635,99 +620,85 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 2,
-        borderColor: "#FFFFFF",
-    },
+        borderColor: "#FFFFFF" },
     contentContainer: {
-        flex: 1,
-    },
+        flex: 1 },
     textRow: {
         flexDirection: "row",
         alignItems: "flex-start",
-        justifyContent: "space-between",
-    },
+        justifyContent: "space-between" },
     textContainer: {
         flex: 1,
-        marginRight: 8,
-    },
+        marginRight: 8 },
     username: {
         fontSize: 15,
-        fontWeight: "700",
+        fontWeight: '400',
         color: "#111827",
         marginBottom: 2,
-    },
+        fontFamily: 'Fredoka-Bold' },
     message: {
         fontSize: 14,
         color: "#616161",
         lineHeight: 20,
-    },
+        fontFamily: 'Fredoka-Regular' },
     rightContainer: {
-        alignItems: "flex-end",
-    },
+        alignItems: "flex-end" },
     timestamp: {
         fontSize: 11,
         color: "#BDBDBD",
         marginBottom: 6,
-    },
+        fontFamily: 'Fredoka-Regular' },
     unreadDot: {
         width: 10,
         height: 10,
         borderRadius: 5,
         backgroundColor: "#6366F1",
-        marginTop: 4,
-    },
+        marginTop: 4 },
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 40,
-        paddingTop: 100,
-    },
+        paddingTop: 100 },
     emptyTitle: {
         fontSize: 20,
-        fontWeight: "700",
         marginTop: 20,
         marginBottom: 8,
-    },
+        fontFamily: 'Frederick' },
     emptySubtitle: {
         fontSize: 14,
         textAlign: "center",
         lineHeight: 22,
-    },
+        fontFamily: 'Frederick' },
     actionButtons: {
         flexDirection: 'row',
         marginTop: 10,
-        gap: 12,
-    },
+        gap: 12 },
     actionButton: {
         paddingVertical: 8, // Slightly taller click target
         paddingHorizontal: 16,
         borderRadius: 18,
         minWidth: 90,
-        alignItems: 'center',
-    },
+        alignItems: 'center' },
     acceptButton: {
         backgroundColor: '#6366F1', // Indigo primary action
     },
     rejectButton: {
-        backgroundColor: '#F3F4F6',
-    },
+        backgroundColor: '#F3F4F6' },
     acceptButtonText: {
         color: '#FFFFFF',
-        fontWeight: '600',
+        fontWeight: '400',
         fontSize: 13,
-    },
+        fontFamily: 'Fredoka-Regular' },
     rejectButtonText: {
         color: '#6B7280',
-        fontWeight: '600',
+        fontWeight: '400',
         fontSize: 13,
-    },
+        fontFamily: 'Fredoka-Regular' },
     statusText: {
         fontSize: 12,
         color: '#9E9E9E',
         marginTop: 8,
-        fontStyle: 'italic',
-    },
+        fontFamily: 'Fredoka-Regular' },
     backButton: {
-        padding: 4,
-    },
-});
+        padding: 4 } });

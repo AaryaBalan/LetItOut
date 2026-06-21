@@ -16,15 +16,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
         borderRadius: 8,
         padding: 16,
-        marginBottom: 12,
-    },
+        marginBottom: 12 },
     text: {
         color: '#374151',
         marginBottom: 8,
         lineHeight: 20,
-    },
+        fontFamily: 'Fredoka-Regular' },
     timestamp: {
         fontSize: 12,
         color: '#9ca3af',
-    },
-});
+        fontFamily: 'Fredoka-Regular' } });
