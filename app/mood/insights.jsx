@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -10,24 +10,287 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle, Line, Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { db } from "../../config/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { MOOD_OPTIONS } from "../../components/MoodSelector";
+import Loading from "../../components/Loading";
 
-const BREAKDOWN = [
-  { label: "Amazing", count: 2, pct: "28%", color: "#66BB6A" },
-  { label: "Good", count: 3, pct: "42%", color: "#FFC857" },
-  { label: "Okay", count: 1, pct: "14%", color: "#8B7CFF" },
-  { label: "Bad", count: 1, pct: "14%", color: "#FF6B6B" },
-  { label: "Awful", count: 0, pct: "0%", color: "#D32F2F" },
-];
+const getMoodMeta = (type) => MOOD_OPTIONS.find((m) => m.id === type) || MOOD_OPTIONS[2];
 
 export default function InsightsScreen() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
+
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState("Last 7 Days");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "moodEntries"), where("userId", "==", user.uid));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = [];
+      snap.forEach((doc) => data.push({ id: doc.id, ...doc.data() }));
+      data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setEntries(data);
+      setLoading(false);
+    });
+    return unsub;
+  }, [user]);
+
+  const {
+    last7DaysEntries,
+    avgMood5,
+    avgMoodMeta,
+    breakdown,
+    topPositive,
+    topChallenging,
+    lineChartData,
+    daysLabels
+  } = useMemo(() => {
+    const now = new Date();
+    let startDate = new Date();
+
+    if (timeframe === "Today") {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === "Last 7 Days") {
+      startDate.setDate(now.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === "Last 30 Days") {
+      startDate.setDate(now.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === "Last 6 Months") {
+      startDate.setMonth(now.getMonth() - 6);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === "Last Year") {
+      startDate.setFullYear(now.getFullYear() - 1);
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    const recent = entries.filter((e) => new Date(e.createdAt) >= startDate);
+
+    let total = recent.length || 1;
+    const moodCounts = { amazing: 0, good: 0, okay: 0, bad: 0, awful: 0 };
+    recent.forEach((e) => {
+      if (moodCounts[e.moodType] !== undefined) moodCounts[e.moodType]++;
+    });
+
+    const breakdownData = MOOD_OPTIONS.map((m) => ({
+      label: m.label,
+      count: moodCounts[m.id],
+      pct: Math.round((moodCounts[m.id] / total) * 100) + "%",
+      rawPct: moodCounts[m.id] / total,
+      color: m.color,
+      icon: m.icon,
+    }));
+
+    let avgScore = 50;
+    if (recent.length > 0) {
+      avgScore = recent.reduce((sum, e) => sum + (e.moodScore || 50), 0) / recent.length;
+    }
+    const calculatedAvgMood5 = (avgScore / 100) * 4 + 1;
+    let meta = MOOD_OPTIONS[2];
+    if (calculatedAvgMood5 >= 4.5) meta = MOOD_OPTIONS[0];
+    else if (calculatedAvgMood5 >= 3.5) meta = MOOD_OPTIONS[1];
+    else if (calculatedAvgMood5 >= 2.5) meta = MOOD_OPTIONS[2];
+    else if (calculatedAvgMood5 >= 1.5) meta = MOOD_OPTIONS[3];
+    else meta = MOOD_OPTIONS[4];
+
+    const byDay = {};
+    recent.forEach((e) => {
+      const d = new Date(e.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (!byDay[key]) {
+        byDay[key] = {
+          label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          dateStr: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" }),
+          entries: [],
+          avg: 0,
+        };
+      }
+      byDay[key].entries.push(e);
+    });
+
+    const sortedKeys = Object.keys(byDay).sort();
+
+    let topPos = null;
+    let topChal = null;
+
+    sortedKeys.forEach((key) => {
+      const day = byDay[key];
+      day.avg = day.entries.reduce((sum, e) => sum + (e.moodScore || 50), 0) / day.entries.length;
+      if (!topPos || day.avg > topPos.avg) topPos = day;
+      if (!topChal || day.avg < topChal.avg) topChal = day;
+    });
+
+    const dLabels = sortedKeys.map((key) => byDay[key].label);
+    const lcData = sortedKeys.map((key) => byDay[key].avg);
+
+    return {
+      last7DaysEntries: recent,
+      avgMood5: calculatedAvgMood5,
+      avgMoodMeta: meta,
+      breakdown: breakdownData,
+      topPositive: topPos,
+      topChallenging: topChal,
+      lineChartData: lcData,
+      daysLabels: dLabels
+    };
+  }, [entries, timeframe]);
+
+  if (loading) return <Loading />;
+
+  // Create Donut Chart Ring SVG
+  const renderDonut = () => {
+    const radius = 40;
+    const circumference = 2 * Math.PI * radius;
+    let offset = 0;
+
+    return (
+      <View style={styles.donutMock}>
+        <Svg width="100%" height="100%" viewBox="0 0 100 100">
+          <Circle cx="50" cy="50" r={radius} fill="none" stroke={theme.isDark ? "#2A2A2A" : "#E5E7EB"} strokeWidth="20" />
+          {breakdown.map((slice) => {
+            if (slice.rawPct === 0) return null;
+            const strokeLength = slice.rawPct * circumference;
+            const gapLength = circumference - strokeLength;
+            const dash = `${strokeLength} ${gapLength}`;
+            const currentOffset = offset;
+            offset -= strokeLength;
+            return (
+              <Circle
+                key={slice.label}
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="none"
+                stroke={slice.color}
+                strokeWidth="20"
+                strokeDasharray={dash}
+                strokeDashoffset={currentOffset}
+                transform="rotate(-90 50 50)"
+                strokeLinecap="round"
+              />
+            );
+          })}
+        </Svg>
+        <View style={[styles.donutInner, { backgroundColor: theme.card }]}>
+          <MaterialCommunityIcons name={avgMoodMeta.icon} size={32} color={avgMoodMeta.color} />
+        </View>
+      </View>
+    );
+  };
+
+  const renderLineChart = () => {
+    const validPoints = lineChartData.map((val, i) => ({ val, i }));
+    if (validPoints.length === 0) return null;
+
+    // Filter labels to not overcrowd the x-axis
+    const maxLabels = 7;
+    const step = Math.max(1, Math.floor(validPoints.length / maxLabels));
+
+    let pathD = "";
+    validPoints.forEach((p, idx) => {
+      const x = 10 + (p.i * (280 / Math.max(1, validPoints.length - 1)));
+      const y = 90 - (p.val / 100 * 80);
+      pathD += idx === 0 ? `M${x},${y}` : ` L${x},${y}`;
+    });
+
+    return (
+      <View style={styles.lineChartWrapper}>
+        <Svg height="100" width="100%" viewBox="0 0 300 100">
+          <Path d={pathD} fill="none" stroke="#8B7CFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          {validPoints.map((p) => {
+            const x = 10 + (p.i * (280 / Math.max(1, validPoints.length - 1)));
+            const y = 90 - (p.val / 100 * 80);
+            return <Circle key={p.i} cx={x} cy={y} r="5" fill="#8B7CFF" />
+          })}
+        </Svg>
+        <View style={styles.chartXAxis}>
+          {daysLabels.map((d, i) => {
+            if (i % step !== 0 && i !== daysLabels.length - 1) return <View key={i} style={{ width: 20 }} />;
+            return <Text key={i} style={[styles.axisText, { color: theme.textSecondary }]}>{d}</Text>;
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderDayCard = (dayData, title, type) => {
+    if (!dayData || dayData.entries.length === 0) return null;
+    const isPos = type === "positive";
+    const bg = isPos ? (theme.isDark ? "#0A2010" : "#E8F5E9") : (theme.isDark ? "#2A0A0A" : "#FFEBEE");
+    const titleColor = isPos ? (theme.isDark ? "#81C784" : "#1B5E20") : (theme.isDark ? "#E57373" : "#B71C1C");
+    const labelColor = isPos ? (theme.isDark ? "#A5D6A7" : "#2E7D32") : (theme.isDark ? "#EF9A9A" : "#C62828");
+    const badgeBg = isPos ? "rgba(102, 187, 106, 0.2)" : "rgba(255, 107, 107, 0.2)";
+    const iconColor = isPos ? "#66BB6A" : "#FF6B6B";
+    const iconName = isPos ? "leaf-outline" : "rainy-outline";
+
+    return (
+      <View style={[styles.dayCardWrapper, { backgroundColor: bg }]}>
+        <View style={styles.dayCardTop}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.dayCardLabel, { color: labelColor }]}>{title}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
+              <Text style={[styles.dayCardTitle, { color: titleColor }]}>{dayData.dateStr}</Text>
+              <View style={[styles.scoreBadge, { backgroundColor: badgeBg }]}>
+                <Text style={[styles.scoreText, { color: labelColor }]}>
+                  {((dayData.avg / 100) * 4 + 1).toFixed(1)}/5
+                </Text>
+              </View>
+            </View>
+          </View>
+          <Ionicons name={iconName} size={48} color={iconColor} style={styles.dayDoodle} />
+        </View>
+
+        <View style={styles.dayEntries}>
+          {dayData.entries.map((entry) => {
+            const mood = getMoodMeta(entry.moodType);
+            return (
+              <View key={entry.id} style={[styles.entryItem, { backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.6)" }]}>
+                <View style={[styles.entryOrb, { backgroundColor: mood.color, marginTop: 4 }]}>
+                  <MaterialCommunityIcons name={mood.icon} size={18} color="#FFF" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                    <Text style={[styles.entryTitle, { color: theme.text }]} numberOfLines={2}>
+                      {entry.title || "Mood Log"}
+                    </Text>
+                    <Text style={[styles.entryTime, { color: theme.textSecondary }]}>
+                      {new Date(entry.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </Text>
+                  </View>
+                  {entry.description ? (
+                    <Text style={[styles.entryDesc, { color: theme.textSecondary }]} numberOfLines={3}>
+                      {entry.description}
+                    </Text>
+                  ) : null}
+                  {entry.tags && entry.tags.length > 0 && (
+                    <View style={styles.entryTagsContainer}>
+                      {entry.tags.map((t) => (
+                        <View key={t} style={[styles.entryTag, { backgroundColor: theme.input }]}>
+                          <Text style={[styles.entryTagText, { color: mood.color }]}>{t}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.isDark ? "#000" : "#FAFAFC" }]}
+      style={[styles.container, { backgroundColor: theme.background }]}
       edges={["top"]}
     >
       <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
@@ -43,95 +306,79 @@ export default function InsightsScreen() {
             Understand your mood patterns{"\n"}and what influences them.
           </Text>
         </View>
-        <TouchableOpacity style={[styles.dropdownBtn, { backgroundColor: theme.isDark ? "#1A1A1A" : "#FFFFFF", borderColor: theme.border }]}>
-          <Text style={[styles.dropdownText, { color: theme.text }]}>This Week</Text>
-          <Ionicons name="chevron-down" size={16} color={theme.text} />
-        </TouchableOpacity>
+        <View style={{ position: 'relative', zIndex: 100 }}>
+          <TouchableOpacity 
+            style={[styles.dropdownBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
+            onPress={() => setShowDropdown(!showDropdown)}
+          >
+            <Text style={[styles.dropdownText, { color: theme.text }]}>{timeframe}</Text>
+            <Ionicons name="chevron-down" size={16} color={theme.text} />
+          </TouchableOpacity>
+          {showDropdown && (
+            <View style={[styles.dropdownMenu, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              {["Today", "Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year"].map((opt) => (
+                <TouchableOpacity key={opt} style={styles.dropdownItem} onPress={() => { setTimeframe(opt); setShowDropdown(false); }}>
+                  <Text style={[styles.dropdownItemText, { color: theme.text, fontFamily: timeframe === opt ? "Fredoka-Bold" : "Fredoka-Regular" }]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
         {/* Average Mood Card */}
-        <View style={[styles.chartCard, { backgroundColor: theme.isDark ? "#1A1A1A" : "#F3EEFF" }]}>
+        <View style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.chartHeader}>
-            <Text style={[styles.chartTitle, { color: theme.isDark ? theme.text : "#4A4A4A" }]}>Average Mood</Text>
+            <Text style={[styles.chartTitle, { color: theme.text }]}>Average Mood</Text>
             <Ionicons name="sparkles-outline" size={24} color="#8B7CFF" />
           </View>
           <View>
-            <Text style={[styles.bigNum, { color: theme.text }]}>3.8<Text style={{ fontSize: 16 }}>/5</Text></Text>
-            <Text style={[styles.moodLabel, { color: "#FFC857" }]}>Good</Text>
+            <Text style={[styles.bigNum, { color: theme.text }]}>
+              {last7DaysEntries.length ? avgMood5.toFixed(1) : "-"}
+              <Text style={{ fontSize: 16 }}>/5</Text>
+            </Text>
+            <Text style={[styles.moodLabel, { color: avgMoodMeta.color }]}>
+              {last7DaysEntries.length ? avgMoodMeta.label : "No data"}
+            </Text>
           </View>
           
-          {/* Mock Line Chart */}
-          <View style={styles.lineChartWrapper}>
-            <Svg height="100" width="100%" viewBox="0 0 300 100">
-              <Path d="M10,70 L50,60 L90,80 L130,30 L170,50 L210,30 L250,45 M250,45 L290,40" fill="none" stroke="#8B7CFF" strokeWidth="3" />
-              {[10, 50, 90, 130, 170, 210, 250, 290].map((cx, i) => (
-                <Circle key={i} cx={cx} cy={[70, 60, 80, 30, 50, 30, 45, 40][i]} r="5" fill="#8B7CFF" />
-              ))}
-            </Svg>
-            <View style={styles.chartXAxis}>
-              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                <Text key={i} style={[styles.axisText, { color: theme.isDark ? theme.textSecondary : "#666" }]}>{d}</Text>
-              ))}
+          {last7DaysEntries.length > 0 ? renderLineChart() : (
+            <View style={{ height: 100, justifyContent: "center", alignItems: "center" }}>
+              <Text style={{ color: theme.textSecondary }}>Not enough data to graph.</Text>
             </View>
-          </View>
+          )}
         </View>
 
         {/* Mood Breakdown */}
-        <View style={[styles.card, { backgroundColor: theme.isDark ? "#1A1A1A" : "#FFFFFF", borderColor: theme.border }]}>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.cardTitle, { color: theme.text }]}>Mood Breakdown</Text>
-          <View style={styles.breakdownRow}>
-            {/* Mock Donut */}
-            <View style={styles.donutMock}>
-              <View style={[styles.donutSlice, { borderTopColor: "#FFC857", borderRightColor: "#66BB6A", borderBottomColor: "#8B7CFF", borderLeftColor: "#FF6B6B" }]} />
-              <View style={[styles.donutInner, { backgroundColor: theme.isDark ? "#1A1A1A" : "#FFFFFF" }]}>
-                <MaterialCommunityIcons name="emoticon-happy" size={32} color="#FFC857" />
+          {last7DaysEntries.length > 0 ? (
+            <View style={styles.breakdownRow}>
+              {renderDonut()}
+              <View style={styles.legend}>
+                {breakdown.map(item => (
+                  <View key={item.label} style={styles.legendItem}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                      <Text style={[styles.legendLabel, { color: theme.textSecondary }]}>{item.label}</Text>
+                    </View>
+                    <Text style={[styles.legendValue, { color: theme.text }]}>
+                      {item.count} <Text style={{ color: theme.textTertiary }}>({item.pct})</Text>
+                    </Text>
+                  </View>
+                ))}
               </View>
             </View>
-            
-            <View style={styles.legend}>
-              {BREAKDOWN.map(item => (
-                <View key={item.label} style={styles.legendItem}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                    <Text style={[styles.legendLabel, { color: theme.textSecondary }]}>{item.label}</Text>
-                  </View>
-                  <Text style={[styles.legendValue, { color: theme.text }]}>
-                    {item.count} <Text style={{ color: theme.textTertiary }}>({item.pct})</Text>
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
+          ) : (
+            <Text style={{ color: theme.textSecondary, textAlign: 'center', marginVertical: 20 }}>No logs in the last 7 days.</Text>
+          )}
         </View>
 
         {/* Top Days */}
-        <View style={[styles.dayCard, { backgroundColor: "#E8F5E9" }]}>
-          <View>
-            <Text style={[styles.dayCardLabel, { color: "#2E7D32" }]}>Top Positive Day</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <Text style={[styles.dayCardTitle, { color: "#1B5E20" }]}>Wednesday</Text>
-              <View style={[styles.scoreBadge, { backgroundColor: "rgba(102, 187, 106, 0.2)" }]}>
-                <Text style={[styles.scoreText, { color: "#2E7D32" }]}>4.6</Text>
-              </View>
-            </View>
-          </View>
-          <Ionicons name="leaf-outline" size={48} color="#66BB6A" style={styles.dayDoodle} />
-        </View>
-
-        <View style={[styles.dayCard, { backgroundColor: "#FFEBEE" }]}>
-          <View>
-            <Text style={[styles.dayCardLabel, { color: "#C62828" }]}>Top Challenging Day</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <Text style={[styles.dayCardTitle, { color: "#B71C1C" }]}>Tuesday</Text>
-              <View style={[styles.scoreBadge, { backgroundColor: "rgba(255, 107, 107, 0.2)" }]}>
-                <Text style={[styles.scoreText, { color: "#C62828" }]}>2.1</Text>
-              </View>
-            </View>
-          </View>
-          <Ionicons name="rainy-outline" size={48} color="#FF6B6B" style={styles.dayDoodle} />
-        </View>
+        {renderDayCard(topPositive, "Top Positive Day", "positive")}
+        {renderDayCard(topChallenging, "Top Challenging Day", "challenging")}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -159,8 +406,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   headerTitle: {
-    fontSize: 32,
-    fontFamily: "Fredoka-Bold",
+    fontSize: 28,
+    fontFamily: "Frederick",
     marginBottom: 4,
   },
   headerSubtitle: {
@@ -171,7 +418,6 @@ const styles = StyleSheet.create({
   dropdownBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -181,7 +427,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Fredoka-Bold",
   },
-  scrollContent: { paddingHorizontal: 20 },
+  dropdownMenu: {
+    position: "absolute",
+    top: 45,
+    right: 0,
+    width: 140,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 8,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  dropdownItemText: {
+    fontSize: 14,
+  },
+  scrollContent: { paddingHorizontal: 10 },
   chartCard: {
     borderRadius: 24,
     padding: 24,
@@ -211,7 +478,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
   },
   axisText: {
     fontSize: 11,
@@ -239,14 +506,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 24,
   },
-  donutSlice: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    borderRadius: 60,
-    borderWidth: 20,
-  },
   donutInner: {
+    position: "absolute",
     width: 80,
     height: 80,
     borderRadius: 40,
@@ -275,37 +536,87 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Fredoka-Bold",
   },
-  dayCard: {
+  dayCardWrapper: {
     borderRadius: 24,
-    padding: 24,
     marginBottom: 16,
+    overflow: "hidden",
+  },
+  dayCardTop: {
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    overflow: "hidden",
+    position: "relative",
   },
   dayCardLabel: {
     fontSize: 13,
     fontFamily: "Fredoka-Bold",
-    marginBottom: 8,
   },
   dayCardTitle: {
-    fontSize: 20,
-    fontFamily: "Fredoka-Bold",
+    fontSize: 25,
+    fontFamily: "Frederick",
   },
   scoreBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   scoreText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Fredoka-Bold",
   },
   dayDoodle: {
-    position: "absolute",
-    right: 10,
-    bottom: -10,
     opacity: 0.8,
-  }
+  },
+  dayEntries: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  entryItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 12,
+    borderRadius: 16,
+  },
+  entryOrb: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  entryTitle: {
+    fontSize: 15,
+    fontFamily: "Fredoka-Bold",
+    marginBottom: 2,
+    flex: 1,
+  },
+  entryTime: {
+    fontSize: 12,
+    fontFamily: "Fredoka-Bold",
+    marginLeft: 8,
+  },
+  entryDesc: {
+    fontSize: 13,
+    fontFamily: "Fredoka-Regular",
+    marginBottom: 6,
+    lineHeight: 18,
+  },
+  entryTagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 4,
+  },
+  entryTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  entryTagText: {
+    fontSize: 11,
+    fontFamily: "Fredoka-Bold",
+  },
 });
