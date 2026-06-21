@@ -21,7 +21,8 @@ function RootLayoutContent() {
         'AutourOne-Regular': require('../assets/fonts/AutourOne-Regular.ttf'),
         'Frederick': require('../assets/fonts/FrederickatheGreat-Regular.ttf'),
         'Fredoka-Bold': require('../assets/fonts/Fredoka-Bold.ttf'),
-        'Fredoka-Regular': require('../assets/fonts/Fredoka-Regular.ttf')
+        'Fredoka-Regular': require('../assets/fonts/Fredoka-Regular.ttf'),
+        'CabinSketch-Bold': require('../assets/fonts/CabinSketch-Bold.ttf'),
     });
 
     useEffect(() => {

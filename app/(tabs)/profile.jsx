@@ -778,39 +778,36 @@ export default function Profile() {
           </View>
 
           {/* Supportive History Section */}
-          <TouchableOpacity
-            style={[styles.section, { backgroundColor: theme.isDark ? '#000000' : theme.card, borderColor: theme.border, padding: 16, borderRadius: 12 }]}
-            onPress={() => setShowAllHistoryModal(true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Supportive History</Text>
-              <Ionicons name="chevron-forward" size={20} color="#111827" />
-            </View>
-
-            {loadingHistory ? (
-              <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-                <ActivityIndicator size="small" color={theme.isDark ? '#B39DDB' : '#111827'} />
-              </View>
-            ) : (
-              <View style={[styles.summaryCard, { backgroundColor: theme.isDark ? '#1A1A1A' : '#FFFFFF' }]}>
-                <View style={styles.summaryRow}>
-                  <View style={[styles.summaryIconContainer, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}>
+          <View style={{ marginBottom: 24, paddingHorizontal: 4 }}>
+            <Text style={[styles.sectionTitle, { color: theme.text, marginBottom: 12 }]}>Supportive History</Text>
+            
+            <TouchableOpacity
+              style={[styles.supportiveSummaryCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={() => setShowAllHistoryModal(true)}
+              activeOpacity={0.7}
+            >
+              {loadingHistory ? (
+                <ActivityIndicator size="small" color="#E57373" style={{ padding: 20 }} />
+              ) : (
+                <View style={styles.supportiveSummaryHeader}>
+                  <View style={[styles.supportiveSummaryIcon, { backgroundColor: theme.isDark ? '#374151' : '#FFF0F2' }]}>
                     <Ionicons name="heart" size={24} color="#E57373" />
                   </View>
-                  <View style={styles.summaryContent}>
-                    <Text style={[styles.summaryCount, { color: theme.text }]}>{supportiveHistory.length}</Text>
-                    <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                      {supportiveHistory.length === 1 ? 'Interaction' : 'Interactions'}
+                  <View style={{ flex: 1, marginLeft: 16 }}>
+                    <Text style={[styles.supportiveSummaryCount, { color: theme.text }]}>
+                      {supportiveHistory.length} Interactions
+                    </Text>
+                    <Text style={[styles.supportiveSummaryHint, { color: theme.textSecondary }]}>
+                      Tap to view your support history
                     </Text>
                   </View>
+                  <View style={[styles.supportiveChevron, { backgroundColor: theme.isDark ? '#1F2937' : '#F9FAFB' }]}>
+                    <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+                  </View>
                 </View>
-                {supportiveHistory.length > 0 && (
-                  <Text style={styles.summaryHint}>Tap to view your support history</Text>
-                )}
-              </View>
-            )}
-          </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
@@ -950,37 +947,58 @@ export default function Profile() {
               </View>
 
               <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]} contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}>
-                {supportiveHistory.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.historyCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-                    onPress={() => {
-                      setShowAllHistoryModal(false);
-                      router.push(`/post/${item.postId}`);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.historyTag,
-                        { color: getHistoryCardTextColor(item.type) },
-                      ]}
+                {supportiveHistory.map((item) => {
+                  const iconColor = getHistoryCardTextColor(item.type);
+                  const iconName = item.type === "like" ? "heart" :
+                                   item.type === "hug" ? "people" :
+                                   item.type === "metoo" ? "hand-left" :
+                                   item.type === "comment" ? "chatbubble-ellipses" : "star";
+
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[styles.historyPostCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                      onPress={() => {
+                        setShowAllHistoryModal(false);
+                        router.push(`/post/${item.postId}`);
+                      }}
+                      activeOpacity={0.7}
                     >
-                      {item.action.toUpperCase()}
-                    </Text>
-                    <Text style={[styles.historyTime, { color: theme.textTertiary }]}>
-                      {getTimeAgo(item.timestamp)}
-                    </Text>
-                    {item.type === "comment" ? (
-                      <Text style={[styles.historyText, { color: theme.textSecondary }]}>
-                        &ldquo;{item.comment}&rdquo; in &ldquo;{item.postTitle}&rdquo;
-                      </Text>
-                    ) : (
-                      <Text style={[styles.historyText, { color: theme.textSecondary }]}>
+                      <View style={styles.historyAuthorSection}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <View style={[styles.historyAvatar, { backgroundColor: iconColor + '1A' }]}>
+                            <Ionicons name={iconName} size={22} color={iconColor} />
+                          </View>
+                          <View>
+                            <Text style={[styles.historyAuthorName, { color: theme.text }]} numberOfLines={1}>
+                              {item.action.toUpperCase()}
+                            </Text>
+                            <Text style={[styles.historyTimestamp, { color: theme.textSecondary }]}>
+                              {getTimeAgo(item.timestamp)}
+                            </Text>
+                          </View>
+                        </View>
+                        <Ionicons name="ellipsis-horizontal" size={20} color={theme.textTertiary} />
+                      </View>
+
+                      <Text style={[styles.historyPostTitle, { color: theme.text }]} numberOfLines={2}>
                         {item.postTitle}
                       </Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
+
+                      {item.type === "comment" && (
+                        <View style={[styles.historyCommentsPreview, { backgroundColor: theme.isDark ? '#374151' : '#F9FAFB' }]}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                            <Ionicons name="chatbubble-outline" size={14} color={theme.textTertiary} />
+                            <Text style={[styles.historyCommentUsername, { color: theme.textTertiary }]}>Your Comment</Text>
+                          </View>
+                          <Text style={[styles.historyCommentText, { color: theme.textSecondary }]} numberOfLines={3}>
+                            "{item.comment}"
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
                 <View style={{ height: 40 }} />
               </ScrollView>
             </View>
@@ -1334,49 +1352,97 @@ const styles = StyleSheet.create({
     color: "#9E9E9E",
     fontFamily: 'Fredoka-Regular'
   },
-  historyCard: {
-    backgroundColor: "#FFFFFF",
+  supportiveSummaryCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  supportiveSummaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  supportiveSummaryIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  supportiveSummaryCount: {
+    fontSize: 18,
+    fontFamily: 'Fredoka-Bold',
+    marginBottom: 4,
+  },
+  supportiveSummaryHint: {
+    fontSize: 13,
+    fontFamily: 'Fredoka-Regular',
+  },
+  supportiveChevron: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historyPostCard: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  historyAuthorSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  historyAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historyAuthorName: {
+    fontSize: 14,
+    fontFamily: 'Fredoka-Bold',
+    marginBottom: 2,
+  },
+  historyTimestamp: {
+    fontSize: 12,
+    fontFamily: 'Fredoka-Regular',
+  },
+  historyPostTitle: {
+    fontSize: 18,
+    fontFamily: 'Frederick',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  historyCommentsPreview: {
+    marginTop: 12,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-    position: "relative",
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 0.5
   },
-  historyTag: {
+  historyCommentUsername: {
     fontSize: 11,
-    fontWeight: '400',
-    color: "#FFB74D",
+    fontFamily: 'Fredoka-Bold',
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
-    fontFamily: 'Fredoka-Regular'
   },
-  historyTime: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    fontSize: 12,
-    color: "#BDBDBD",
-    fontFamily: 'Fredoka-Regular'
-  },
-  historyText: {
+  historyCommentText: {
     fontSize: 14,
-    color: "#616161",
     lineHeight: 20,
-    fontFamily: 'Fredoka-Regular'
-  },
-  commentPreview: {
-    fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 18,
-    marginTop: 8,
-    fontStyle: "",
-    fontFamily: 'Fredoka-Regular'
+    fontFamily: 'Fredoka-Regular',
   },
   boldText: {
     fontWeight: '400',
