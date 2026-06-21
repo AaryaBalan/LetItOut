@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
-import { collection, doc, onSnapshot, query, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -112,6 +112,44 @@ export default function MyCenter() {
       unsubscribes.forEach((unsub) => unsub());
     };
   }, [posts]);
+
+  // Dynamically fetch profile codes for all commentors so background colors stay synced
+  const [commentorProfiles, setCommentorProfiles] = useState({});
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const newProfiles = { ...commentorProfiles };
+      let hasChanges = false;
+      const idsToFetch = new Set();
+      
+      Object.values(commentsByPost).forEach(comments => {
+        comments.forEach(c => {
+          if (c.commentorId && !newProfiles[c.commentorId]) {
+             idsToFetch.add(c.commentorId);
+          }
+        });
+      });
+      
+      if (idsToFetch.size === 0) return;
+      
+      for (const id of idsToFetch) {
+         try {
+             const userDoc = await getDoc(doc(db, "users", id));
+             if (userDoc.exists()) {
+                 newProfiles[id] = userDoc.data().profileCode || userDoc.data().email || "anonymous";
+                 hasChanges = true;
+             }
+         } catch(e) {}
+      }
+      
+      if (hasChanges) {
+         setCommentorProfiles(newProfiles);
+      }
+    };
+    fetchProfiles();
+  }, [commentsByPost]);
+
+
 
   const handleRatingChange = async (post, comment, val) => {
     try {
@@ -444,7 +482,7 @@ export default function MyCenter() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={[styles.selectedPostContainer, { paddingHorizontal: 20, paddingTop: 10 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
-              <Avatar seed={selectedPost.authorProfileCode || selectedPost.authorName || "anonymous"} size={54} />
+              <Avatar seed={user.profileCode || "anonymous"} size={54} />
               
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -557,7 +595,7 @@ export default function MyCenter() {
                 >
                   <View style={{ flexDirection: 'column' }}>
                     <View style={{ flexDirection: 'row', gap: 12 }}>
-                      <Avatar seed={comment.commentorAvatar || comment.commentorName} size={40} />
+                      <Avatar seed={commentorProfiles[comment.commentorId] || comment.commentorName} size={40} />
 
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -711,7 +749,7 @@ export default function MyCenter() {
 
                   <View style={styles.postCardContent}>
                     <View style={styles.postHeader}>
-                      <Avatar seed={user.uid} size={50} />
+                      <Avatar seed={user.profileCode || "anonymous"} size={50} />
                       <View style={{ flex: 1, marginLeft: 14 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
                           <View style={{ flex: 1, marginRight: 40 }}>
@@ -859,7 +897,7 @@ export default function MyCenter() {
 
                   <View style={styles.postCardContent}>
                     <View style={styles.postHeader}>
-                      <Avatar seed={user.uid} size={50} />
+                      <Avatar seed={user.profileCode || "anonymous"} size={50} />
                       <View style={{ flex: 1, marginLeft: 14 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
                           <View style={{ flex: 1, marginRight: 40 }}>
@@ -921,7 +959,7 @@ export default function MyCenter() {
                         <Text style={[styles.insightLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>MOST IMPACTFUL COMMENT</Text>
                         <View style={[styles.insightQuoteBox, { backgroundColor: theme.isDark ? '#1F2937' : '#F9FAFB' }]}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                            <Avatar seed={bestComment.commentorAvatar || bestComment.commentorName} size={28} />
+                            <Avatar seed={commentorProfiles[bestComment.commentorId] || bestComment.commentorName} size={28} />
                             <Text style={[styles.insightQuoteAuthor, { color: theme.text }]} numberOfLines={1}>{bestComment.commentorName}</Text>
                             <View style={[styles.shiftIndicator, { backgroundColor: theme.isDark ? '#064E3B' : '#E8F5E9' }]}>
                               <Text style={[styles.shiftIndicatorText, { color: theme.isDark ? '#34D399' : '#4CAF50' }]}>
