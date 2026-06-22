@@ -40,7 +40,6 @@ export default function LogMood() {
   const router = useRouter();
 
   const [selectedMood, setSelectedMood] = useState(null);
-  const [intensity, setIntensity] = useState(0);
   const [selectedTags, setSelectedTags] = useState([]);
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
@@ -54,10 +53,13 @@ export default function LogMood() {
 
   const selectedMoodMeta = MOOD_OPTIONS.find((m) => m.id === selectedMood);
 
-  const getIntensityLabel = () => {
-    if (!selectedMoodMeta) return "Select a mood first";
-    const val = Math.round(intensity);
-    return `${selectedMoodMeta.label} ${val > 0 ? "+" : ""}${val}`;
+  const getMoodScore = (type) => {
+    if (type === "amazing") return 10;
+    if (type === "good") return 5;
+    if (type === "okay") return 0;
+    if (type === "bad") return -5;
+    if (type === "awful") return -10;
+    return 0;
   };
 
   const handleSave = async () => {
@@ -72,7 +74,7 @@ export default function LogMood() {
       await addDoc(collection(db, "moodEntries"), {
         userId: user.uid,
         moodType: selectedMood,
-        moodScore: Math.round(intensity),
+        moodScore: getMoodScore(selectedMood),
         title: title.trim(),
         note: note.trim() || null,
         tags: selectedTags,
@@ -137,56 +139,6 @@ export default function LogMood() {
           </Text>
           <MoodSelector selected={selectedMood} onSelect={setSelectedMood} />
 
-          {/* ── Intensity Slider ─────────────────── */}
-          {selectedMood && (
-            <View style={styles.intensityWrap}>
-              <View style={styles.intensityHeader}>
-                <Text
-                  style={[styles.label, { color: theme.text, marginBottom: 0 }]}
-                >
-                  Intensity
-                </Text>
-                <View
-                  style={[
-                    styles.intensityBadge,
-                    { backgroundColor: selectedMoodMeta?.bg },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.intensityVal,
-                      { color: selectedMoodMeta?.color },
-                    ]}
-                  >
-                    {getIntensityLabel()}
-                  </Text>
-                </View>
-              </View>
-
-              <Slider
-                style={{ width: "100%", height: 40 }}
-                minimumValue={-100}
-                maximumValue={100}
-                step={1}
-                value={intensity}
-                onValueChange={setIntensity}
-                minimumTrackTintColor={selectedMoodMeta?.color}
-                maximumTrackTintColor={theme.border}
-                thumbTintColor={selectedMoodMeta?.color}
-              />
-              <View style={styles.sliderLabels}>
-                <Text style={[styles.sliderTick, { color: theme.textTertiary }]}>
-                  -100
-                </Text>
-                <Text style={[styles.sliderTick, { color: theme.textTertiary }]}>
-                  0
-                </Text>
-                <Text style={[styles.sliderTick, { color: theme.textTertiary }]}>
-                  +100
-                </Text>
-              </View>
-            </View>
-          )}
 
           {/* ── Activity Tags ────────────────────── */}
           <Text

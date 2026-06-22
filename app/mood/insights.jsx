@@ -14,7 +14,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../config/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { MOOD_OPTIONS } from "../../components/MoodSelector";
 import Loading from "../../components/Loading";
 
@@ -89,11 +89,11 @@ export default function InsightsScreen() {
       icon: m.icon,
     }));
 
-    let avgScore = 50;
+    let avgScore = 0;
     if (recent.length > 0) {
-      avgScore = recent.reduce((sum, e) => sum + (e.moodScore || 50), 0) / recent.length;
+      avgScore = recent.reduce((sum, e) => sum + (e.moodScore || 0), 0) / recent.length;
     }
-    const calculatedAvgMood5 = (avgScore / 100) * 4 + 1;
+    const calculatedAvgMood5 = ((avgScore + 10) / 20) * 4 + 1;
     let meta = MOOD_OPTIONS[2];
     if (calculatedAvgMood5 >= 4.5) meta = MOOD_OPTIONS[0];
     else if (calculatedAvgMood5 >= 3.5) meta = MOOD_OPTIONS[1];
@@ -123,7 +123,7 @@ export default function InsightsScreen() {
 
     sortedKeys.forEach((key) => {
       const day = byDay[key];
-      day.avg = day.entries.reduce((sum, e) => sum + (e.moodScore || 50), 0) / day.entries.length;
+      day.avg = day.entries.reduce((sum, e) => sum + (e.moodScore || 0), 0) / day.entries.length;
       if (!topPos || day.avg > topPos.avg) topPos = day;
       if (!topChal || day.avg < topChal.avg) topChal = day;
     });
@@ -144,6 +144,90 @@ export default function InsightsScreen() {
   }, [entries, timeframe]);
 
   if (loading) return <Loading />;
+
+  const generate1YearMockData = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const moodScoring = { "amazing": 10, "good": 5, "okay": 0, "bad": -5, "awful": -10 };
+      const moodTypes = Object.keys(moodScoring);
+      const availableTags = ["Work", "Study", "Social", "Health", "Grateful", "Goals", "Family", "Exercise", "Love"];
+      
+      const goodTitles = ["Great workout!", "Promotion at work 🎉", "Lovely dinner with friends", "Aced my exam!", "Feeling so grateful", "Amazing weather today", "Productive coding session"];
+      const goodDescs = ["I woke up full of energy and got so much done. Then I hung out with some friends and we laughed a lot. Feeling super blessed.", "Everything just clicked today. I crushed my tasks and felt really confident. Hope tomorrow is just as good!", "Took a long walk in the sun. It really cleared my mind and I feel so much happier now."];
+      
+      const okayTitles = ["Just a normal day", "Nothing special", "Got some chores done", "A bit tired but fine", "Quiet afternoon"];
+      const okayDescs = ["Today was just average. Did my work, ate some food, watched a bit of TV. Not bad, not great.", "Feeling a little sluggish but I managed to push through and finish my tasks.", "Spent most of the day running errands. Exhausting but necessary."];
+
+      const badTitles = ["Feeling overwhelmed", "Stressed about deadline", "Argued with a friend", "Caught a cold", "Really bad sleep", "Anxious today"];
+      const badDescs = ["I couldn't focus at all today. My mind was racing and everything felt like it was going wrong. Just want to go to bed.", "Got into a stupid argument that ruined my mood for the rest of the day. Need some time alone.", "I feel so drained and unmotivated. Everything is piling up and I don't know where to start."];
+
+      const promises = [];
+      const now = new Date();
+      
+      for (let i = 0; i < 200; i++) {
+        const randomDaysAgo = Math.floor(Math.random() * 365);
+        const randomDate = new Date();
+        randomDate.setDate(now.getDate() - randomDaysAgo);
+        randomDate.setHours(Math.floor(Math.random() * 23), Math.floor(Math.random() * 59));
+        
+        const randomType = moodTypes[Math.floor(Math.random() * moodTypes.length)];
+        const score = moodScoring[randomType];
+        
+        const numTags = Math.floor(Math.random() * 3) + 1;
+        const shuffledTags = availableTags.sort(() => 0.5 - Math.random());
+        const selectedTags = shuffledTags.slice(0, numTags);
+        
+        let title = "";
+        let desc = "";
+        if (score > 0) {
+          title = goodTitles[Math.floor(Math.random() * goodTitles.length)];
+          desc = goodDescs[Math.floor(Math.random() * goodDescs.length)];
+        } else if (score < 0) {
+          title = badTitles[Math.floor(Math.random() * badTitles.length)];
+          desc = badDescs[Math.floor(Math.random() * badDescs.length)];
+        } else {
+          title = okayTitles[Math.floor(Math.random() * okayTitles.length)];
+          desc = okayDescs[Math.floor(Math.random() * okayDescs.length)];
+        }
+        
+        const mockDoc = {
+          userId: user.uid,
+          moodType: randomType,
+          moodScore: score,
+          title: title,
+          description: desc,
+          tags: selectedTags,
+          createdAt: randomDate.toISOString(),
+        };
+        
+        promises.push(addDoc(collection(db, "moodEntries"), mockDoc));
+      }
+      
+      await Promise.all(promises);
+      setLoading(false);
+      alert("Successfully generated 200 mock entries over the last year!");
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      alert("Error generating data");
+    }
+  };
+
+  const deleteAllData = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const promises = entries.map((entry) => deleteDoc(doc(db, "moodEntries", entry.id)));
+      await Promise.all(promises);
+      setLoading(false);
+      alert("Successfully deleted all mood logs! Starting fresh.");
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      alert("Error deleting data");
+    }
+  };
 
   // Create Donut Chart Ring SVG
   const renderDonut = () => {
@@ -197,7 +281,9 @@ export default function InsightsScreen() {
     let pathD = "";
     validPoints.forEach((p, idx) => {
       const x = 10 + (p.i * (280 / Math.max(1, validPoints.length - 1)));
-      const y = 90 - (p.val / 100 * 80);
+      // Map val (-10 to 10) to y (90 to 10): ratio is (val + 10)/20
+      const ratio = (p.val + 10) / 20;
+      const y = 90 - (ratio * 80);
       pathD += idx === 0 ? `M${x},${y}` : ` L${x},${y}`;
     });
 
@@ -207,7 +293,8 @@ export default function InsightsScreen() {
           <Path d={pathD} fill="none" stroke="#8B7CFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           {validPoints.map((p) => {
             const x = 10 + (p.i * (280 / Math.max(1, validPoints.length - 1)));
-            const y = 90 - (p.val / 100 * 80);
+            const ratio = (p.val + 10) / 20;
+            const y = 90 - (ratio * 80);
             return <Circle key={p.i} cx={x} cy={y} r="5" fill="#8B7CFF" />
           })}
         </Svg>
@@ -240,7 +327,7 @@ export default function InsightsScreen() {
               <Text style={[styles.dayCardTitle, { color: titleColor }]}>{dayData.dateStr}</Text>
               <View style={[styles.scoreBadge, { backgroundColor: badgeBg }]}>
                 <Text style={[styles.scoreText, { color: labelColor }]}>
-                  {((dayData.avg / 100) * 4 + 1).toFixed(1)}/5
+                  {(((dayData.avg + 10) / 20) * 4 + 1).toFixed(1)}/5
                 </Text>
               </View>
             </View>
@@ -346,7 +433,7 @@ export default function InsightsScreen() {
           
           {last7DaysEntries.length > 0 ? renderLineChart() : (
             <View style={{ height: 100, justifyContent: "center", alignItems: "center" }}>
-              <Text style={{ color: theme.textSecondary }}>Not enough data to graph.</Text>
+              <Text style={{ color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>Not enough data to graph.</Text>
             </View>
           )}
         </View>
@@ -372,13 +459,27 @@ export default function InsightsScreen() {
               </View>
             </View>
           ) : (
-            <Text style={{ color: theme.textSecondary, textAlign: 'center', marginVertical: 20 }}>No logs in the last 7 days.</Text>
+            <Text style={{ color: theme.textSecondary, textAlign: 'center', marginVertical: 20, fontFamily: "Fredoka-Regular" }}>No logs in the last 7 days.</Text>
           )}
         </View>
 
         {/* Top Days */}
         {renderDayCard(topPositive, "Top Positive Day", "positive")}
         {renderDayCard(topChallenging, "Top Challenging Day", "challenging")}
+
+        <TouchableOpacity 
+          style={{ backgroundColor: theme.text, padding: 16, borderRadius: 16, marginTop: 20, alignItems: "center" }}
+          onPress={generate1YearMockData}
+        >
+          <Text style={{ color: theme.background, fontFamily: "Fredoka-Bold", fontSize: 16 }}>🛠️ Generate 1 Year Mock Data</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={{ backgroundColor: "#FF6B6B", padding: 16, borderRadius: 16, marginTop: 10, alignItems: "center" }}
+          onPress={deleteAllData}
+        >
+          <Text style={{ color: "#FFF", fontFamily: "Fredoka-Bold", fontSize: 16 }}>🗑️ Clear All Mood Data</Text>
+        </TouchableOpacity>
 
         <View style={{ height: 100 }} />
       </ScrollView>

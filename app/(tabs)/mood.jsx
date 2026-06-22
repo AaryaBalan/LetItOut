@@ -115,9 +115,12 @@ export default function MoodDashboard() {
   });
 
   // Week stats
+  const endOfToday = new Date(today);
+  endOfToday.setHours(23, 59, 59, 999);
+
   const weekEntries = allEntries.filter((e) => {
     const d = new Date(e.createdAt);
-    return d >= monday && d <= today;
+    return d >= monday && d <= endOfToday;
   });
 
   const avgScore =
@@ -126,8 +129,8 @@ export default function MoodDashboard() {
         weekEntries.length
       : 0;
 
-  // Convert -100..+100 to 1..5 scale
-  const avgMood5 = ((avgScore + 100) / 200) * 4 + 1;
+  // Convert -10..+10 to 1..5 scale
+  const avgMood5 = ((avgScore + 10) / 20) * 4 + 1;
 
   // Streak calculation
   const calcStreak = () => {
@@ -425,7 +428,7 @@ export default function MoodDashboard() {
               {weekTimeline.map((d, i) => {
                 const h =
                   d.moodScore !== null
-                    ? Math.max(8, ((d.moodScore + 100) / 200) * 50)
+                    ? Math.max(8, ((d.moodScore + 10) / 20) * 50)
                     : 8;
                 const c =
                   d.moodType

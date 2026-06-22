@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   // Calendar
   calendarCard: {
     borderRadius: 24,
-    padding: 16,
+    padding: 8,
     borderWidth: 1,
     marginBottom: 20,
   },
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 2,
-    marginBottom: 5
+    marginBottom: 5,
   },
-  dayCell: { borderRadius: 10, borderWidth: 2, borderColor: "transparent" },
+  dayCell: { borderRadius: 10, borderWidth: 2, borderColor: "transparent", padding: 2 },
   todayCell: {},
   weekLabel: { fontSize: 11, fontFamily: "Fredoka-Bold" },
 
