@@ -238,6 +238,7 @@ export default function MoodHistory() {
           </View>
         ) : (
           displayedEntries.map((entry) => {
+            // console.log("entry", entry.title);
             const mood = getMoodMeta(entry.moodType);
             const d = new Date(entry.createdAt);
             return (
@@ -254,12 +255,9 @@ export default function MoodHistory() {
                         <Ionicons name="ellipse-outline" size={22} color="#FFFFFF" />
                       )}
                     </View>
-                    <View>
-                      <Text style={[styles.entryMood, { color: theme.text }]}>
-                        {mood?.label || "Unknown"}{" "}
-                        <Text style={{ color: mood?.color }}>
-                          ({entry.moodScore > 0 ? "+" : ""}{entry.moodScore})
-                        </Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.entryMood, { color: theme.text }]} numberOfLines={2}>
+                        {entry.title || mood?.label || "Unknown"}
                       </Text>
                       <Text style={[styles.entryDate, { color: theme.textTertiary }]}>
                         {d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })} · {getTimeAgo(entry.createdAt)}
@@ -394,8 +392,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  entryMood: { fontSize: 16, fontFamily: "Fredoka-Bold" },
-  entryDate: { fontSize: 12, fontFamily: "Fredoka-Regular", marginTop: 2 },
+  entryMood: { fontSize: 16, fontFamily: "Frederick"},
+  entryDate: { fontSize: 12, fontFamily: "Fredoka-Regular", marginTop: 5},
   entryNote: {
     fontSize: 14,
     fontFamily: "Fredoka-Regular",

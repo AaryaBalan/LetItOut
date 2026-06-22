@@ -9,6 +9,7 @@ import {
   where,
 } from "firebase/firestore";
 import {
+  FlatList,
   Modal,
   ScrollView,
   StatusBar,
@@ -16,6 +17,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
@@ -46,6 +48,7 @@ export default function JournalScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -59,6 +62,7 @@ export default function JournalScreen() {
       const allEntries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const journalEntries = allEntries.filter(e => e.title || e.note);
       setEntries(journalEntries);
+      setLoading(false);
     });
     return unsub;
   }, [user]);
@@ -98,6 +102,79 @@ export default function JournalScreen() {
       case "awful": return "thunderstorm-outline";
       default: return "star-outline";
     }
+  };
+
+  const renderJournalItem = ({ item: journal }) => {
+    const mood = MOOD_OPTIONS.find(m => m.id === journal.moodType) || MOOD_OPTIONS[2];
+    const d = new Date(journal.createdAt);
+    const dateStr = d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    const timeStr = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+
+    return (
+      <TouchableOpacity 
+        style={[styles.card, { backgroundColor: mood.color + "1A" }]} // 10% opacity
+        activeOpacity={0.8}
+      >
+        <View style={styles.cardHeader}>
+          <View style={[styles.moodOrb, { backgroundColor: mood.color }]}>
+            <MaterialCommunityIcons name={mood.icon} size={24} color="#FFF" />
+          </View>
+          <View style={styles.cardMeta}>
+            <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+              {journal.title || "Untitled Entry"}
+            </Text>
+            <Text style={[styles.cardDate, { color: theme.textTertiary }]}>
+              {dateStr}  ·  {timeStr}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.moreBtn}>
+            <Ionicons name="ellipsis-vertical" size={20} color={theme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {journal.description ? (
+          <Text style={[styles.cardContent, { color: theme.textSecondary }]} numberOfLines={3}>
+            {journal.description}
+          </Text>
+        ) : journal.note ? (
+          <Text style={[styles.cardContent, { color: theme.textSecondary }]} numberOfLines={3}>
+            {journal.note}
+          </Text>
+        ) : null}
+
+        <View style={styles.cardFooter}>
+          <View style={styles.tagsContainer}>
+            {journal.tags && journal.tags.map(tag => (
+              <View key={tag} style={[styles.tag, { backgroundColor: theme.isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)" }]}>
+                <Text style={[styles.tagText, { color: mood.color }]}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+          <Ionicons name={getDoodleForMood(journal.moodType)} size={48} color={mood.color} style={styles.bgDoodle} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={{ padding: 40, alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#8B7CFF" />
+          <Text style={{ marginTop: 16, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
+            Loading entries...
+          </Text>
+        </View>
+      );
+    }
+    return (
+      <View style={{ padding: 40, alignItems: "center" }}>
+        <Ionicons name="journal-outline" size={48} color={theme.textTertiary} />
+        <Text style={{ marginTop: 12, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
+          No journal entries found.
+        </Text>
+      </View>
+    );
   };
 
   return (
@@ -170,67 +247,18 @@ export default function JournalScreen() {
       </View>
 
       {/* Journals List */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {filteredEntries.length === 0 ? (
-          <View style={{ padding: 40, alignItems: "center" }}>
-            <Ionicons name="journal-outline" size={48} color={theme.textTertiary} />
-            <Text style={{ marginTop: 12, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
-              No journal entries found.
-            </Text>
-          </View>
-        ) : (
-          filteredEntries.map((journal) => {
-            const mood = MOOD_OPTIONS.find(m => m.id === journal.moodType) || MOOD_OPTIONS[2];
-            const d = new Date(journal.createdAt);
-            const dateStr = d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
-            const timeStr = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-
-            return (
-              <TouchableOpacity 
-                key={journal.id} 
-                style={[styles.card, { backgroundColor: mood.color + "1A" }]} // 10% opacity
-                activeOpacity={0.8}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={[styles.moodOrb, { backgroundColor: mood.color }]}>
-                    <MaterialCommunityIcons name={mood.icon} size={24} color="#FFF" />
-                  </View>
-                  <View style={styles.cardMeta}>
-                    <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
-                      {journal.title || "Untitled Entry"}
-                    </Text>
-                    <Text style={[styles.cardDate, { color: theme.textTertiary }]}>
-                      {dateStr}  ·  {timeStr}
-                    </Text>
-                  </View>
-                  <TouchableOpacity style={styles.moreBtn}>
-                    <Ionicons name="ellipsis-vertical" size={20} color={theme.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-
-                {journal.note && (
-                  <Text style={[styles.cardContent, { color: theme.textSecondary }]} numberOfLines={3}>
-                    {journal.note}
-                  </Text>
-                )}
-
-                <View style={styles.cardFooter}>
-                  <View style={styles.tagsContainer}>
-                    {journal.tags && journal.tags.map(tag => (
-                      <View key={tag} style={[styles.tag, { backgroundColor: theme.isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)" }]}>
-                        <Text style={[styles.tagText, { color: mood.color }]}>{tag}</Text>
-                      </View>
-                    ))}
-                  </View>
-                  {/* Big decorative doodle */}
-                  <Ionicons name={getDoodleForMood(journal.moodType)} size={48} color={mood.color} style={styles.bgDoodle} />
-                </View>
-              </TouchableOpacity>
-            );
-          })
-        )}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+      <FlatList
+        data={filteredEntries}
+        keyExtractor={(item) => item.id}
+        renderItem={renderJournalItem}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={<View style={{ height: 100 }} />}
+      />
 
       {/* Category Filter Modal */}
       <Modal
