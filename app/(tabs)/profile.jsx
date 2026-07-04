@@ -13,7 +13,6 @@ import {
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   ScrollView,
   StatusBar,
@@ -33,8 +32,10 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useAlert } from "../../context/AlertContext";
 
 export default function Profile() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const { showTabBar } = useTabBar();
   const { user, logout } = useAuth();
@@ -158,10 +159,10 @@ export default function Profile() {
       }, { merge: true });
 
       setProfileCode(newSeed);
-      Alert.alert("Success", "Profile image updated successfully!");
+      showAlert("Success", "Profile image updated successfully!");
     } catch (error) {
       console.error("Error updating avatar:", error);
-      Alert.alert("Error", "Failed to update profile image");
+      showAlert("Error", "Failed to update profile image");
     }
   };
 
@@ -506,7 +507,7 @@ export default function Profile() {
   };
 
   const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
+    showAlert("Logout", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Logout",
@@ -516,7 +517,7 @@ export default function Profile() {
           if (result.success) {
             router.replace("/");
           } else {
-            Alert.alert("Error", "Failed to logout");
+            showAlert("Error", "Failed to logout");
           }
         }
       },
@@ -524,14 +525,14 @@ export default function Profile() {
   };
 
   const handlePrivacySettings = () => {
-    Alert.alert(
+    showAlert(
       "Privacy Settings",
       "Privacy settings will be implemented soon",
     );
   };
 
   const handleDeactivateAccount = () => {
-    Alert.alert(
+    showAlert(
       "Deactivate Account",
       "Are you sure you want to deactivate your account? This action can be reversed by logging in again.",
       [

@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Platform,
   ScrollView,
   StatusBar,
@@ -21,8 +20,10 @@ import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { createPerspectiveNotification } from "../utils/notifications";
+import { useAlert } from "../context/AlertContext";
 
 export default function MyCenter() {
+  const { showAlert } = useAlert();
   const { user } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
@@ -185,7 +186,7 @@ export default function MyCenter() {
 
     } catch (error) {
       console.error("Error saving perspective rating:", error);
-      Alert.alert("Error", "Failed to save rating.");
+      showAlert("Error", "Failed to save rating.");
     }
   };
 

@@ -19,7 +19,6 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    Alert,
     FlatList,
     Keyboard,
     KeyboardAvoidingView,
@@ -42,6 +41,7 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { getPostById } from "../../data/dummyData";
+import { useAlert } from "../../context/AlertContext";
 import {
     createCommentNotification,
     createHugNotification,
@@ -66,6 +66,7 @@ const getCategoryLabel = (category) => {
 };
 
 export default function PostDetail() {
+  const { showAlert } = useAlert();
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { user } = useAuth();
@@ -461,11 +462,11 @@ export default function PostDetail() {
                 }
             });
 
-            Alert.alert("Success", "Post shared successfully!");
+            showAlert("Success", "Post shared successfully!");
             setShowShareModal(false);
         } catch (error) {
             console.error("Error sharing post:", error);
-            Alert.alert("Error", "Failed to share post");
+            showAlert("Error", "Failed to share post");
         } finally {
             setSharing(false);
         }
@@ -565,7 +566,7 @@ export default function PostDetail() {
 
     const handleHug = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to react.");
+            showAlert("Not Logged In", "Please log in to react.");
             return;
         }
 
@@ -613,13 +614,13 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling hug reaction:", error);
-            Alert.alert("Error", "Failed to update reaction. Please try again.");
+            showAlert("Error", "Failed to update reaction. Please try again.");
         }
     };
 
     const handleMeToo = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to react.");
+            showAlert("Not Logged In", "Please log in to react.");
             return;
         }
 
@@ -667,13 +668,13 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling me too reaction:", error);
-            Alert.alert("Error", "Failed to update reaction. Please try again.");
+            showAlert("Error", "Failed to update reaction. Please try again.");
         }
     };
 
     const handleLike = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to react.");
+            showAlert("Not Logged In", "Please log in to react.");
             return;
         }
 
@@ -721,7 +722,7 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling like reaction:", error);
-            Alert.alert("Error", "Failed to update reaction. Please try again.");
+            showAlert("Error", "Failed to update reaction. Please try again.");
         }
     };
 
@@ -729,7 +730,7 @@ export default function PostDetail() {
         if (!newComment.trim()) return;
 
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to comment.");
+            showAlert("Not Logged In", "Please log in to comment.");
             return;
         }
 
@@ -790,13 +791,13 @@ export default function PostDetail() {
             console.log("Comment added successfully");
         } catch (error) {
             console.error("Error adding comment:", error);
-            Alert.alert("Error", "Failed to add comment. Please try again.");
+            showAlert("Error", "Failed to add comment. Please try again.");
         }
     };
 
     const handleCommentSupport = async (commentId) => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to support comments.");
+            showAlert("Not Logged In", "Please log in to support comments.");
             return;
         }
 
@@ -828,12 +829,12 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling comment support:", error);
-            Alert.alert("Error", "Failed to update support. Please try again.");
+            showAlert("Error", "Failed to update support. Please try again.");
         }
     };
 
     const handleReport = () => {
-        Alert.alert(
+        showAlert(
             "Report Content",
             "Thank you for helping keep our community safe.",
             [{ text: "OK" }],
@@ -844,7 +845,7 @@ export default function PostDetail() {
     // Save/Unsave post
     const handleSavePost = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to save posts.");
+            showAlert("Not Logged In", "Please log in to save posts.");
             return;
         }
 
@@ -869,14 +870,14 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error saving/unsaving post:", error);
-            Alert.alert("Error", "Failed to save post. Please try again.");
+            showAlert("Error", "Failed to save post. Please try again.");
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async () => {
-        Alert.alert(
+        showAlert(
             "Delete Post",
             "Are you sure you want to delete this post? This action cannot be undone.",
             [
@@ -887,11 +888,11 @@ export default function PostDetail() {
                     onPress: async () => {
                         try {
                             await deleteDoc(doc(db, "posts", id));
-                            Alert.alert("Success", "Post deleted successfully");
+                            showAlert("Success", "Post deleted successfully");
                             router.back();
                         } catch (error) {
                             console.error("Error deleting post:", error);
-                            Alert.alert(
+                            showAlert(
                                 "Error",
                                 "Failed to delete post. Please try again.",
                             );

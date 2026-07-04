@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { updatePassword } from "firebase/auth";
 import { useState } from "react";
 import {
-  Alert,
   Modal,
   ScrollView,
   StatusBar,
@@ -16,8 +15,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useAlert } from "../context/AlertContext";
 
 export default function Settings() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const { user } = useAuth();
   const { isDark, theme, toggleTheme } = useTheme();
@@ -32,36 +33,36 @@ export default function Settings() {
 
   const handleChangePassword = async () => {
     if (!newPassword || !confirmPassword) {
-      Alert.alert("Error", "Please fill all fields");
+      showAlert("Error", "Please fill all fields");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      showAlert("Error", "Passwords do not match");
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
+      showAlert("Error", "Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
     try {
       await updatePassword(user, newPassword);
-      Alert.alert("Success", "Password changed successfully");
+      showAlert("Success", "Password changed successfully");
       setShowChangePasswordModal(false);
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
       console.error("Password change error:", error);
       if (error.code === "auth/requires-recent-login") {
-        Alert.alert(
+        showAlert(
           "Error",
           "For security reasons, please log out and log in again before changing your password"
         );
       } else {
-        Alert.alert("Error", error.message || "Failed to change password");
+        showAlert("Error", error.message || "Failed to change password");
       }
     } finally {
       setLoading(false);

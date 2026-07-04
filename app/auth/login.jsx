@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -14,8 +13,10 @@ import {
     View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
+import { useAlert } from "../../context/AlertContext";
 
 export default function Login() {
+  const { showAlert } = useAlert();
     const router = useRouter();
     const { login, loginWithGoogle, isGoogleSignInAvailable } = useAuth();
 
@@ -70,9 +71,9 @@ export default function Login() {
             } else if (errorMessage.includes("invalid-email")) {
                 setErrors({ email: "Invalid email address" });
             } else if (errorMessage.includes("too-many-requests")) {
-                Alert.alert("Too Many Attempts", "Please try again later");
+                showAlert("Too Many Attempts", "Please try again later");
             } else {
-                Alert.alert("Login Failed", errorMessage);
+                showAlert("Login Failed", errorMessage);
             }
         }
     };
@@ -88,7 +89,7 @@ export default function Login() {
         if (result.success) {
             router.replace("/(tabs)/home");
         } else {
-            Alert.alert("Google Sign-In Failed", result.error);
+            showAlert("Google Sign-In Failed", result.error);
         }
     };
 

@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
     Modal,
     Pressable,
     ScrollView,
@@ -13,8 +12,10 @@ import {
     View } from "react-native";
 import { db } from "../config/firebase";
 import { useTheme } from "../context/ThemeContext";
+import { useAlert } from "../context/AlertContext";
 
 export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
+    const { showAlert } = useAlert();
     const { theme } = useTheme();
     const [displayName, setDisplayName] = useState("");
     const [bio, setBio] = useState("");
@@ -46,7 +47,7 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
 
     const handleSave = async () => {
         if (!displayName.trim()) {
-            Alert.alert("Error", "Display name is required");
+            showAlert("Error", "Display name is required");
             return;
         }
 
@@ -59,12 +60,12 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
                 phoneNumber: phoneNumber.trim(),
                 updatedAt: new Date() });
 
-            Alert.alert("Success", "Profile updated successfully!");
+            showAlert("Success", "Profile updated successfully!");
             onUpdate();
             onClose();
         } catch (error) {
             console.error("Error updating profile:", error);
-            Alert.alert("Error", "Failed to update profile");
+            showAlert("Error", "Failed to update profile");
         } finally {
             setLoading(false);
         }
