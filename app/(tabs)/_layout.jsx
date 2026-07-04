@@ -125,6 +125,19 @@ function TabsLayoutInner() {
                     ) }}
             />
             <Tabs.Screen
+                name="mood"
+                options={{
+                    title: "Mood",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "happy" : "happy-outline"}
+                            size={27}
+                            color={color}
+                        />
+                    ) }}
+            />
+
+            <Tabs.Screen
                 name="profile"
                 options={{
                     title: "Profile",
