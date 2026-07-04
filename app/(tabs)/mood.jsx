@@ -164,7 +164,7 @@ export default function MoodDashboard() {
   const getMoodColor5 = (v) => {
     if (v >= 4.5) return "#66BB6A";
     if (v >= 3.5) return "#FFC857";
-    if (v >= 2.5) return "#8B7CFF";
+    if (v >= 2.5) return "#8B5CF6";
     if (v >= 1.5) return "#FF6B6B";
     return "#D32F2F";
   };
@@ -354,7 +354,7 @@ export default function MoodDashboard() {
               ]}
               onPress={() => router.push("/mood/log")}
             >
-              <Ionicons name="pencil" size={18} color="#8B7CFF" />
+              <Ionicons name="pencil" size={18} color="#8B5CF6" />
             </TouchableOpacity>
           </View>
 
@@ -462,7 +462,7 @@ export default function MoodDashboard() {
         </Text>
         <View style={styles.quickGrid}>
           <TouchableOpacity
-            style={[styles.qAction, { backgroundColor: "#8B7CFF" }]}
+            style={[styles.qAction, { backgroundColor: "#8B5CF6" }]}
             onPress={() => router.push("/mood/log")}
           >
             <Ionicons name="add-circle" size={24} color="#FFF" />
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 28,
     borderWidth: 1,
-    shadowColor: "#8B7CFF",
+    shadowColor: "#8B5CF6",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: { fontSize: 18, fontFamily: "Fredoka-Bold" },
-  viewAll: { fontSize: 14, fontFamily: "Fredoka-Regular", color: "#8B7CFF" },
+  viewAll: { fontSize: 14, fontFamily: "Fredoka-Regular", color: "#8B5CF6" },
 
   // Summary
   summaryCard: {
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     gap: 8,
-    shadowColor: "#8B7CFF",
+    shadowColor: "#8B5CF6",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,

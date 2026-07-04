@@ -487,7 +487,7 @@ export default function InsightsScreen() {
         <View style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.chartHeader}>
             <Text style={[styles.chartTitle, { color: theme.text }]}>Average Mood</Text>
-            <Ionicons name="sparkles-outline" size={24} color="#8B7CFF" />
+            <Ionicons name="sparkles-outline" size={24} color="#8B5CF6" />
           </View>
           <View>
             <Text style={[styles.bigNum, { color: theme.text }]}>
@@ -501,7 +501,7 @@ export default function InsightsScreen() {
           
           {loading ? (
              <View style={{ height: 130, justifyContent: "center", alignItems: "center" }}>
-               <ActivityIndicator size="large" color="#8B7CFF" />
+               <ActivityIndicator size="large" color="#8B5CF6" />
              </View>
           ) : last7DaysEntries.length > 0 ? renderLineChart() : (
             <View style={{ height: 100, justifyContent: "center", alignItems: "center" }}>

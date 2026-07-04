@@ -50,6 +50,9 @@ export default function JournalScreen() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [limitCount, setLimitCount] = useState(15);
+  
+  const hasFilters = activeFilter !== "All" || selectedCategories.length > 0;
 
   useEffect(() => {
     if (!user) return;
@@ -122,7 +125,11 @@ export default function JournalScreen() {
 
     return (
       <TouchableOpacity 
-        style={[styles.card, { backgroundColor: mood.color + "1A" }]} // 10% opacity
+        style={[styles.card, { 
+          backgroundColor: theme.isDark ? theme.card : mood.color + "1A",
+          borderWidth: 1,
+          borderColor: theme.isDark ? theme.border : "transparent"
+        }]}
         activeOpacity={0.8}
       >
         <View style={styles.cardHeader}>
@@ -170,7 +177,7 @@ export default function JournalScreen() {
     if (loading) {
       return (
         <View style={{ padding: 40, alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#8B7CFF" />
+          <ActivityIndicator size="large" color="#8B5CF6" />
           <Text style={{ marginTop: 16, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
             Loading entries...
           </Text>
@@ -224,7 +231,7 @@ export default function JournalScreen() {
             <Ionicons name="calendar-outline" size={20} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.iconBtn, { backgroundColor: "#8B7CFF", borderWidth: 0 }]}
+            style={[styles.iconBtn, { backgroundColor: "#8B5CF6", borderWidth: 0 }]}
             onPress={() => router.push("/mood/log")}
           >
             <Ionicons name="add" size={24} color="#FFF" />
@@ -241,13 +248,13 @@ export default function JournalScreen() {
               style={[
                 styles.filterBtn,
                 { backgroundColor: theme.card, borderColor: theme.border },
-                activeFilter === f && { backgroundColor: theme.isDark ? "#2A2540" : "#F3EEFF", borderColor: "#8B7CFF" }
+                activeFilter === f && { backgroundColor: theme.isDark ? "#2A2A2A" : "#F3EEFF", borderColor: "#8B5CF6" }
               ]}
               onPress={() => setActiveFilter(f)}
             >
               <Text style={[
                 styles.filterText,
-                { color: activeFilter === f ? "#8B7CFF" : theme.textSecondary }
+                { color: activeFilter === f ? "#8B5CF6" : theme.textSecondary }
               ]}>
                 {f}
               </Text>
@@ -266,6 +273,12 @@ export default function JournalScreen() {
         initialNumToRender={8}
         maxToRenderPerBatch={8}
         windowSize={5}
+        onEndReached={() => {
+          if (!hasFilters) {
+            setLimitCount(prev => prev + 15);
+          }
+        }}
+        onEndReachedThreshold={0.5}
         ListEmptyComponent={renderEmptyState}
         ListFooterComponent={<View style={{ height: 100 }} />}
       />
@@ -296,7 +309,7 @@ export default function JournalScreen() {
                       style={[
                         styles.catChip,
                         { backgroundColor: theme.input },
-                        on && { backgroundColor: "#8B7CFF" }
+                        on && { backgroundColor: "#8B5CF6" }
                       ]}
                       onPress={() => toggleCategory(cat.id)}
                     >
@@ -317,7 +330,7 @@ export default function JournalScreen() {
                 <Text style={[styles.modalBtnText, { color: theme.text }]}>Clear</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.modalBtn, { backgroundColor: "#8B7CFF" }]}
+                style={[styles.modalBtn, { backgroundColor: "#8B5CF6" }]}
                 onPress={() => setShowFilterModal(false)}
               >
                 <Text style={[styles.modalBtnText, { color: "#FFF" }]}>Apply Filters</Text>
