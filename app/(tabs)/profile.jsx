@@ -501,7 +501,7 @@ export default function Profile() {
     if (type === "like") return "#F06292"; // Pink
     if (type === "hug") return "#FFB74D"; // Orange/Yellow
     if (type === "metoo") return "#66BB6A"; // Green
-    if (type === "comment") return "#111827"; // Violet
+    if (type === "comment") return "#8B5CF6"; // Violet
     return "#FFB74D";
   };
 
@@ -746,32 +746,32 @@ export default function Profile() {
           <View style={styles.cardsRow}>
             {/* My Stories Card */}
             <TouchableOpacity
-              style={[styles.compactCard, { backgroundColor: theme.isDark ? '#1E1B2E' : '#F5F3FF', borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}
               onPress={() => setShowAllStoriesModal(true)}
               activeOpacity={0.7}
             >
-              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2E2B4E' : '#EDE9FE' }]}>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2A2A2A' : '#EDE9FE' }]}>
                 <Ionicons name="document-text" size={24} color="#8B5CF6" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{userPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>My Stories</Text>
-              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2E2B4E' : '#EDE9FE' }]}>
+              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#EDE9FE' }]}>
                 <Ionicons name="arrow-forward" size={16} color="#8B5CF6" />
               </View>
             </TouchableOpacity>
 
             {/* Saved Posts Card */}
             <TouchableOpacity
-              style={[styles.compactCard, { backgroundColor: theme.isDark ? '#2E2416' : '#FFFBEB', borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}
               onPress={() => setShowAllSavedModal(true)}
               activeOpacity={0.7}
             >
-              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#4E3416' : '#FEF3C7' }]}>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FEF3C7' }]}>
                 <Ionicons name="bookmark" size={24} color="#F59E0B" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{savedPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
-              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#4E3416' : '#FEF3C7' }]}>
+              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FEF3C7' }]}>
                 <Ionicons name="arrow-forward" size={16} color="#F59E0B" />
               </View>
             </TouchableOpacity>

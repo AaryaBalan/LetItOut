@@ -30,13 +30,13 @@ import { posts as dummyPosts } from "../../data/dummyData";
 
 const getCategoryTheme = (category, isDark) => {
   const themes = {
-    "All Feed": { color: isDark ? "#FFFFFF" : "#FFFFFF", bgColor: isDark ? "#222" : "#111827" },
-    "Family": { color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#FFFFFF" },
-    "Stress": { color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FFFFFF" },
-    "Relationship": { color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FFFFFF" },
-    "Study": { color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#FFFFFF" },
-    "Mental Health": { color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#FFFFFF" },
-    "Other": { color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#3C4043" : "#FFFFFF" }
+    "All Feed": { color: isDark ? "#FFFFFF" : "#FFFFFF", bgColor: isDark ? "#333333" : "#111827" },
+    "Family": { color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#1A2A3A" : "#EBF3FE" },
+    "Stress": { color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#3A1A1A" : "#FCEEEE" },
+    "Relationship": { color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#3A3A3A" : "#FEF9E6" },
+    "Study": { color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#1A3A2A" : "#E9F7EF" },
+    "Mental Health": { color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#1A1A3A" : "#EEF2FF" },
+    "Other": { color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#2A2A2A" : "#3C4043" }
   };
   return themes[category] || themes["Other"];
 };
@@ -301,7 +301,7 @@ export default function Home() {
           <View style={[styles.header, { backgroundColor: theme.background }]}>
             {isSearchExpanded ? (
               <View style={styles.expandedWrapper}>
-                <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: theme.border }]}>
+                <View style={[styles.expandedSearchBar, { backgroundColor: theme.input, borderColor: theme.border }]}>
                   <Ionicons name="search" size={18} color={theme.textSecondary} />
                   <TextInput
                     style={[styles.expandedSearchInput, { color: theme.text }]}
@@ -314,7 +314,7 @@ export default function Home() {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
+                  style={[styles.searchIconButton, { backgroundColor: theme.input }]}
                   onPress={() => setFilterModalVisible(true)}
                   delayPressIn={0}
                 >
@@ -336,7 +336,7 @@ export default function Home() {
               <>
                 <View style={styles.headerLeft}>
                   <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
+                    style={[styles.iconButton, { backgroundColor: theme.input }]}
                     onPress={() => setIsDrawerOpen(true)}
                     delayPressIn={0}
                   >
@@ -351,7 +351,7 @@ export default function Home() {
 
                 <View style={styles.headerRight}>
                   <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
+                    style={[styles.iconButton, { backgroundColor: theme.input }]}
                     onPress={() => setIsSearchExpanded(true)}
                     delayPressIn={0}
                   >
@@ -388,7 +388,7 @@ export default function Home() {
                       backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
                       gap: 6,
                       borderWidth: 1,
-                      borderColor: '#111827',
+                      borderColor: theme.border,
                       marginRight: 6,
                       marginLeft: 16 }}
                     onPress={() => {
@@ -399,8 +399,8 @@ export default function Home() {
                     }}
                     delayPressIn={0}
                   >
-                    <Ionicons name="close-circle" size={16} color="#111827" />
-                    <Text style={{ fontSize: 12, fontFamily: 'Fredoka-Bold',  color: "#111827" }}>
+                    <Ionicons name="close-circle" size={16} color={theme.text} />
+                    <Text style={{ fontSize: 12, fontFamily: 'Fredoka-Bold',  color: theme.text }}>
                       Clear
                     </Text>
                   </TouchableOpacity>
@@ -416,7 +416,7 @@ export default function Home() {
                     key={category}
                     style={[
                       styles.categoryChip,
-                      { backgroundColor: '#FFFFFF', borderColor: 'transparent', borderWidth: 0, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+                      { backgroundColor: theme.card, borderColor: 'transparent', borderWidth: 0, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
                       isFirst && !hasActiveFilters && { marginLeft: 16 },
                       isActive && {
                         backgroundColor: catTheme.bgColor,

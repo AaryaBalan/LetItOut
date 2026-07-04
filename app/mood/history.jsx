@@ -163,7 +163,7 @@ export default function MoodHistory() {
           <View style={styles.weekRow}>
             {WEEKDAY_HEADERS.map((h) => (
               <View key={h} style={styles.calCell}>
-                <Text style={[styles.weekLabel, { color: theme.orimary }]}>{h}</Text>
+                <Text style={[styles.weekLabel, { color: theme.textSecondary }]}>{h}</Text>
               </View>
             ))}
           </View>

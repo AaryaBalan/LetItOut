@@ -510,14 +510,14 @@ export default function ChatScreen() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
                 <View style={styles.headerLeft}>
-                    <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: '#F8F5FF' }]}>
-                        <Ionicons name="chevron-back" size={24} color="#111827" />
+                    <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.surface }]}>
+                        <Ionicons name="chevron-back" size={24} color={theme.text} />
                     </TouchableOpacity>
                     {recipient && (
                         <View style={styles.headerAvatar}>
-                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={44} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3E5F5' }]}><Ionicons name="person" size={22} color="#111827" /></View>}
+                            {recipient.profileCode ? <Avatar seed={recipient.profileCode} size={44} /> : <View style={[styles.defaultHeaderAvatar, { backgroundColor: theme.surface }]}><Ionicons name="person" size={22} color={theme.text} /></View>}
                         </View>
                     )}
                 </View>
@@ -555,16 +555,16 @@ export default function ChatScreen() {
                                         <View style={styles.emptyChatAvatarContainer}>
                                             {recipient && recipient.profileCode ?
                                                 <Avatar seed={recipient.profileCode} size={80} /> :
-                                                <View style={[styles.defaultHeaderAvatar, { width: 80, height: 80, borderRadius: 40 }]}>
-                                                    <Ionicons name="person" size={40} color="#111827" />
+                                                <View style={[styles.defaultHeaderAvatar, { width: 80, height: 80, borderRadius: 40, backgroundColor: theme.surface }]}>
+                                                    <Ionicons name="person" size={40} color={theme.text} />
                                                 </View>
                                             }
                                             <View style={styles.onlineBadge} />
                                         </View>
-                                        <Text style={styles.emptyChatTitle}>
+                                        <Text style={[styles.emptyChatTitle, { color: theme.text }]}>
                                             Say hello to {recipient ? recipient.name.split(' ')[0] : "them"}!
                                         </Text>
-                                        <Text style={styles.emptyChatSubtitle}>
+                                        <Text style={[styles.emptyChatSubtitle, { color: theme.textSecondary }]}>
                                             Start the conversation with a friendly wave 👋
                                         </Text>
                                         <TouchableOpacity
@@ -588,10 +588,10 @@ export default function ChatScreen() {
                             <View style={styles.replyBannerLine} />
                             <View style={styles.replyBannerContent}>
                                 <Text style={styles.replyBannerSender}>Replying to {replyingTo.senderName}</Text>
-                                <Text numberOfLines={1} style={styles.replyBannerText}>{replyingTo.text}</Text>
+                                <Text numberOfLines={1} style={[styles.replyBannerText, { color: theme.textSecondary }]}>{replyingTo.text}</Text>
                             </View>
                             <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                <Ionicons name="close" size={20} color="#6B7280" />
+                                <Ionicons name="close" size={20} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -601,11 +601,11 @@ export default function ChatScreen() {
                             <Ionicons name={showEmojiBoard ? "keypad" : "happy-outline"} size={22} color="#8B5CF6" />
                         </TouchableOpacity>
 
-                        <View style={[styles.inputContainer, { backgroundColor: '#F9FAFB', borderColor: '#E5E7EB' }]}>
+                        <View style={[styles.inputContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                             <TextInput
                                 style={[styles.input, { color: theme.text }]}
                                 placeholder="Type a message..."
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.textTertiary}
                                 value={inputText}
                                 onChangeText={setInputText}
                                 multiline
@@ -650,8 +650,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 16,
         paddingBottom: 8,
-        borderBottomWidth: 2,
-        borderBottomColor: "#E5E7EB"
+        borderBottomWidth: 1, // Changed to 1 from 2 to match other headers
     },
     headerLeft: {
         flexDirection: 'row',
