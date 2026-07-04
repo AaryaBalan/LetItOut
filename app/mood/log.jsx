@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,12 +13,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MoodSelector, { MOOD_OPTIONS } from "../../components/MoodSelector";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useAlert } from "../../context/AlertContext";
 
 const ACTIVITY_TAGS = [
   { id: "work", label: "Work", icon: "briefcase-outline" },
@@ -35,6 +36,7 @@ const ACTIVITY_TAGS = [
 ];
 
 export default function LogMood() {
+  const { showAlert } = useAlert();
   const { user } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
@@ -65,7 +67,7 @@ export default function LogMood() {
   const handleSave = async () => {
     if (!selectedMood || !user) return;
     if (!title.trim()) {
-      Alert.alert("Missing Title", "Please enter a title for your journal entry.");
+      showAlert("Missing Title", "Please enter a title for your journal entry.");
       return;
     }
     setSaving(true);
@@ -82,12 +84,12 @@ export default function LogMood() {
         timestamp: serverTimestamp(),
       });
 
-      Alert.alert("Mood Logged! 🎉", "Your mood has been saved.", [
+      showAlert("Mood Logged! 🎉", "Your mood has been saved.", [
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch (err) {
       console.error("Error saving mood:", err);
-      Alert.alert("Error", "Failed to save mood. Please try again.");
+      showAlert("Error", "Failed to save mood. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -255,9 +257,7 @@ export default function LogMood() {
             onPress={handleSave}
           >
             {saving ? (
-              <Text style={[styles.saveBtnText, { color: theme.background }]}>
-                Saving...
-              </Text>
+              <ActivityIndicator size="small" color={theme.background} />
             ) : (
               <Text
                 style={[

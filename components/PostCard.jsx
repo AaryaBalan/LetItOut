@@ -18,12 +18,12 @@ import Avatar from "./Avatar";
 const getCategoryColors = (category, isDark) => {
     const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
     const colors = {
-        "Family": { bg: isDark ? "#EBF3FE" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#2F80ED" },
-        "Stress": { bg: isDark ? "#FCEEEE" : "#FCEEEE", text: isDark ? "#F28B82" : "#EB5757" },
-        "Relationship": { bg: isDark ? "#FEF9E6" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
-        "Study": { bg: isDark ? "#E9F7EF" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
-        "Mental Health": { bg: isDark ? "#EEF2FF" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
-        "Other": { bg: isDark ? "#3C4043" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" } };
+        "Family": { bg: isDark ? "#1A2A3A" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#3B82F6" },
+        "Stress": { bg: isDark ? "#3A1A1A" : "#FCEEEE", text: isDark ? "#F28B82" : "#EF4444" },
+        "Relationship": { bg: isDark ? "#3A3A1A" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F59E0B" },
+        "Study": { bg: isDark ? "#1A3A2A" : "#E9F7EF", text: isDark ? "#81C995" : "#10B981" },
+        "Mental Health": { bg: isDark ? "#1A1A3A" : "#EEF2FF", text: isDark ? "#FDD663" : "#8B5CF6" },
+        "Other": { bg: isDark ? "#2A2A2A" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" } };
     return colors[normalized] || colors["Other"];
 };
 
@@ -192,21 +192,21 @@ export default function PostCard({ post, hideDescription = false }) {
 
 
     return (
-        <View style={styles.cardContainer}>
+        <View style={[styles.cardContainer, { backgroundColor: theme.card }]}>
             {/* Background Blob Elements based on category */}
             <View style={styles.blobContainer}>
                 {post.category === "Stress" || post.category === "Anxiety" ? (
-                    <Ionicons name="flower" size={140} color="#FCEEEE" style={[styles.blobIcon, { transform: [{ rotate: '45deg' }, { scale: 1.5 }] }]} />
+                    <Ionicons name="flower" size={140} color={theme.isDark ? "#3A1A1A" : "#FCEEEE"} style={[styles.blobIcon, { transform: [{ rotate: '45deg' }, { scale: 1.5 }] }]} />
                 ) : post.category === "Study" || post.category === "Study Support" ? (
-                    <Ionicons name="leaf" size={160} color="#E9F7EF" style={[styles.blobIcon, { transform: [{ rotate: '-30deg' }, { scale: 1.3 }] }]} />
+                    <Ionicons name="leaf" size={160} color={theme.isDark ? "#1A3A2A" : "#E9F7EF"} style={[styles.blobIcon, { transform: [{ rotate: '-30deg' }, { scale: 1.3 }] }]} />
                 ) : post.category === "Relationship" ? (
-                    <Ionicons name="heart" size={180} color="#FEF9E6" style={[styles.blobIcon, { transform: [{ rotate: '15deg' }, { scale: 1.2 }] }]} />
+                    <Ionicons name="heart" size={180} color={theme.isDark ? "#3A3A1A" : "#FEF9E6"} style={[styles.blobIcon, { transform: [{ rotate: '15deg' }, { scale: 1.2 }] }]} />
                 ) : post.category === "Family" ? (
-                    <Ionicons name="people" size={140} color="#EBF3FE" style={[styles.blobIcon, { opacity: 0.5, transform: [{ scale: 1.4 }] }]} />
+                    <Ionicons name="people" size={140} color={theme.isDark ? "#1A2A3A" : "#EBF3FE"} style={[styles.blobIcon, { opacity: 0.5, transform: [{ scale: 1.4 }] }]} />
                 ) : (
                     <View style={styles.otherBlobWrapper}>
-                        <View style={styles.otherBlobShape} />
-                        <MaterialCommunityIcons name="ghost" size={50} color="#D8D8FE" style={styles.otherBlobGhost} />
+                        <View style={[styles.otherBlobShape, { backgroundColor: theme.isDark ? "#1A1A3A" : "#E6E6FF" }]} />
+                        <MaterialCommunityIcons name="ghost" size={50} color={theme.isDark ? "#2A2A4A" : "#D8D8FE"} style={styles.otherBlobGhost} />
                     </View>
                 )}
             </View>
@@ -231,8 +231,8 @@ export default function PostCard({ post, hideDescription = false }) {
                             delayPressIn={0}
                         >
                             {post.isAnonymous || !post.authorName || post.authorName === "Anonymous" || !authorProfileCode ? (
-                                <View style={styles.avatarWrapperGhost}>
-                                    <MaterialCommunityIcons name="ghost-outline" size={20} color="#111827" />
+                                <View style={[styles.avatarWrapperGhost, { backgroundColor: theme.isDark ? '#2A2A2A' : '#E5E7EB' }]}>
+                                    <MaterialCommunityIcons name="ghost-outline" size={20} color={theme.text} />
                                 </View>
                             ) : (
                                 <View style={styles.avatarWrapper}>
@@ -256,7 +256,7 @@ export default function PostCard({ post, hideDescription = false }) {
                                 </Text>
                             </View>
                             <TouchableOpacity style={styles.moreButton}>
-                                <Ionicons name="ellipsis-horizontal" size={20} color="#111827" />
+                                <Ionicons name="ellipsis-horizontal" size={20} color={theme.text} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -272,7 +272,7 @@ export default function PostCard({ post, hideDescription = false }) {
 
                     {/* Comments Preview */}
                     {comments.length > 0 && (
-                        <View style={[styles.commentsPreview, { backgroundColor: '#e8e8e8d1' }]}>
+                        <View style={[styles.commentsPreview, { backgroundColor: theme.isDark ? '#2A2A2A' : '#e8e8e8d1' }]}>
                             {comments.slice(0, 2).map((comment) => (
                                 <View key={comment.id} style={styles.commentItem}>
                                     <Avatar seed={commentorProfiles[comment.commentorId] || "anonymous"} size={28} style={styles.commentAvatar} />
@@ -292,24 +292,24 @@ export default function PostCard({ post, hideDescription = false }) {
                     {/* Footer / Reactions */}
                     <View style={styles.footer}>
                         <View style={styles.reactions}>
-                            <View style={styles.reactionPill}>
-                                <Ionicons name="heart" size={16} color="#EB5757" />
-                                <Text style={styles.reactionCount}>{likeCount}</Text>
+                            <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                <Ionicons name="heart" size={16} color="#EF4444" />
+                                <Text style={[styles.reactionCount, { color: theme.text }]}>{likeCount}</Text>
                             </View>
 
-                            <View style={styles.reactionPill}>
-                                <Ionicons name="hand-left" size={16} color="#F2C94C" />
-                                <Text style={styles.reactionCount}>{hugCount}</Text>
+                            <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                <Ionicons name="hand-left" size={16} color="#F59E0B" />
+                                <Text style={[styles.reactionCount, { color: theme.text }]}>{hugCount}</Text>
                             </View>
 
-                            <View style={styles.reactionPill}>
-                                <Ionicons name="happy" size={16} color="#27AE60" />
-                                <Text style={styles.reactionCount}>{meTooCount}</Text>
+                            <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                <Ionicons name="happy" size={16} color="#10B981" />
+                                <Text style={[styles.reactionCount, { color: theme.text }]}>{meTooCount}</Text>
                             </View>
 
-                            <View style={styles.reactionPill}>
+                            <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
                                 <Ionicons name="chatbubble-outline" size={16} color="#6B7280" />
-                                <Text style={styles.reactionCount}>{commentCount}</Text>
+                                <Text style={[styles.reactionCount, { color: theme.text }]}>{commentCount}</Text>
                             </View>
                         </View>
                     </View>

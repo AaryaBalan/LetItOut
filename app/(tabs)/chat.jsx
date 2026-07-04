@@ -232,7 +232,7 @@ export default function ChatTab() {
 
                 {/* Search */}
                 <View style={[styles.searchContainer, { backgroundColor: theme.background }]}>
-                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F9FAFB', borderWidth: 0 }]}>
+                    <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3F4F6', borderWidth: 0 }]}>
                         <Ionicons name="search" size={20} color={theme.textSecondary} />
                         <TextInput
                             style={[styles.searchInput, { color: theme.text }]}
@@ -265,7 +265,7 @@ export default function ChatTab() {
                 />
                 {loading && (
                     <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                        <Loading size="large" color="#111827" />
+                        <Loading size="large" text="Loading chats..." />
                     </View>
                 )}
             </SafeAreaView>
@@ -313,8 +313,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 0,
         height: '100%',
-        backgroundColor: "#d1cfd58e",
-        borderRadius: 15,
         fontFamily: 'Fredoka-Regular' },
     listContent: {
         paddingBottom: 90 },

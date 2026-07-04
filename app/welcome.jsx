@@ -2,22 +2,23 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
-    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
     View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
+import { useAlert } from "../context/AlertContext";
 
 export default function Welcome() {
+  const { showAlert } = useAlert();
     const router = useRouter();
     const { loginWithGoogle, isGoogleSignInAvailable } = useAuth();
     const [googleLoading, setGoogleLoading] = useState(false);
 
     const handleGoogleSignIn = async () => {
         if (!isGoogleSignInAvailable) {
-            Alert.alert(
+            showAlert(
                 "Google Sign-In Unavailable",
                 'Google Sign-In requires a native build. Please use email/password sign-in or rebuild the app with "npx expo run:android"',
                 [{ text: "OK" }],
@@ -34,7 +35,7 @@ export default function Welcome() {
         if (result.success) {
             router.replace("/(tabs)/home");
         } else {
-            Alert.alert("Google Sign-In Failed", result.error);
+            showAlert("Google Sign-In Failed", result.error);
         }
     };
 

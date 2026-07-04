@@ -5,7 +5,6 @@ import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -25,6 +24,7 @@ import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
 import { showInterstitialAd } from "../ads/InterstitialAds";
+import { useAlert } from "../../context/AlertContext";
 
 const getCategoryTheme = (category, isDark) => {
   switch (category) {
@@ -39,6 +39,7 @@ const getCategoryTheme = (category, isDark) => {
 };
 
 export default function CreatePost() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -83,12 +84,12 @@ export default function CreatePost() {
     if (submittingRef.current) return;
 
     if (!title.trim() || !category || !description.trim()) {
-      Alert.alert("Missing Information", "Please fill in all fields.");
+      showAlert("Missing Information", "Please fill in all fields.");
       return;
     }
 
     if (!user) {
-      Alert.alert("Not Logged In", "Please log in to create a post.");
+      showAlert("Not Logged In", "Please log in to create a post.");
       router.push("/auth/login");
       return;
     }
@@ -128,7 +129,7 @@ export default function CreatePost() {
           postCount: increment(1) });
       }
 
-      Alert.alert(
+      showAlert(
         "Success!",
         "Your thought has been shared with the community. 💜",
         [
@@ -148,7 +149,7 @@ export default function CreatePost() {
       setMoodLevel(0);
     } catch (error) {
       console.error("Error creating post:", error);
-      Alert.alert(
+      showAlert(
         "Error",
         "Failed to share your thought. Please try again.",
       );

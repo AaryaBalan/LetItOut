@@ -14,7 +14,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -30,13 +31,13 @@ import { posts as dummyPosts } from "../../data/dummyData";
 
 const getCategoryTheme = (category, isDark) => {
   const themes = {
-    "All Feed": { color: isDark ? "#FFFFFF" : "#FFFFFF", bgColor: isDark ? "#222" : "#111827" },
-    "Family": { color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#FFFFFF" },
-    "Stress": { color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FFFFFF" },
-    "Relationship": { color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FFFFFF" },
-    "Study": { color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#FFFFFF" },
-    "Mental Health": { color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#FFFFFF" },
-    "Other": { color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#3C4043" : "#FFFFFF" }
+    "All Feed": { color: isDark ? "#FFFFFF" : "#FFFFFF", bgColor: isDark ? "#333333" : "#111827" },
+    "Family": { color: isDark ? "#8AB4F8" : "#3B82F6", bgColor: isDark ? "#1A2A3A" : "#EBF3FE" },
+    "Stress": { color: isDark ? "#F28B82" : "#EF4444", bgColor: isDark ? "#3A1A1A" : "#FCEEEE" },
+    "Relationship": { color: isDark ? "#F8BBD0" : "#F59E0B", bgColor: isDark ? "#3A3A3A" : "#FEF9E6" },
+    "Study": { color: isDark ? "#81C995" : "#10B981", bgColor: isDark ? "#1A3A2A" : "#E9F7EF" },
+    "Mental Health": { color: isDark ? "#FDD663" : "#8B5CF6", bgColor: isDark ? "#1A1A3A" : "#EEF2FF" },
+    "Other": { color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#2A2A2A" : "#3C4043" }
   };
   return themes[category] || themes["Other"];
 };
@@ -44,12 +45,12 @@ const getCategoryTheme = (category, isDark) => {
 const getCategoryIcon = (category) => {
   switch (category) {
     case "Other": return <MaterialCommunityIcons name="ghost-outline" size={14} color="#A78BFA" />;
-    case "Stress": return <Ionicons name="sad-outline" size={14} color="#EB5757" />;
+    case "Stress": return <Ionicons name="sad-outline" size={14} color="#EF4444" />;
     case "Study Support":
-    case "Study": return <Ionicons name="school-outline" size={14} color="#27AE60" />;
-    case "Family": return <Ionicons name="people-outline" size={14} color="#2F80ED" />;
-    case "Mental Health": return <Ionicons name="heart-outline" size={14} color="#6366F1" />;
-    case "Relationship": return <Ionicons name="flower-outline" size={14} color="#F2C94C" />;
+    case "Study": return <Ionicons name="school-outline" size={14} color="#10B981" />;
+    case "Family": return <Ionicons name="people-outline" size={14} color="#3B82F6" />;
+    case "Mental Health": return <Ionicons name="heart-outline" size={14} color="#8B5CF6" />;
+    case "Relationship": return <Ionicons name="flower-outline" size={14} color="#F59E0B" />;
     default: return null;
   }
 };
@@ -62,6 +63,51 @@ export default function Home() {
   const { showTabBar, hideTabBar } = useTabBar();
   const insets = useSafeAreaInsets();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const drawerSlideAnim = useRef(new Animated.Value(-400)).current;
+  const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
+
+  const openDrawer = useCallback(() => {
+    setIsDrawerOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      drawerSlideAnim.setValue(-400);
+      backdropOpacityAnim.setValue(0);
+      Animated.parallel([
+        Animated.timing(backdropOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(drawerSlideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [isDrawerOpen, drawerSlideAnim, backdropOpacityAnim]);
+
+  const closeDrawer = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(backdropOpacityAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(drawerSlideAnim, {
+        toValue: -400,
+        duration: 250,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      setIsDrawerOpen(false);
+    });
+  }, [drawerSlideAnim, backdropOpacityAnim]);
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
@@ -301,7 +347,7 @@ export default function Home() {
           <View style={[styles.header, { backgroundColor: theme.background }]}>
             {isSearchExpanded ? (
               <View style={styles.expandedWrapper}>
-                <View style={[styles.expandedSearchBar, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6', borderColor: theme.border }]}>
+                <View style={[styles.expandedSearchBar, { backgroundColor: theme.input, borderColor: theme.border }]}>
                   <Ionicons name="search" size={18} color={theme.textSecondary} />
                   <TextInput
                     style={[styles.expandedSearchInput, { color: theme.text }]}
@@ -314,7 +360,7 @@ export default function Home() {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.searchIconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
+                  style={[styles.searchIconButton, { backgroundColor: theme.input }]}
                   onPress={() => setFilterModalVisible(true)}
                   delayPressIn={0}
                 >
@@ -336,8 +382,8 @@ export default function Home() {
               <>
                 <View style={styles.headerLeft}>
                   <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
-                    onPress={() => setIsDrawerOpen(true)}
+                    style={[styles.iconButton, { backgroundColor: theme.input }]}
+                    onPress={openDrawer}
                     delayPressIn={0}
                   >
                     <Ionicons name="menu-outline" size={24} color={theme.text} />
@@ -351,12 +397,12 @@ export default function Home() {
 
                 <View style={styles.headerRight}>
                   <TouchableOpacity
-                    style={[styles.iconButton, { backgroundColor: theme.isDark ? '#222' : '#F3F4F6' }]}
-                    onPress={() => setIsSearchExpanded(true)}
+                    style={[styles.iconButton, { backgroundColor: theme.input }]}
+                    onPress={() => router.push('/notifications')}
                     delayPressIn={0}
                   >
                     <Ionicons
-                      name="search-outline"
+                      name="heart-outline"
                       size={22}
                       color={theme.text}
                     />
@@ -388,7 +434,7 @@ export default function Home() {
                       backgroundColor: theme.isDark ? '#2E224D' : '#EFE8FF',
                       gap: 6,
                       borderWidth: 1,
-                      borderColor: '#111827',
+                      borderColor: theme.border,
                       marginRight: 6,
                       marginLeft: 16 }}
                     onPress={() => {
@@ -399,12 +445,30 @@ export default function Home() {
                     }}
                     delayPressIn={0}
                   >
-                    <Ionicons name="close-circle" size={16} color="#111827" />
-                    <Text style={{ fontSize: 12, fontFamily: 'Fredoka-Bold',  color: "#111827" }}>
+                    <Ionicons name="close-circle" size={16} color={theme.text} />
+                    <Text style={{ fontSize: 12, fontFamily: 'Fredoka-Bold',  color: theme.text }}>
                       Clear
                     </Text>
                   </TouchableOpacity>
                 )}
+
+              {/* Search Button in front of labels */}
+              <TouchableOpacity
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: theme.input,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: 8,
+                  marginLeft: (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly) ? 0 : 16
+                }}
+                onPress={() => setIsSearchExpanded(true)}
+                delayPressIn={0}
+              >
+                <Ionicons name="search-outline" size={18} color={theme.text} />
+              </TouchableOpacity>
 
               {categories.map((category) => {
                 const catTheme = getCategoryTheme(category, theme.isDark);
@@ -416,8 +480,7 @@ export default function Home() {
                     key={category}
                     style={[
                       styles.categoryChip,
-                      { backgroundColor: '#FFFFFF', borderColor: 'transparent', borderWidth: 0, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-                      isFirst && !hasActiveFilters && { marginLeft: 16 },
+                      { backgroundColor: theme.card, borderColor: 'transparent', borderWidth: 0, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
                       isActive && {
                         backgroundColor: catTheme.bgColor,
                         elevation: 0 },
@@ -477,8 +540,7 @@ export default function Home() {
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
-                <Loading size="large" color="#111827" />
-                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
+                <Loading size="large" text="Loading posts..." />
               </View>
             ) : filteredPosts.length === 0 ? (
               <View style={[styles.emptyContainer, { marginTop: 60 }]}>
@@ -526,7 +588,7 @@ export default function Home() {
             zIndex: 9999,
             elevation: 9999,
             transform: [{ translateY: slideAnim }] }}>
-            <Loading size="large" color="#111827" />
+            <Loading size="large" />
           </Animated.View>
         )}
 
@@ -548,15 +610,17 @@ export default function Home() {
           animationType="none"
           transparent={true}
           visible={isDrawerOpen}
-          onRequestClose={() => setIsDrawerOpen(false)}
+          onRequestClose={closeDrawer}
         >
           <View style={styles.drawerOverlay}>
-            <TouchableOpacity
-              style={styles.drawerBackdrop}
-              activeOpacity={1}
-              onPress={() => setIsDrawerOpen(false)}
-            />
-            <View style={[styles.drawerContent, { backgroundColor: theme.surface }]}>
+            <Animated.View style={[styles.drawerBackdrop, { opacity: backdropOpacityAnim }]}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                activeOpacity={1}
+                onPress={closeDrawer}
+              />
+            </Animated.View>
+            <Animated.View style={[styles.drawerContent, { backgroundColor: theme.surface, transform: [{ translateX: drawerSlideAnim }] }]}>
               {/* Drawer Header */}
               <View style={[styles.drawerHeader, { borderBottomColor: theme.divider }]}>
                 {user ? (
@@ -586,7 +650,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
+                    closeDrawer();
                   }}
                 >
                   <Ionicons name="home-outline" size={22} color={theme.text} />
@@ -596,18 +660,18 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
+                    closeDrawer();
                     router.push("/my-center");
                   }}
                 >
-                  <Ionicons name="heart-half-outline" size={22} color="#111827" />
+                  <Ionicons name="heart-half-outline" size={22} color={theme.text} />
                   <Text style={[styles.drawerItemText, { color: theme.text }]}>My Center</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
+                    closeDrawer();
                     router.push("/explore");
                   }}
                 >
@@ -618,8 +682,8 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
-                    router.push("/(tabs)/notifications");
+                    closeDrawer();
+                    router.push("/notifications");
                   }}
                 >
                   <Ionicons name="notifications-outline" size={22} color={theme.text} />
@@ -642,17 +706,29 @@ export default function Home() {
                 <View style={[styles.drawerFooter, { borderTopColor: theme.divider }]}>
                   <TouchableOpacity
                     style={styles.logoutButton}
+                    disabled={loggingOut}
                     onPress={async () => {
-                      setIsDrawerOpen(false);
-                      await logout();
+                      setLoggingOut(true);
+                      try {
+                          await logout();
+                      } finally {
+                          setLoggingOut(false);
+                          closeDrawer();
+                      }
                     }}
                   >
-                    <Ionicons name="log-out-outline" size={22} color="#E57373" />
-                    <Text style={styles.logoutText}>Logout</Text>
+                    {loggingOut ? (
+                      <ActivityIndicator size="small" color="#E57373" />
+                    ) : (
+                      <>
+                        <Ionicons name="log-out-outline" size={22} color="#E57373" />
+                        <Text style={styles.logoutText}>Logout</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
-            </View>
+            </Animated.View>
           </View>
         </Modal>
       </View>

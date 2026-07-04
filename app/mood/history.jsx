@@ -122,7 +122,7 @@ export default function MoodHistory() {
         style={[styles.container, { backgroundColor: theme.isDark ? "#000" : "#FAFAFC", justifyContent: "center", alignItems: "center" }]}
         edges={["top"]}
       >
-        <Loading size="large" />
+        <Loading size="large" text="Loading history..." />
       </SafeAreaView>
     );
   }
@@ -163,7 +163,7 @@ export default function MoodHistory() {
           <View style={styles.weekRow}>
             {WEEKDAY_HEADERS.map((h) => (
               <View key={h} style={styles.calCell}>
-                <Text style={[styles.weekLabel, { color: theme.orimary }]}>{h}</Text>
+                <Text style={[styles.weekLabel, { color: theme.textSecondary }]}>{h}</Text>
               </View>
             ))}
           </View>
@@ -183,13 +183,13 @@ export default function MoodHistory() {
                     styles.calCell,
                     styles.dayCell,
                     mood && { backgroundColor: mood.color + (isSelected ? "60" : "30") },
-                    cell.isToday && { borderColor: "#8B7CFF" },
+                    cell.isToday && { borderColor: "#8B5CF6" },
                     isSelected && !cell.isToday && { borderColor: mood ? mood.color : theme.border }
                   ]}
                   activeOpacity={0.7}
                   onPress={() => setSelectedDate(isSelected ? null : cell.day)}
                 >
-                  <Text style={[styles.cellDay, { color: cell.isToday ? "#8B7CFF" : theme.textSecondary }]}>
+                  <Text style={[styles.cellDay, { color: cell.isToday ? "#8B5CF6" : theme.textSecondary }]}>
                     {cell.day}
                   </Text>
                   {mood ? (
@@ -220,7 +220,7 @@ export default function MoodHistory() {
           </Text>
           {selectedDate && (
             <TouchableOpacity onPress={() => setSelectedDate(null)}>
-              <Text style={{ color: "#8B7CFF", fontFamily: "Fredoka-Bold" }}>Clear Filter</Text>
+              <Text style={{ color: "#8B5CF6", fontFamily: "Fredoka-Bold" }}>Clear Filter</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -276,7 +276,7 @@ export default function MoodHistory() {
                   <View style={styles.entryTags}>
                     {entry.tags.map((t) => (
                       <View key={t} style={[styles.entryTag, { backgroundColor: theme.isDark ? "#2D2D2D" : "#F3EEFF" }]}>
-                        <Text style={[styles.entryTagText, { color: "#8B7CFF" }]}>{t}</Text>
+                        <Text style={[styles.entryTagText, { color: "#8B5CF6" }]}>{t}</Text>
                       </View>
                     ))}
                   </View>
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   emptyText: { fontSize: 15, fontFamily: "Fredoka-Regular" },
   emptyBtn: {
-    backgroundColor: "#8B7CFF",
+    backgroundColor: "#8B5CF6",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 16,

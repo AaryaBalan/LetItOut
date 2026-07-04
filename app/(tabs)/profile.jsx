@@ -13,7 +13,6 @@ import {
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   ScrollView,
   StatusBar,
@@ -33,8 +32,10 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useAlert } from "../../context/AlertContext";
 
 export default function Profile() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const { showTabBar } = useTabBar();
   const { user, logout } = useAuth();
@@ -55,6 +56,8 @@ export default function Profile() {
   const [loadingSaved, setLoadingSaved] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [profileCode, setProfileCode] = useState(
     user?.profileCode || user?.email || "",
   );
@@ -148,20 +151,23 @@ export default function Profile() {
 
   const handleAvatarSelect = async (newSeed) => {
     try {
+      setUpdatingAvatar(true);
       // Update profileCode in Firestore (creates document if it doesn't exist)
       const userRef = doc(db, "users", user.uid);
       await setDoc(userRef, {
         profileCode: newSeed,
         email: user.email,
-        displayName: user.displayName || "Anonymous",
+        displayName: userProfile?.displayName || user.displayName || "Anonymous",
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
       setProfileCode(newSeed);
-      Alert.alert("Success", "Profile image updated successfully!");
+      showAlert("Success", "Profile image updated successfully!");
     } catch (error) {
       console.error("Error updating avatar:", error);
-      Alert.alert("Error", "Failed to update profile image");
+      showAlert("Error", "Failed to update profile image");
+    } finally {
+      setUpdatingAvatar(false);
     }
   };
 
@@ -501,22 +507,27 @@ export default function Profile() {
     if (type === "like") return "#F06292"; // Pink
     if (type === "hug") return "#FFB74D"; // Orange/Yellow
     if (type === "metoo") return "#66BB6A"; // Green
-    if (type === "comment") return "#111827"; // Violet
+    if (type === "comment") return "#8B5CF6"; // Violet
     return "#FFB74D";
   };
 
   const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
+    showAlert("Logout", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Logout",
         style: "destructive",
         onPress: async () => {
-          const result = await logout();
-          if (result.success) {
-            router.replace("/");
-          } else {
-            Alert.alert("Error", "Failed to logout");
+          setLoggingOut(true);
+          try {
+            const result = await logout();
+            if (result.success) {
+              router.replace("/");
+            } else {
+              showAlert("Error", "Failed to logout");
+            }
+          } finally {
+            setLoggingOut(false);
           }
         }
       },
@@ -524,14 +535,14 @@ export default function Profile() {
   };
 
   const handlePrivacySettings = () => {
-    Alert.alert(
+    showAlert(
       "Privacy Settings",
       "Privacy settings will be implemented soon",
     );
   };
 
   const handleDeactivateAccount = () => {
-    Alert.alert(
+    showAlert(
       "Deactivate Account",
       "Are you sure you want to deactivate your account? This action can be reversed by logging in again.",
       [
@@ -592,10 +603,7 @@ export default function Profile() {
       <TabScreenWrapper>
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
           <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
-          <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontFamily: 'Fredoka-Bold' }}>
-            Loading Profile...
-          </Text>
+          <Loading size="large" text="Loading Profile..." />
         </SafeAreaView>
       </TabScreenWrapper>
     );
@@ -638,7 +646,13 @@ export default function Profile() {
             {/* Horizontal Profile Header */}
             <View style={styles.profileHeader}>
               <View style={styles.avatarContainer}>
-                <Avatar seed={profileCode} size={80} />
+                {updatingAvatar ? (
+                    <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: theme.surface, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#8B5CF6" />
+                    </View>
+                ) : (
+                    <Avatar seed={profileCode} size={80} />
+                )}
                 <TouchableOpacity
                   style={[styles.editAvatarButton, { backgroundColor: "#8B5CF6", borderColor: theme.surface }]}
                   onPress={() => setShowAvatarModal(true)}
@@ -649,7 +663,7 @@ export default function Profile() {
 
               <View style={styles.profileInfo}>
                 <Text style={[styles.username, { color: theme.text }]}>
-                  {user.displayName || "Anonymous User"}
+                  {userProfile?.displayName || user.displayName || "Anonymous User"}
                 </Text>
                 <Text style={[styles.joinDate, { color: "#A78BFA" }]}>Joined {joinDate}</Text>
               </View>
@@ -686,7 +700,7 @@ export default function Profile() {
               )}
               <View style={[styles.infoItem, styles.dashedBorderBottom]}>
                 <Ionicons name="person-outline" size={18} color="#6B7280" />
-                <Text style={[styles.infoText, { color: theme.text }]}>{user.displayName || "Anonymous"}</Text>
+                <Text style={[styles.infoText, { color: theme.text }]}>{userProfile?.displayName || user.displayName || "Anonymous"}</Text>
               </View>
               <View style={styles.infoItem}>
                 <Ionicons name="calendar-outline" size={18} color="#6B7280" />
@@ -746,32 +760,32 @@ export default function Profile() {
           <View style={styles.cardsRow}>
             {/* My Stories Card */}
             <TouchableOpacity
-              style={[styles.compactCard, { backgroundColor: theme.isDark ? '#1E1B2E' : '#F5F3FF', borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}
               onPress={() => setShowAllStoriesModal(true)}
               activeOpacity={0.7}
             >
-              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2E2B4E' : '#EDE9FE' }]}>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2A2A2A' : '#EDE9FE' }]}>
                 <Ionicons name="document-text" size={24} color="#8B5CF6" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{userPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>My Stories</Text>
-              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2E2B4E' : '#EDE9FE' }]}>
+              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#EDE9FE' }]}>
                 <Ionicons name="arrow-forward" size={16} color="#8B5CF6" />
               </View>
             </TouchableOpacity>
 
             {/* Saved Posts Card */}
             <TouchableOpacity
-              style={[styles.compactCard, { backgroundColor: theme.isDark ? '#2E2416' : '#FFFBEB', borderColor: theme.border }]}
+              style={[styles.compactCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}
               onPress={() => setShowAllSavedModal(true)}
               activeOpacity={0.7}
             >
-              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#4E3416' : '#FEF3C7' }]}>
+              <View style={[styles.compactIconBadge, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FEF3C7' }]}>
                 <Ionicons name="bookmark" size={24} color="#F59E0B" />
               </View>
               <Text style={[styles.compactCount, { color: theme.text }]}>{savedPosts.length}</Text>
               <Text style={[styles.compactLabel, { color: theme.textSecondary }]}>Saved Posts</Text>
-              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#4E3416' : '#FEF3C7' }]}>
+              <View style={[styles.arrowButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#FEF3C7' }]}>
                 <Ionicons name="arrow-forward" size={16} color="#F59E0B" />
               </View>
             </TouchableOpacity>
@@ -822,9 +836,16 @@ export default function Profile() {
             <TouchableOpacity
               style={styles.logoutButton}
               onPress={handleLogout}
+              disabled={loggingOut}
             >
-              <Ionicons name="log-out-outline" size={20} color="#111827" />
-              <Text style={styles.logoutButtonText}>Logout</Text>
+              {loggingOut ? (
+                <ActivityIndicator size="small" color="#111827" />
+              ) : (
+                <>
+                  <Ionicons name="log-out-outline" size={20} color="#111827" />
+                  <Text style={styles.logoutButtonText}>Logout</Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -863,7 +884,7 @@ export default function Profile() {
                   const postData = {
                     ...post,
                     timestamp: getTimeAgo(post.createdAt),
-                    authorName: user?.displayName || userProfile?.displayName || "Anonymous",
+                    authorName: userProfile?.displayName || user?.displayName || "Anonymous",
                     authorId: user?.uid || null,
                     isAnonymous: post.isAnonymous || false
                   };
@@ -1039,8 +1060,8 @@ export default function Profile() {
               </View>
 
               {isLoadingFriends ? (
-                <View style={styles.loadingContainer}>
-                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <Loading size="large" />
                 </View>
               ) : (
                 <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>

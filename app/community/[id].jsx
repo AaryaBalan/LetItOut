@@ -86,13 +86,13 @@ const CATEGORIES = [
 
 const getCategoryTheme = (category, isDark) => {
     const themes = {
-        "All": { icon: "grid", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" },
-        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#EBF3FE" },
-        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FCEEEE" },
-        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FEF9E6" },
-        "Study": { icon: "book", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#E9F7EF" },
-        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#EEF2FF" },
-        "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+        "All": { icon: "grid", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#2A2A2A" : "#F1F3F4" },
+        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#172A46" : "#EBF3FE" },
+        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#3B1D1D" : "#FCEEEE" },
+        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#3A2A1E" : "#FEF9E6" },
+        "Study": { icon: "book", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#1B3320" : "#E9F7EF" },
+        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#2D2A4A" : "#EEF2FF" },
+        "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#2A2A2A" : "#F1F3F4" }
     };
     return themes[category] || themes["Other"];
 };
@@ -355,8 +355,7 @@ export default function CommunityDetail() {
         if (item.type === 'empty') {
             return loading ? (
                 <View style={styles.emptyState}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
-                    <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
+                    <Loading size="large" text="Loading posts..." />
                 </View>
             ) : (
                 <View style={styles.emptyState}>

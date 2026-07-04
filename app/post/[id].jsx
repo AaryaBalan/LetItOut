@@ -19,7 +19,6 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    Alert,
     FlatList,
     Keyboard,
     KeyboardAvoidingView,
@@ -32,7 +31,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -42,6 +42,7 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { getPostById } from "../../data/dummyData";
+import { useAlert } from "../../context/AlertContext";
 import {
     createCommentNotification,
     createHugNotification,
@@ -52,11 +53,11 @@ import {
 const getCategoryColors = (category, isDark) => {
     switch (category) {
         case "Study Support":
-        case "Study": return { color: isDark ? "#81C995" : "#27AE60", bg: isDark ? "#1E2A22" : "#E9F7EF" };
-        case "Mental Health": return { color: isDark ? "#FDD663" : "#6366F1", bg: isDark ? "#282A3A" : "#EEF2FF" };
-        case "Stress": return { color: isDark ? "#F28B82" : "#EB5757", bg: isDark ? "#2A1E1E" : "#FCEEEE" };
-        case "Relationship": return { color: isDark ? "#F8BBD0" : "#F2C94C", bg: isDark ? "#2A271E" : "#FEF9E6" };
-        case "Family": return { color: isDark ? "#8AB4F8" : "#2F80ED", bg: isDark ? "#1E2430" : "#EBF3FE" };
+        case "Study": return { color: isDark ? "#81C995" : "#10B981", bg: isDark ? "#1E2A22" : "#E9F7EF" };
+        case "Mental Health": return { color: isDark ? "#FDD663" : "#8B5CF6", bg: isDark ? "#282A3A" : "#EEF2FF" };
+        case "Stress": return { color: isDark ? "#F28B82" : "#EF4444", bg: isDark ? "#2A1E1E" : "#FCEEEE" };
+        case "Relationship": return { color: isDark ? "#F8BBD0" : "#F59E0B", bg: isDark ? "#2A271E" : "#FEF9E6" };
+        case "Family": return { color: isDark ? "#8AB4F8" : "#3B82F6", bg: isDark ? "#1E2430" : "#EBF3FE" };
         default: return { color: isDark ? "#E8EAED" : "#A78BFA", bg: isDark ? "#222" : "#F3E8FF" }; // Other
     }
 };
@@ -66,6 +67,7 @@ const getCategoryLabel = (category) => {
 };
 
 export default function PostDetail() {
+  const { showAlert } = useAlert();
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { user } = useAuth();
@@ -90,10 +92,13 @@ export default function PostDetail() {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [showShareModal, setShowShareModal] = useState(false);
     const [friends, setFriends] = useState([]);
-    const [sharing, setSharing] = useState(false);
+    const [sharingId, setSharingId] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     const [saving, setSaving] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null); // Track which comment is being replied to
+    const [reactingType, setReactingType] = useState(null);
+    const [submittingComment, setSubmittingComment] = useState(false);
+    const [deletingPost, setDeletingPost] = useState(false);
 
 
     // Fetch post from Firebase or dummy data
@@ -426,9 +431,9 @@ export default function PostDetail() {
     }, [user, showShareModal]);
 
     const handleShare = async (friendId) => {
-        if (!user || sharing || !post) return;
+        if (!user || sharingId || !post) return;
 
-        setSharing(true);
+        setSharingId(friendId);
         try {
             const chatId = [user.uid, friendId].sort().join("_");
             const chatRef = doc(db, "chats", chatId);
@@ -461,13 +466,13 @@ export default function PostDetail() {
                 }
             });
 
-            Alert.alert("Success", "Post shared successfully!");
+            showAlert("Success", "Post shared successfully!");
             setShowShareModal(false);
         } catch (error) {
             console.error("Error sharing post:", error);
-            Alert.alert("Error", "Failed to share post");
+            showAlert("Error", "Failed to share post");
         } finally {
-            setSharing(false);
+            setSharingId(null);
         }
     };
 
@@ -546,8 +551,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
                 <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} style={{ marginBottom: 16 }} />
-                <Text style={[styles.errorText, { color: theme.textSecondary }]}>Loading...</Text>
+                <Loading size="large" text="Loading..." style={{ marginBottom: 16 }} />
             </SafeAreaView>
         );
     }
@@ -566,10 +570,11 @@ export default function PostDetail() {
 
     const handleHug = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to react.");
+            showAlert("Not Logged In", "Please log in to react.");
             return;
         }
 
+        setReactingType("hug");
         try {
             if (hugActive && userReactions.hug) {
                 // Remove reaction
@@ -614,16 +619,19 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling hug reaction:", error);
-            Alert.alert("Error", "Failed to update reaction. Please try again.");
+            showAlert("Error", "Failed to update reaction. Please try again.");
+        } finally {
+            setReactingType(null);
         }
     };
 
     const handleMeToo = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to react.");
+            showAlert("Not Logged In", "Please log in to react.");
             return;
         }
 
+        setReactingType("metoo");
         try {
             if (meTooActive && userReactions.metoo) {
                 // Remove reaction
@@ -668,16 +676,19 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling me too reaction:", error);
-            Alert.alert("Error", "Failed to update reaction. Please try again.");
+            showAlert("Error", "Failed to update reaction. Please try again.");
+        } finally {
+            setReactingType(null);
         }
     };
 
     const handleLike = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to react.");
+            showAlert("Not Logged In", "Please log in to react.");
             return;
         }
 
+        setReactingType("like");
         try {
             if (likeActive && userReactions.like) {
                 // Remove reaction
@@ -722,7 +733,9 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling like reaction:", error);
-            Alert.alert("Error", "Failed to update reaction. Please try again.");
+            showAlert("Error", "Failed to update reaction. Please try again.");
+        } finally {
+            setReactingType(null);
         }
     };
 
@@ -730,10 +743,11 @@ export default function PostDetail() {
         if (!newComment.trim()) return;
 
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to comment.");
+            showAlert("Not Logged In", "Please log in to comment.");
             return;
         }
 
+        setSubmittingComment(true);
         try {
             console.log("Creating comment for postId:", id, "Type:", typeof id);
             const commentText = newComment.trim();
@@ -791,13 +805,15 @@ export default function PostDetail() {
             console.log("Comment added successfully");
         } catch (error) {
             console.error("Error adding comment:", error);
-            Alert.alert("Error", "Failed to add comment. Please try again.");
+            showAlert("Error", "Failed to add comment. Please try again.");
+        } finally {
+            setSubmittingComment(false);
         }
     };
 
     const handleCommentSupport = async (commentId) => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to support comments.");
+            showAlert("Not Logged In", "Please log in to support comments.");
             return;
         }
 
@@ -829,12 +845,12 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error toggling comment support:", error);
-            Alert.alert("Error", "Failed to update support. Please try again.");
+            showAlert("Error", "Failed to update support. Please try again.");
         }
     };
 
     const handleReport = () => {
-        Alert.alert(
+        showAlert(
             "Report Content",
             "Thank you for helping keep our community safe.",
             [{ text: "OK" }],
@@ -845,7 +861,7 @@ export default function PostDetail() {
     // Save/Unsave post
     const handleSavePost = async () => {
         if (!user) {
-            Alert.alert("Not Logged In", "Please log in to save posts.");
+            showAlert("Not Logged In", "Please log in to save posts.");
             return;
         }
 
@@ -870,14 +886,14 @@ export default function PostDetail() {
             }
         } catch (error) {
             console.error("Error saving/unsaving post:", error);
-            Alert.alert("Error", "Failed to save post. Please try again.");
+            showAlert("Error", "Failed to save post. Please try again.");
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async () => {
-        Alert.alert(
+        showAlert(
             "Delete Post",
             "Are you sure you want to delete this post? This action cannot be undone.",
             [
@@ -886,16 +902,19 @@ export default function PostDetail() {
                     text: "Delete",
                     style: "destructive",
                     onPress: async () => {
+                        setDeletingPost(true);
                         try {
                             await deleteDoc(doc(db, "posts", id));
-                            Alert.alert("Success", "Post deleted successfully");
+                            showAlert("Success", "Post deleted successfully");
                             router.back();
                         } catch (error) {
                             console.error("Error deleting post:", error);
-                            Alert.alert(
+                            showAlert(
                                 "Error",
                                 "Failed to delete post. Please try again.",
                             );
+                        } finally {
+                            setDeletingPost(false);
                         }
                     }
                 },
@@ -945,11 +964,15 @@ export default function PostDetail() {
                         onPress={handleSavePost}
                         disabled={saving}
                     >
-                        <Ionicons
-                            name={isSaved ? "bookmark" : "bookmark-outline"}
-                            size={24}
-                            color={isSaved ? "#FFB74D" : "#111827"}
-                        />
+                        {saving ? (
+                            <ActivityIndicator size="small" color={isSaved ? "#FFB74D" : activeTheme.text} />
+                        ) : (
+                            <Ionicons
+                                name={isSaved ? "bookmark" : "bookmark-outline"}
+                                size={24}
+                                color={isSaved ? "#FFB74D" : activeTheme.text}
+                            />
+                        )}
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.headerButton}
@@ -961,8 +984,13 @@ export default function PostDetail() {
                         <TouchableOpacity
                             style={styles.headerButton}
                             onPress={handleDelete}
+                            disabled={deletingPost}
                         >
-                            <Ionicons name="trash-outline" size={24} color="#EF5350" />
+                            {deletingPost ? (
+                                <ActivityIndicator size="small" color="#EF5350" />
+                            ) : (
+                                <Ionicons name="trash-outline" size={24} color="#EF5350" />
+                            )}
                         </TouchableOpacity>
                     )}
                 </View>
@@ -986,33 +1014,33 @@ export default function PostDetail() {
                             <View style={styles.blobContainer}>
                                 {post.category === "Study" || post.category === "Study Support" ? (
                                     <View style={styles.studyBlobWrapper}>
-                                        <View style={styles.studyBlobShape} />
-                                        <Ionicons name="school" size={60} color="#C8E6C9" style={styles.studyBlobIcon} />
+                                        <View style={[styles.studyBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="school" size={60} color={activeTheme.isDark ? "#2A4A3A" : "#C8E6C9"} style={styles.studyBlobIcon} />
                                     </View>
                                 ) : post.category === "Stress" ? (
                                     <View style={styles.stressBlobWrapper}>
-                                        <View style={styles.stressBlobShape} />
-                                        <Ionicons name="sad" size={60} color="#FFCDD2" style={styles.stressBlobIcon} />
+                                        <View style={[styles.stressBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="sad" size={60} color={activeTheme.isDark ? "#4A2A2A" : "#FFCDD2"} style={styles.stressBlobIcon} />
                                     </View>
                                 ) : post.category === "Relationship" ? (
                                     <View style={styles.relationshipBlobWrapper}>
-                                        <View style={styles.relationshipBlobShape} />
-                                        <Ionicons name="heart" size={60} color="#FFE0B2" style={styles.relationshipBlobIcon} />
+                                        <View style={[styles.relationshipBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="heart" size={60} color={activeTheme.isDark ? "#4A4A2A" : "#FFE0B2"} style={styles.relationshipBlobIcon} />
                                     </View>
                                 ) : post.category === "Family" ? (
                                     <View style={styles.familyBlobWrapper}>
-                                        <View style={styles.familyBlobShape} />
-                                        <Ionicons name="people" size={60} color="#BBDEFB" style={styles.familyBlobIcon} />
+                                        <View style={[styles.familyBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="people" size={60} color={activeTheme.isDark ? "#2A3A4A" : "#BBDEFB"} style={styles.familyBlobIcon} />
                                     </View>
                                 ) : post.category === "Mental Health" ? (
                                     <View style={styles.mentalBlobWrapper}>
-                                        <View style={styles.mentalBlobShape} />
-                                        <Ionicons name="heart" size={60} color="#D8D8FE" style={styles.mentalBlobIcon} />
+                                        <View style={[styles.mentalBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="heart" size={60} color={activeTheme.isDark ? "#3A3A5A" : "#D8D8FE"} style={styles.mentalBlobIcon} />
                                     </View>
                                 ) : (
                                     <View style={styles.otherBlobWrapper}>
-                                        <View style={styles.otherBlobShape} />
-                                        <MaterialCommunityIcons name="ghost" size={60} color="#D8D8FE" style={styles.otherBlobGhost} />
+                                        <View style={[styles.otherBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <MaterialCommunityIcons name="ghost" size={60} color={activeTheme.isDark ? "#3A3A5A" : "#D8D8FE"} style={styles.otherBlobGhost} />
                                     </View>
                                 )}
                             </View>
@@ -1080,7 +1108,7 @@ export default function PostDetail() {
                                         <View style={[styles.hugIcon, { zIndex: 1, marginLeft: -8, backgroundColor: '#E9F7EF', borderColor: activeTheme.card }]}>
                                             <Ionicons name="happy" size={14} color="#27AE60" />
                                         </View>
-                                        <Text style={[styles.hugsSentText, { color: activeTheme.textTertiary }]}>
+                                        <Text style={[styles.hugsSentText, { color: activeTheme.text }]}>
                                             {likeCount + hugCount + meTooCount} REACTIONS
                                         </Text>
                                     </View>
@@ -1099,7 +1127,11 @@ export default function PostDetail() {
                                         ]}
                                         onPress={handleLike}
                                     >
-                                        <Ionicons name={likeActive ? "heart" : "heart-outline"} size={18} color="#6366F1" />
+                                        {reactingType === "like" ? (
+                                            <ActivityIndicator size="small" color="#6366F1" />
+                                        ) : (
+                                            <Ionicons name={likeActive ? "heart" : "heart-outline"} size={18} color="#6366F1" />
+                                        )}
                                         <Text style={[styles.actionButtonText, { color: "#6366F1" }]}>Like</Text>
                                     </TouchableOpacity>
 
@@ -1114,7 +1146,11 @@ export default function PostDetail() {
                                         ]}
                                         onPress={handleHug}
                                     >
-                                        <Ionicons name={hugActive ? "hand-left" : "hand-left-outline"} size={18} color="#F2C94C" />
+                                        {reactingType === "hug" ? (
+                                            <ActivityIndicator size="small" color="#F2C94C" />
+                                        ) : (
+                                            <Ionicons name={hugActive ? "hand-left" : "hand-left-outline"} size={18} color="#F2C94C" />
+                                        )}
                                         <Text style={[styles.actionButtonText, { color: "#F2C94C" }]}>Send Hug</Text>
                                     </TouchableOpacity>
 
@@ -1129,7 +1165,11 @@ export default function PostDetail() {
                                         ]}
                                         onPress={handleMeToo}
                                     >
-                                        <Ionicons name={meTooActive ? "happy" : "happy-outline"} size={18} color="#27AE60" />
+                                        {reactingType === "metoo" ? (
+                                            <ActivityIndicator size="small" color="#27AE60" />
+                                        ) : (
+                                            <Ionicons name={meTooActive ? "happy" : "happy-outline"} size={18} color="#27AE60" />
+                                        )}
                                         <Text style={[styles.actionButtonText, { color: "#27AE60" }]}>Me too</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -1221,13 +1261,17 @@ export default function PostDetail() {
                         <TouchableOpacity
                             style={[styles.sendButton, { backgroundColor: postTheme.color, shadowColor: postTheme.color }]}
                             onPress={handleAddComment}
-                            disabled={!newComment.trim()}
+                            disabled={!newComment.trim() || submittingComment}
                         >
-                            <Ionicons
-                                name="send"
-                                size={20}
-                                color={newComment.trim() ? "#FFFFFF" : "rgba(255,255,255,0.5)"}
-                            />
+                            {submittingComment ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Ionicons
+                                    name="send"
+                                    size={20}
+                                    color={newComment.trim() ? "#FFFFFF" : "rgba(255,255,255,0.5)"}
+                                />
+                            )}
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
@@ -1265,7 +1309,7 @@ export default function PostDetail() {
                                     <TouchableOpacity
                                         style={[styles.friendItem, { borderBottomColor: activeTheme.border }]}
                                         onPress={() => handleShare(item.id)}
-                                        disabled={sharing}
+                                        disabled={sharingId !== null}
                                     >
                                         {item.profileCode ? (
                                             <Avatar seed={item.profileCode} size={40} />
@@ -1275,7 +1319,11 @@ export default function PostDetail() {
                                             </View>
                                         )}
                                         <Text style={[styles.friendName, { color: activeTheme.text }]}>{item.name}</Text>
-                                        <Ionicons name="share-outline" size={20} color="#9F8BFF" />
+                                        {sharingId === item.id ? (
+                                            <ActivityIndicator size="small" color="#9F8BFF" />
+                                        ) : (
+                                            <Ionicons name="share-outline" size={20} color="#9F8BFF" />
+                                        )}
                                     </TouchableOpacity>
                                 )}
                             />
@@ -1552,7 +1600,6 @@ const styles = StyleSheet.create({
     hugsSentPill: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,

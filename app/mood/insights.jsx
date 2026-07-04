@@ -15,10 +15,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Path, Text as SvgText, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import Loading from "../../components/Loading";
 import { db } from "../../config/firebase";
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, orderBy, limit } from "firebase/firestore";
 import { MOOD_OPTIONS } from "../../components/MoodSelector";
-import Loading from "../../components/Loading";
 
 const getMoodMeta = (type) => MOOD_OPTIONS.find((m) => m.id === type) || MOOD_OPTIONS[2];
 
@@ -487,7 +487,7 @@ export default function InsightsScreen() {
         <View style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.chartHeader}>
             <Text style={[styles.chartTitle, { color: theme.text }]}>Average Mood</Text>
-            <Ionicons name="sparkles-outline" size={24} color="#8B7CFF" />
+            <Ionicons name="sparkles-outline" size={24} color="#8B5CF6" />
           </View>
           <View>
             <Text style={[styles.bigNum, { color: theme.text }]}>
@@ -501,7 +501,7 @@ export default function InsightsScreen() {
           
           {loading ? (
              <View style={{ height: 130, justifyContent: "center", alignItems: "center" }}>
-               <ActivityIndicator size="large" color="#8B7CFF" />
+               <Loading size="large" text="Loading insights..." />
              </View>
           ) : last7DaysEntries.length > 0 ? renderLineChart() : (
             <View style={{ height: 100, justifyContent: "center", alignItems: "center" }}>

@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
+import { AlertProvider } from "../context/AlertContext";
 import "../global.css";
 
 import { useFonts } from 'expo-font';
@@ -37,10 +38,11 @@ function RootLayoutContent() {
 
     return (
         <AuthProvider>
-            <Stack
-                screenOptions={{
-                    headerShown: false }}
-            >
+            <AlertProvider>
+                <Stack
+                    screenOptions={{
+                        headerShown: false }}
+                >
                 <Stack.Screen name="index" />
                 <Stack.Screen name="welcome" />
                 <Stack.Screen name="auth/signin" />
@@ -53,6 +55,7 @@ function RootLayoutContent() {
                 <Stack.Screen name="mood/journal" />
                 <Stack.Screen name="mood/insights" />
             </Stack>
+            </AlertProvider>
             <StatusBar style={isDark ? "light" : "dark"} />
         </AuthProvider>
     );

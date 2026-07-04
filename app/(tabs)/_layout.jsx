@@ -42,7 +42,8 @@ function TabsLayoutInner() {
                     style={[
                         styles.animatedTabBarContainer,
                         {
-                            transform: [{ translateY }] },
+                            transform: [{ translateY }]
+                        },
                     ]}
                 >
                     <BottomTabBar {...props} />
@@ -62,10 +63,13 @@ function TabsLayoutInner() {
                     borderTopColor: theme.border,
                     height: 65,
                     paddingBottom: 10,
-                    paddingTop: 8 },
+                    paddingTop: 8
+                },
                 tabBarLabelStyle: {
                     fontSize: 11,
-                    fontFamily: 'Fredoka-Bold' } }}
+                    fontFamily: 'Fredoka-Bold'
+                }
+            }}
         >
             <Tabs.Screen
                 name="home"
@@ -73,11 +77,12 @@ function TabsLayoutInner() {
                     title: "Feed",
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
-                            name={focused ? "home" : "home-outline"}
+                            name={focused ? "ghost" : "ghost-outline"}
                             size={27}
                             color={color}
                         />
-                    ) }}
+                    )
+                }}
             />
             <Tabs.Screen
                 name="chat"
@@ -98,7 +103,8 @@ function TabsLayoutInner() {
                                 </View>
                             )}
                         </View>
-                    ) }}
+                    )
+                }}
             />
             <Tabs.Screen
                 name="create"
@@ -110,19 +116,8 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ) }}
-            />
-            <Tabs.Screen
-                name="notifications"
-                options={{
-                    title: "Notifications",
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "heart" : "heart-outline"}
-                            size={27}
-                            color={color}
-                        />
-                    ) }}
+                    )
+                }}
             />
             <Tabs.Screen
                 name="mood"
@@ -134,7 +129,8 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ) }}
+                    )
+                }}
             />
 
             <Tabs.Screen
@@ -147,7 +143,8 @@ function TabsLayoutInner() {
                             size={27}
                             color={color}
                         />
-                    ) }}
+                    )
+                }}
             />
         </Tabs>
     );
@@ -169,7 +166,8 @@ const styles = StyleSheet.create({
         right: 0,
         height: 65,
         zIndex: 1000,
-        elevation: 10 },
+        elevation: 10
+    },
     badge: {
         position: "absolute",
         top: -4,
@@ -182,9 +180,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 4,
         borderWidth: 1.5,
-        borderColor: "#FFFFFF" },
+        borderColor: "#FFFFFF"
+    },
     badgeText: {
         color: "#FFFFFF",
         fontSize: 10,
         fontWeight: '400',
-        fontFamily: 'Fredoka-Regular' } });
+        fontFamily: 'Fredoka-Regular'
+    }
+});

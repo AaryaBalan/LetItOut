@@ -25,12 +25,12 @@ const { width } = Dimensions.get("window");
 
 const getCategoryTheme = (category, isDark) => {
     const themes = {
-        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#EBF3FE" : "#EBF3FE" },
-        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#FCEEEE" : "#FCEEEE" },
-        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#FEF9E6" : "#FEF9E6" },
-        "Study": { icon: "book", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#E9F7EF" : "#E9F7EF" },
-        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#EEF2FF" : "#EEF2FF" },
-        "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#3C4043" : "#F1F3F4" }
+        "Family": { icon: "people", color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#172A46" : "#EBF3FE" },
+        "Stress": { icon: "leaf", color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#3B1D1D" : "#FCEEEE" },
+        "Relationship": { icon: "heart", color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#3A2A1E" : "#FEF9E6" },
+        "Study": { icon: "book", color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#1B3320" : "#E9F7EF" },
+        "Mental Health": { icon: "fitness", color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#2D2A4A" : "#EEF2FF" },
+        "Other": { icon: "ellipsis-horizontal", color: isDark ? "#E8EAED" : "#3C4043", bgColor: isDark ? "#2A2A2A" : "#F1F3F4" }
     };
     return themes[category] || themes["Other"];
 };
@@ -129,25 +129,24 @@ export default function Explore() {
                             {/* Top Row */}
                             <View style={styles.headerTop}>
                                 <View style={styles.headerLeft}>
+                                    <TouchableOpacity 
+                                        style={{ marginRight: 12 }}
+                                        onPress={() => router.back()}
+                                    >
+                                        <Ionicons name="arrow-back" size={24} color={theme.text} />
+                                    </TouchableOpacity>
                                     <View>
                                         <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
                                         <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
                                     </View>
                                 </View>
                                 <View style={styles.headerRight}>
-                                    <TouchableOpacity
-                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF' }]}
-                                        onPress={() => router.push('/(tabs)/notifications')}
-                                    >
-                                        <Ionicons name="notifications-outline" size={20} color={theme.isDark ? '#B39DDB' : '#8B5CF6'} />
-                                        <View style={[styles.badge, { backgroundColor: '#8B5CF6', top: 8, right: 8, width: 6, height: 6, borderRadius: 3, borderWidth: 0 }]} />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
 
                             {/* Enhanced Search Bar */}
                             <View style={styles.searchContainer}>
-                                <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F9FA', borderColor: theme.border, borderWidth: 0 }]}>
+                                <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3F4F6', borderColor: theme.border, borderWidth: 0 }]}>
                                     <Ionicons name="search" size={20} color={theme.textSecondary} />
                                     <TextInput
                                         style={[styles.searchInput, { color: theme.text }]}
@@ -176,10 +175,6 @@ export default function Explore() {
                             {/* Discovery - Communities */}
                             <View style={[styles.sectionHeader, { backgroundColor: theme.surface, marginTop: 8 }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>EXPLORE COMMUNITIES</Text>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>View all</Text>
-                                    <Ionicons name="chevron-forward" size={12} color="#8B5CF6" style={{ marginLeft: 2 }} />
-                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -231,9 +226,6 @@ export default function Explore() {
                             {/* Top 10 Stories */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP 10 TODAY</Text>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>See all</Text>
-                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -252,13 +244,13 @@ export default function Explore() {
                                         onPress={() => router.push(`/post/${post.id}`)}
                                     >
                                         {/* Rank Badge - Top Right */}
-                                        <View style={[styles.rankBadge, { backgroundColor: theme.isDark ? '#2D1B4E' : '#F3E8FF', top: 16, right: 16 }]}>
-                                            <Text style={[styles.rankBadgeText, { color: '#8B5CF6' }]}>#{index + 1}</Text>
+                                        <View style={[styles.rankBadge, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F3E8FF', top: 16, right: 16 }]}>
+                                            <Text style={[styles.rankBadgeText, { color: theme.isDark ? '#B39DDB' : '#8B5CF6' }]}>#{index + 1}</Text>
                                         </View>
 
                                         {/* Avatar Column */}
                                         <View style={{ marginRight: 16, marginTop: 4 }}>
-                                            <View style={[styles.top10ProfilePic, { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F8F5FF', marginBottom: 0 }]}>
+                                            <View style={[styles.top10ProfilePic, { width: 72, height: 72, borderRadius: 36, backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF', marginBottom: 0 }]}>
                                                 {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
                                                     <Image
                                                         source={require("../assets/images/letitout_logo.png")}
@@ -290,7 +282,7 @@ export default function Explore() {
                                             )}
 
                                             {/* Divider */}
-                                            <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF', alignSelf: 'flex-start' }]} />
+                                            <View style={[styles.top10Divider, { backgroundColor: theme.border, alignSelf: 'flex-start' }]} />
 
                                             {/* Category Tag */}
                                             <Text style={[styles.top10Tag, { color: theme.textSecondary, textAlign: 'left' }]}>
@@ -326,9 +318,6 @@ export default function Explore() {
                             {/* Posts That Need Your Help */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>POSTS THAT NEED YOUR HELP</Text>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>See all</Text>
-                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -348,7 +337,7 @@ export default function Explore() {
                                     >
                                         {/* Avatar Column with Help Badge */}
                                         <View style={{ position: 'relative', marginRight: 16, marginTop: 4 }}>
-                                            <View style={[styles.top10ProfilePic, { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F8F5FF', marginBottom: 0 }]}>
+                                            <View style={[styles.top10ProfilePic, { width: 72, height: 72, borderRadius: 36, backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF', marginBottom: 0 }]}>
                                                 {post.isAnonymous || !post.authorId || !authorProfiles[post.authorId] ? (
                                                     <Image
                                                         source={require("../assets/images/letitout_logo.png")}
@@ -395,7 +384,7 @@ export default function Explore() {
                                             )}
 
                                             {/* Divider */}
-                                            <View style={[styles.top10Divider, { backgroundColor: theme.isDark ? '#3A3A5A' : '#E0E7FF', alignSelf: 'flex-start' }]} />
+                                            <View style={[styles.top10Divider, { backgroundColor: theme.border, alignSelf: 'flex-start' }]} />
 
                                             {/* Category Tag */}
                                             <Text style={[styles.top10Tag, { color: theme.textSecondary, textAlign: 'left' }]}>
@@ -432,7 +421,7 @@ export default function Explore() {
                                     style={[styles.top10Card, styles.viewMoreCard, { backgroundColor: theme.card, borderColor: theme.border }]}
                                     onPress={() => router.push('/help-needed')}
                                 >
-                                    <Ionicons name="arrow-forward-circle" size={48} color="#111827" />
+                                    <Ionicons name="arrow-forward-circle" size={48} color={theme.text} />
                                     <Text style={[styles.viewMoreText, { color: theme.text }]}>View More</Text>
                                     <Text style={[styles.viewMoreSubtext, { color: theme.textSecondary }]}>
                                         See all posts that need help
@@ -454,9 +443,9 @@ export default function Explore() {
                                 </Text>
 
                                 <TouchableOpacity style={styles.readMoreButton}>
-                                    <View style={styles.readMoreLine} />
-                                    <Text style={styles.readMoreText}>READ ARTICLE</Text>
-                                    <View style={styles.readMoreLine} />
+                                    <View style={[styles.readMoreLine, { backgroundColor: theme.border }]} />
+                                    <Text style={[styles.readMoreText, { color: theme.textSecondary }]}>READ ARTICLE</Text>
+                                    <View style={[styles.readMoreLine, { backgroundColor: theme.border }]} />
                                 </TouchableOpacity>
                             </View>
                         </>

@@ -22,13 +22,13 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Avatar from "../../components/Avatar";
-import Loading from "../../components/Loading";
-import { db } from "../../config/firebase";
-import { useAuth } from "../../context/AuthContext";
-import { useTabBar } from "../../context/TabBarContext";
-import { useTheme } from "../../context/ThemeContext";
-import { createFriendRequestAcceptedNotification } from "../../utils/notifications";
+import Avatar from "../components/Avatar";
+import Loading from "../components/Loading";
+import { db } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
+import { useTabBar } from "../context/TabBarContext";
+import { useTheme } from "../context/ThemeContext";
+import { createFriendRequestAcceptedNotification } from "../utils/notifications";
 
 export default function Notifications() {
     const { user } = useAuth();
@@ -427,7 +427,12 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
+                            <Ionicons name="arrow-back" size={24} color={theme.text} />
+                        </TouchableOpacity>
+                        <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                    </View>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
@@ -446,12 +451,16 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
+                            <Ionicons name="arrow-back" size={24} color={theme.text} />
+                        </TouchableOpacity>
+                        <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                    </View>
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} style={{ marginBottom: 16 }} />
-                    <Text style={[styles.emptyTitle, { color: theme.text }]}>Loading...</Text>
+                    <Loading size="large" text="Loading..." style={{ marginBottom: 16 }} />
                 </View>
             </SafeAreaView>
         );
@@ -462,7 +471,12 @@ export default function Notifications() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                    <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
+                            <Ionicons name="arrow-back" size={24} color={theme.text} />
+                        </TouchableOpacity>
+                        <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                    </View>
                     <TouchableOpacity style={styles.settingsButton}>
                         <Ionicons name="settings-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -498,7 +512,12 @@ export default function Notifications() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
             <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-                <Text style={[styles.headerTitle, { color: theme.text, marginLeft: 8 }]}>Notifications</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
+                        <Ionicons name="arrow-back" size={24} color={theme.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+                </View>
                 <TouchableOpacity style={styles.settingsButton}>
                     <Ionicons name="settings-outline" size={24} color={theme.text} />
                 </TouchableOpacity>
