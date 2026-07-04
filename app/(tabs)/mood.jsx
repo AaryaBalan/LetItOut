@@ -470,51 +470,19 @@ export default function MoodDashboard() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.qActionSec,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-              },
-            ]}
+            style={[styles.qAction, { backgroundColor: "#FFC857" }]}
             onPress={() => router.push("/mood/journal")}
           >
-            <Ionicons name="book" size={24} color="#FFC857" />
-            <Text style={[styles.qActionText, { color: theme.text }]}>
-              Journal
-            </Text>
+            <Ionicons name="book" size={24} color="#FFF" />
+            <Text style={styles.qActionPrimary}>Journal</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.qActionSec,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-              },
-            ]}
+            style={[styles.qAction, { backgroundColor: "#66BB6A" }]}
             onPress={() => router.push("/mood/insights")}
           >
-            <Ionicons name="bar-chart" size={24} color="#66BB6A" />
-            <Text style={[styles.qActionText, { color: theme.text }]}>
-              Insights
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.qActionSec,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-              },
-            ]}
-            onPress={() => router.push("/mood/goals")}
-          >
-            <Ionicons name="flag" size={24} color="#FF6B6B" />
-            <Text style={[styles.qActionText, { color: theme.text }]}>
-              Goals
-            </Text>
+            <Ionicons name="bar-chart" size={24} color="#FFF" />
+            <Text style={styles.qActionPrimary}>Insights</Text>
           </TouchableOpacity>
         </View>
 
@@ -679,17 +647,17 @@ const styles = StyleSheet.create({
   // Quick Actions
   quickGrid: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+    gap: 10,
     justifyContent: "space-between",
   },
   qAction: {
-    width: "48%",
+    flex: 1,
     borderRadius: 20,
-    padding: 16,
-    flexDirection: "row",
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    flexDirection: "column",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
     shadowColor: "#8B7CFF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -697,18 +665,24 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   qActionSec: {
-    width: "48%",
+    flex: 1,
     borderRadius: 20,
-    padding: 16,
-    flexDirection: "row",
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    flexDirection: "column",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
     borderWidth: 1,
   },
   qActionPrimary: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Fredoka-Bold",
     color: "#FFF",
+    textAlign: "center",
   },
-  qActionText: { fontSize: 15, fontFamily: "Fredoka-Bold" },
+  qActionText: { 
+    fontSize: 14, 
+    fontFamily: "Fredoka-Bold",
+    textAlign: "center",
+  },
 });
