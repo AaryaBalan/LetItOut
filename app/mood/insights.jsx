@@ -8,13 +8,15 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle, Path, Text as SvgText, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../config/firebase";
-import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, orderBy, limit } from "firebase/firestore";
 import { MOOD_OPTIONS } from "../../components/MoodSelector";
 import Loading from "../../components/Loading";
 
@@ -32,7 +34,12 @@ export default function InsightsScreen() {
 
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "moodEntries"), where("userId", "==", user.uid));
+    const q = query(
+      collection(db, "moodEntries"), 
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc"),
+      limit(2000)
+    );
     const unsub = onSnapshot(q, (snap) => {
       const data = [];
       snap.forEach((doc) => data.push({ id: doc.id, ...doc.data() }));
@@ -107,13 +114,18 @@ export default function InsightsScreen() {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       if (!byDay[key]) {
         byDay[key] = {
+          key,
           label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
           dateStr: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" }),
           entries: [],
           avg: 0,
+          happyCount: 0,
+          sadCount: 0
         };
       }
       byDay[key].entries.push(e);
+      if (e.moodType === 'amazing' || e.moodType === 'good') byDay[key].happyCount++;
+      if (e.moodType === 'awful' || e.moodType === 'bad') byDay[key].sadCount++;
     });
 
     const sortedKeys = Object.keys(byDay).sort();
@@ -124,8 +136,34 @@ export default function InsightsScreen() {
     sortedKeys.forEach((key) => {
       const day = byDay[key];
       day.avg = day.entries.reduce((sum, e) => sum + (e.moodScore || 0), 0) / day.entries.length;
-      if (!topPos || day.avg > topPos.avg) topPos = day;
-      if (!topChal || day.avg < topChal.avg) topChal = day;
+      
+      if (!topPos) {
+        topPos = day;
+      } else {
+        if (day.avg > topPos.avg) {
+          topPos = day;
+        } else if (day.avg === topPos.avg) {
+          if (day.happyCount > topPos.happyCount) {
+            topPos = day;
+          } else if (day.happyCount === topPos.happyCount && day.key > topPos.key) {
+            topPos = day;
+          }
+        }
+      }
+
+      if (!topChal) {
+        topChal = day;
+      } else {
+        if (day.avg < topChal.avg) {
+          topChal = day;
+        } else if (day.avg === topChal.avg) {
+          if (day.sadCount > topChal.sadCount) {
+            topChal = day;
+          } else if (day.sadCount === topChal.sadCount && day.key > topChal.key) {
+            topChal = day;
+          }
+        }
+      }
     });
 
     const dLabels = sortedKeys.map((key) => byDay[key].label);
@@ -142,8 +180,6 @@ export default function InsightsScreen() {
       daysLabels: dLabels
     };
   }, [entries, timeframe]);
-
-  if (loading) return <Loading />;
 
   const generate1YearMockData = async () => {
     if (!user) return;
@@ -229,43 +265,42 @@ export default function InsightsScreen() {
     }
   };
 
-  // Create Donut Chart Ring SVG
   const renderDonut = () => {
-    const radius = 40;
-    const circumference = 2 * Math.PI * radius;
-    let offset = 0;
+    let currentAngle = -Math.PI / 2;
+
+    const createPieSlice = (cx, cy, r, startAngle, sliceAngle) => {
+      if (sliceAngle === 0) return "";
+      if (sliceAngle >= 2 * Math.PI - 0.001) {
+        return `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r}`;
+      }
+      const endAngle = startAngle + sliceAngle;
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+      const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
+      return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+    };
 
     return (
       <View style={styles.donutMock}>
         <Svg width="100%" height="100%" viewBox="0 0 100 100">
-          <Circle cx="50" cy="50" r={radius} fill="none" stroke={theme.isDark ? "#2A2A2A" : "#E5E7EB"} strokeWidth="20" />
+          <Circle cx="50" cy="50" r="50" fill={theme.isDark ? "#2A2A2A" : "#E5E7EB"} />
           {breakdown.map((slice) => {
             if (slice.rawPct === 0) return null;
-            const strokeLength = slice.rawPct * circumference;
-            const gapLength = circumference - strokeLength;
-            const dash = `${strokeLength} ${gapLength}`;
-            const currentOffset = offset;
-            offset -= strokeLength;
+            const sliceAngle = slice.rawPct * 2 * Math.PI;
+            const pathData = createPieSlice(50, 50, 50, currentAngle, sliceAngle);
+            currentAngle += sliceAngle;
+            
             return (
-              <Circle
+              <Path
                 key={slice.label}
-                cx="50"
-                cy="50"
-                r={radius}
-                fill="none"
-                stroke={slice.color}
-                strokeWidth="20"
-                strokeDasharray={dash}
-                strokeDashoffset={currentOffset}
-                transform="rotate(-90 50 50)"
-                strokeLinecap="round"
+                d={pathData}
+                fill={slice.color}
               />
             );
           })}
         </Svg>
-        <View style={[styles.donutInner, { backgroundColor: theme.card }]}>
-          <MaterialCommunityIcons name={avgMoodMeta.icon} size={32} color={avgMoodMeta.color} />
-        </View>
       </View>
     );
   };
@@ -274,36 +309,69 @@ export default function InsightsScreen() {
     const validPoints = lineChartData.map((val, i) => ({ val, i }));
     if (validPoints.length === 0) return null;
 
-    // Filter labels to not overcrowd the x-axis
-    const maxLabels = 7;
-    const step = Math.max(1, Math.floor(validPoints.length / maxLabels));
+    const isDense = validPoints.length > 40;
+    let pointSpacing = 60;
+    if (validPoints.length > 40) pointSpacing = 20;
+    if (validPoints.length > 90) pointSpacing = 10;
+    if (validPoints.length > 180) pointSpacing = 6;
+    
+    const screenWidth = Dimensions.get('window').width;
+    const minChartWidth = screenWidth - 36;
+    const chartWidth = Math.max(minChartWidth, validPoints.length * pointSpacing);
+
+    const xMin = 8;
+    const xMax = chartWidth - 8;
 
     let pathD = "";
     validPoints.forEach((p, idx) => {
-      const x = 10 + (p.i * (280 / Math.max(1, validPoints.length - 1)));
+      const x = xMin + (p.i * ((xMax - xMin) / Math.max(1, validPoints.length - 1)));
       // Map val (-10 to 10) to y (90 to 10): ratio is (val + 10)/20
       const ratio = (p.val + 10) / 20;
       const y = 90 - (ratio * 80);
       pathD += idx === 0 ? `M${x},${y}` : ` L${x},${y}`;
     });
 
+    const lastX = xMin + ((validPoints.length - 1) * ((xMax - xMin) / Math.max(1, validPoints.length - 1)));
+    let fillD = pathD + ` L${lastX},100 L${xMin},100 Z`;
+    if (validPoints.length === 1) fillD = "";
+
     return (
-      <View style={styles.lineChartWrapper}>
-        <Svg height="100" width="100%" viewBox="0 0 300 100">
-          <Path d={pathD} fill="none" stroke="#8B7CFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-          {validPoints.map((p) => {
-            const x = 10 + (p.i * (280 / Math.max(1, validPoints.length - 1)));
-            const ratio = (p.val + 10) / 20;
-            const y = 90 - (ratio * 80);
-            return <Circle key={p.i} cx={x} cy={y} r="5" fill="#8B7CFF" />
-          })}
-        </Svg>
-        <View style={styles.chartXAxis}>
-          {daysLabels.map((d, i) => {
-            if (i % step !== 0 && i !== daysLabels.length - 1) return <View key={i} style={{ width: 20 }} />;
-            return <Text key={i} style={[styles.axisText, { color: theme.textSecondary }]}>{d}</Text>;
-          })}
-        </View>
+      <View style={[styles.lineChartWrapper, { marginHorizontal: -16 }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <Svg height="130" width={chartWidth} viewBox={`0 0 ${chartWidth} 130`}>
+            <Defs>
+              <LinearGradient id="lineGrad" x1="0" y1="10" x2="0" y2="90" gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor="#66BB6A" />
+                <Stop offset="0.35" stopColor="#66BB6A" />
+                <Stop offset="0.5" stopColor="#FFCA28" />
+                <Stop offset="0.65" stopColor="#FF6B6B" />
+                <Stop offset="1" stopColor="#FF6B6B" />
+              </LinearGradient>
+              <LinearGradient id="fillGrad" x1="0" y1="10" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor="rgba(102, 187, 106, 0.3)" />
+                <Stop offset="0.35" stopColor="rgba(102, 187, 106, 0.2)" />
+                <Stop offset="0.5" stopColor="rgba(255, 202, 40, 0.15)" />
+                <Stop offset="0.65" stopColor="rgba(255, 107, 107, 0.15)" />
+                <Stop offset="1" stopColor="rgba(255, 107, 107, 0.15)" />
+              </LinearGradient>
+            </Defs>
+            {fillD ? <Path d={fillD} fill="url(#fillGrad)" /> : null}
+            <Path d={pathD} fill="none" stroke="url(#lineGrad)" strokeWidth={isDense ? "2.5" : "4"} strokeLinecap="round" strokeLinejoin="round" />
+            {!isDense && validPoints.map((p) => {
+              const x = xMin + (p.i * ((xMax - xMin) / Math.max(1, validPoints.length - 1)));
+              const ratio = (p.val + 10) / 20;
+              const y = 90 - (ratio * 80);
+
+              let circleColor = "#FFCA28";
+              if (p.val > 0) circleColor = "#66BB6A";
+              else if (p.val < 0) circleColor = "#FF6B6B";
+
+              return (
+                <Circle key={p.i} cx={x} cy={y} r="5" fill={theme.card} stroke={circleColor} strokeWidth="3" />
+              );
+            })}
+          </Svg>
+        </ScrollView>
       </View>
     );
   };
@@ -431,7 +499,11 @@ export default function InsightsScreen() {
             </Text>
           </View>
           
-          {last7DaysEntries.length > 0 ? renderLineChart() : (
+          {loading ? (
+             <View style={{ height: 130, justifyContent: "center", alignItems: "center" }}>
+               <ActivityIndicator size="large" color="#8B7CFF" />
+             </View>
+          ) : last7DaysEntries.length > 0 ? renderLineChart() : (
             <View style={{ height: 100, justifyContent: "center", alignItems: "center" }}>
               <Text style={{ color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>Not enough data to graph.</Text>
             </View>
