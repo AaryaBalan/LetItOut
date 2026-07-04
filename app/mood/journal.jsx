@@ -7,6 +7,7 @@ import {
   orderBy,
   query,
   where,
+  limit,
 } from "firebase/firestore";
 import {
   Modal,
@@ -16,6 +17,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
@@ -46,22 +49,36 @@ export default function JournalScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [limitCount, setLimitCount] = useState(15);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+  const hasFilters = activeFilter !== "All" || selectedCategories.length > 0;
 
   useEffect(() => {
     if (!user) return;
-    const q = query(
-      collection(db, "moodEntries"),
+    
+    let constraints = [
       where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
-    );
+    ];
+    
+    if (!hasFilters) {
+      constraints.push(limit(limitCount));
+    }
+
+    const q = query(collection(db, "moodEntries"), ...constraints);
+    
     const unsub = onSnapshot(q, (snap) => {
       // Only keep entries that have a title or note
       const allEntries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const journalEntries = allEntries.filter(e => e.title || e.note);
       setEntries(journalEntries);
+      setLoading(false);
+      setIsFetchingMore(false);
     });
     return unsub;
-  }, [user]);
+  }, [user, limitCount, hasFilters]);
 
   const filteredEntries = entries.filter(e => {
     // 1. Filter by Mood
@@ -76,7 +93,9 @@ export default function JournalScreen() {
       if (!e.tags || e.tags.length === 0) {
         categoryMatch = false;
       } else {
-        categoryMatch = selectedCategories.some(cat => e.tags.includes(cat));
+        categoryMatch = selectedCategories.some(cat => 
+          e.tags.some(tag => tag.toLowerCase() === cat.toLowerCase())
+        );
       }
     }
 
@@ -170,16 +189,39 @@ export default function JournalScreen() {
       </View>
 
       {/* Journals List */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {filteredEntries.length === 0 ? (
-          <View style={{ padding: 40, alignItems: "center" }}>
-            <Ionicons name="journal-outline" size={48} color={theme.textTertiary} />
-            <Text style={{ marginTop: 12, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
-              No journal entries found.
-            </Text>
-          </View>
-        ) : (
-          filteredEntries.map((journal) => {
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#8B7CFF" />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredEntries}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          onEndReached={() => {
+            if (!isFetchingMore && entries.length >= limitCount) {
+              setIsFetchingMore(true);
+              setLimitCount((prev) => prev + 15);
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={
+            <View style={{ padding: 40, alignItems: "center" }}>
+              <Ionicons name="journal-outline" size={48} color={theme.textTertiary} />
+              <Text style={{ marginTop: 12, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
+                No journal entries found.
+              </Text>
+            </View>
+          }
+          ListFooterComponent={
+            isFetchingMore ? (
+              <View style={{ paddingVertical: 20 }}>
+                <ActivityIndicator size="small" color="#8B7CFF" />
+              </View>
+            ) : <View style={{ height: 100 }} />
+          }
+          renderItem={({ item: journal }) => {
             const mood = MOOD_OPTIONS.find(m => m.id === journal.moodType) || MOOD_OPTIONS[2];
             const d = new Date(journal.createdAt);
             const dateStr = d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
@@ -187,7 +229,6 @@ export default function JournalScreen() {
 
             return (
               <TouchableOpacity 
-                key={journal.id} 
                 style={[styles.card, { backgroundColor: mood.color + "1A" }]} // 10% opacity
                 activeOpacity={0.8}
               >
@@ -227,10 +268,9 @@ export default function JournalScreen() {
                 </View>
               </TouchableOpacity>
             );
-          })
-        )}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          }}
+        />
+      )}
 
       {/* Category Filter Modal */}
       <Modal
