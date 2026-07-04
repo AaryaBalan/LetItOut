@@ -947,7 +947,7 @@ export default function PostDetail() {
                         <Ionicons
                             name={isSaved ? "bookmark" : "bookmark-outline"}
                             size={24}
-                            color={isSaved ? "#FFB74D" : "#111827"}
+                            color={isSaved ? "#FFB74D" : activeTheme.text}
                         />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1079,7 +1079,7 @@ export default function PostDetail() {
                                         <View style={[styles.hugIcon, { zIndex: 1, marginLeft: -8, backgroundColor: '#E9F7EF', borderColor: activeTheme.card }]}>
                                             <Ionicons name="happy" size={14} color="#27AE60" />
                                         </View>
-                                        <Text style={[styles.hugsSentText, { color: activeTheme.textTertiary }]}>
+                                        <Text style={[styles.hugsSentText, { color: activeTheme.text }]}>
                                             {likeCount + hugCount + meTooCount} REACTIONS
                                         </Text>
                                     </View>
@@ -1551,7 +1551,6 @@ const styles = StyleSheet.create({
     hugsSentPill: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
