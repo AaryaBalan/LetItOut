@@ -313,7 +313,7 @@ export default function MyCenter() {
     }
 
     return (
-      <View style={[styles.moodTrackContainer, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}>
+      <View style={[styles.moodTrackContainer, { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border, borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }]}>
         <View style={styles.moodTrackLabelRow}>
           <View style={styles.moodLabelGroup}>
             <Text style={[styles.moodTrackLabel, { color: theme.textSecondary, textTransform: 'uppercase', fontSize: 10, letterSpacing: 0.5 }]}>Initial Mood</Text>
@@ -432,7 +432,7 @@ export default function MyCenter() {
             if (selectedPost) setSelectedPost(null);
             else router.back();
           }}
-          style={[styles.backButton, { backgroundColor: theme.surface, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }]}
+          style={[styles.backButton, { backgroundColor: theme.card, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }]}
         >
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
@@ -446,7 +446,7 @@ export default function MyCenter() {
             </Text>
           )}
         </View>
-        <TouchableOpacity style={[styles.settingsButton, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity style={[styles.settingsButton, { backgroundColor: theme.card }]}>
           <Ionicons name="settings-outline" size={20} color={theme.text} />
         </TouchableOpacity>
       </View>
@@ -540,7 +540,7 @@ export default function MyCenter() {
             <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => setCommentSort(prev => prev === 'impactful' ? 'recent' : 'impactful')}
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, gap: 4 }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, gap: 4 }}
             >
               <Text style={{ fontSize: 12, color: theme.textSecondary }}>{commentSort === 'impactful' ? 'Most Impactful' : 'Most Recent'}</Text>
               <Ionicons name="swap-vertical" size={14} color={theme.textSecondary} />
@@ -636,7 +636,7 @@ export default function MyCenter() {
                     </View>
 
                     {expandedCommentId === comment.id ? (
-                      <View style={[styles.ratingSection, { marginTop: 16, backgroundColor: theme.surface, borderRadius: 12, padding: 10 }]}>
+                      <View style={[styles.ratingSection, { marginTop: 16, backgroundColor: theme.card, borderRadius: 12, padding: 10 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 }}>
                           <Ionicons name="bulb-outline" size={16} color="#8B5CF6" style={{ marginRight: 8, marginTop: 2 }} />
                           <Text style={[styles.reflectionNoteText, { color: theme.isDark ? '#D1D5DB' : '#4B5563', flex: 1, fontFamily: 'Fredoka-Bold' }]}>
@@ -677,7 +677,7 @@ export default function MyCenter() {
                       </View>
                     ) : (
                       <View style={{ flexDirection: 'column', marginTop:2 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, width: '100%' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, width: '100%' }}>
                           <Ionicons name="bulb-outline" size={16} color="#8B5CF6" style={{ marginRight: 8 }} />
                           <Text style={{ fontSize: 12, color: theme.isDark ? '#D1D5DB' : '#4B5563', flex: 1 }}>
                             This comment helped shift your perspective <Text style={{ color: currentVal > baselineVal ? (theme.isDark ? '#81C995' : '#27AE60') : currentVal < baselineVal ? (theme.isDark ? '#F28B82' : '#EB5757') : '#8B5CF6', fontFamily: 'Fredoka-Bold' }}>{currentVal > baselineVal ? 'positively' : currentVal < baselineVal ? 'negatively' : 'neutrally'}</Text>.
@@ -696,7 +696,7 @@ export default function MyCenter() {
         // --- 2. POSTS LIST TAB ---
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Note box 1 */}
-          <View style={[styles.staticNoteBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.staticNoteBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
               <Ionicons name="journal" size={16} color={theme.text} style={{ marginRight: 8 }} />
               <Text style={[styles.staticNoteTitle, { color: theme.text }]}>Perspective Journals</Text>
@@ -708,7 +708,7 @@ export default function MyCenter() {
 
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <View style={[styles.emptyIconCircle, { backgroundColor: theme.surface }]}>
+              <View style={[styles.emptyIconCircle, { backgroundColor: theme.card }]}>
                 <Ionicons name="document-text-outline" size={48} color={theme.text} />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Posts Yet</Text>
@@ -740,7 +740,7 @@ export default function MyCenter() {
               return (
                 <TouchableOpacity
                   key={post.id}
-                  style={[styles.postCard, { backgroundColor: theme.surface }]}
+                  style={[styles.postCard, { backgroundColor: theme.card }]}
                   onPress={() => setSelectedPost(post)}
                   activeOpacity={0.9}
                 >
@@ -803,7 +803,7 @@ export default function MyCenter() {
         // --- 3. INSIGHTS TAB ---
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* How Insights Work — static note box with doodles */}
-          <View style={[styles.staticNoteBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.staticNoteBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <Ionicons name="bulb" size={20} color={theme.text} style={{ marginRight: 8 }} />
               <Text style={[styles.staticNoteTitle, { color: theme.text }]}>How Insights Work</Text>
@@ -818,7 +818,7 @@ export default function MyCenter() {
 
           {/* Stats Grid */}
           <View style={styles.statsGrid}>
-            <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
+            <View style={[styles.statItem, { backgroundColor: theme.card }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 10 }}>
                 <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#3730A3' : '#EEF2FF' }]}>
                   <Ionicons name="document-text" size={16} color={theme.isDark ? '#818CF8' : '#6366F1'} />
@@ -828,7 +828,7 @@ export default function MyCenter() {
               <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>POSTS SHARED</Text>
             </View>
 
-            <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
+            <View style={[styles.statItem, { backgroundColor: theme.card }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 10 }}>
                 <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#7F1D1D' : '#FCEEEE' }]}>
                   <Ionicons name="trending-up" size={16} color={theme.isDark ? '#F87171' : '#EF5350'} />
@@ -840,7 +840,7 @@ export default function MyCenter() {
               <Text style={[styles.statLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>AVG SHIFT</Text>
             </View>
 
-            <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
+            <View style={[styles.statItem, { backgroundColor: theme.card }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 10 }}>
                 <View style={[styles.statIconCircle, { backgroundColor: theme.isDark ? '#064E3B' : '#E9F7EF' }]}>
                   <Ionicons name="star" size={16} color={theme.isDark ? '#34D399' : '#4CAF50'} />
@@ -860,7 +860,7 @@ export default function MyCenter() {
 
           {posts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <View style={[styles.emptyIconCircle, { backgroundColor: theme.surface }]}>
+              <View style={[styles.emptyIconCircle, { backgroundColor: theme.card }]}>
                 <Ionicons name="analytics-outline" size={48} color={theme.text} />
               </View>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>No Insights Yet</Text>
@@ -891,7 +891,7 @@ export default function MyCenter() {
               };
 
               return (
-                <View key={post.id} style={[styles.postCard, { backgroundColor: theme.surface }]}>
+                <View key={post.id} style={[styles.postCard, { backgroundColor: theme.card }]}>
                   <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757') }]} />
                   {renderBackgroundBlob(current)}
 
@@ -937,7 +937,7 @@ export default function MyCenter() {
 
                     <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
-                    <View style={[styles.journeyBox, { backgroundColor: theme.surface }]}>
+                    <View style={[styles.journeyBox, { backgroundColor: theme.card }]}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                         <Ionicons name="heart-circle" size={20} color={theme.text} />
                         <Text style={[styles.journeyLabel, { color: theme.text, fontFamily: 'Frederick', textTransform: 'uppercase' }]}>Your Emotional Journey</Text>
@@ -957,7 +957,7 @@ export default function MyCenter() {
                     {hasRatedComments && bestComment && (
                       <View style={{ marginTop: 10 }}>
                         <Text style={[styles.insightLabel, { color: theme.textTertiary, fontFamily: 'Frederick' }]}>MOST IMPACTFUL COMMENT</Text>
-                        <View style={[styles.insightQuoteBox, { backgroundColor: theme.surface }]}>
+                        <View style={[styles.insightQuoteBox, { backgroundColor: theme.card }]}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                             <Avatar seed={commentorProfiles[bestComment.commentorId] || bestComment.commentorName} size={28} />
                             <Text style={[styles.insightQuoteAuthor, { color: theme.text }]} numberOfLines={1}>{bestComment.commentorName}</Text>
