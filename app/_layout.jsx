@@ -49,7 +49,7 @@ function RootLayoutContent() {
                 <Stack.Screen name="post/[id]" />
                 <Stack.Screen name="mood/log" />
                 <Stack.Screen name="mood/history" />
-                <Stack.Screen name="mood/goals" />
+
                 <Stack.Screen name="mood/journal" />
                 <Stack.Screen name="mood/insights" />
             </Stack>

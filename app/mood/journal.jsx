@@ -7,6 +7,7 @@ import {
   orderBy,
   query,
   where,
+  limit,
 } from "firebase/firestore";
 import {
   FlatList,
@@ -52,11 +53,18 @@ export default function JournalScreen() {
 
   useEffect(() => {
     if (!user) return;
-    const q = query(
-      collection(db, "moodEntries"),
+    
+    let constraints = [
       where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
-    );
+    ];
+    
+    if (!hasFilters) {
+      constraints.push(limit(limitCount));
+    }
+
+    const q = query(collection(db, "moodEntries"), ...constraints);
+    
     const unsub = onSnapshot(q, (snap) => {
       // Only keep entries that have a title or note
       const allEntries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -65,7 +73,7 @@ export default function JournalScreen() {
       setLoading(false);
     });
     return unsub;
-  }, [user]);
+  }, [user, limitCount, hasFilters]);
 
   const filteredEntries = entries.filter(e => {
     // 1. Filter by Mood
@@ -80,7 +88,9 @@ export default function JournalScreen() {
       if (!e.tags || e.tags.length === 0) {
         categoryMatch = false;
       } else {
-        categoryMatch = selectedCategories.some(cat => e.tags.includes(cat));
+        categoryMatch = selectedCategories.some(cat => 
+          e.tags.some(tag => tag.toLowerCase() === cat.toLowerCase())
+        );
       }
     }
 

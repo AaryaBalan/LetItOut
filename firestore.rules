@@ -97,5 +97,17 @@ service cloud.firestore {
       allow delete: if request.auth != null && 
                        resource.data.toUserId == request.auth.uid;
     }
+
+    // Mood Entries
+    match /moodEntries/{entryId} {
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Mood Goals
+    match /moodGoals/{goalId} {
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
   }
 }
