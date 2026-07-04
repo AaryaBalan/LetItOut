@@ -43,8 +43,8 @@ const CommentThread = ({
                 ]} />
 
                 <View style={[styles.commentCard, {
-                    backgroundColor: theme.card,
-                    borderColor: theme.border,
+                    backgroundColor: theme.isDark ? '#2a2a2a73' : '#F3F4F6',
+                    borderColor: theme.isDark ? '#2a2a2a9f' : '#E5E7EB',
                     opacity: depth > 0 ? 1 - (depth * 0.05) : 1,
                     marginLeft: 15, // Reduced from 20
                 }]}>
@@ -111,8 +111,8 @@ const CommentThread = ({
                                         style={styles.replyButton}
                                         onPress={() => onReply(comment)}
                                     >
-                                        <Ionicons name="arrow-undo" size={13} color="#111827" />
-                                        <Text style={[styles.replyText, { color: '#111827' }]}>
+                                        <Ionicons name="arrow-undo" size={13} color= {theme.text} />
+                                        <Text style={[styles.replyText, { color: theme.text }]}>
                                             Reply
                                         </Text>
                                     </TouchableOpacity>
