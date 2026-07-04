@@ -122,7 +122,7 @@ export default function MoodHistory() {
         style={[styles.container, { backgroundColor: theme.isDark ? "#000" : "#FAFAFC", justifyContent: "center", alignItems: "center" }]}
         edges={["top"]}
       >
-        <Loading size="large" />
+        <Loading size="large" text="Loading history..." />
       </SafeAreaView>
     );
   }

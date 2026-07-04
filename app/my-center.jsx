@@ -358,7 +358,7 @@ export default function MyCenter() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
         <View style={styles.loadingContainer}>
-          <Loading size="large" color="#111827" />
+          <Loading size="large" text="Loading my center..." />
         </View>
       </SafeAreaView>
     );

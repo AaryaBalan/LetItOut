@@ -477,8 +477,7 @@ export default function Home() {
           ListFooterComponent={
             loading ? (
               <View style={styles.emptyContainer}>
-                <Loading size="large" color="#111827" />
-                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading posts...</Text>
+                <Loading size="large" text="Loading posts..." />
               </View>
             ) : filteredPosts.length === 0 ? (
               <View style={[styles.emptyContainer, { marginTop: 60 }]}>
@@ -526,7 +525,7 @@ export default function Home() {
             zIndex: 9999,
             elevation: 9999,
             transform: [{ translateY: slideAnim }] }}>
-            <Loading size="large" color="#111827" />
+            <Loading size="large" />
           </Animated.View>
         )}
 

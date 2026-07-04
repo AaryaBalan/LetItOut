@@ -182,7 +182,7 @@ export default function MoodDashboard() {
         ]}
         edges={["top"]}
       >
-        <Loading size="large" />
+        <Loading size="large" text="Loading mood..." />
       </SafeAreaView>
     );
   }

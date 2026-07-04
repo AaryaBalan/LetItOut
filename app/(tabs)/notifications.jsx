@@ -450,8 +450,7 @@ export default function Notifications() {
                     <View style={{ width: 28 }} />
                 </View>
                 <View style={styles.emptyContainer}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} style={{ marginBottom: 16 }} />
-                    <Text style={[styles.emptyTitle, { color: theme.text }]}>Loading...</Text>
+                    <Loading size="large" text="Loading..." style={{ marginBottom: 16 }} />
                 </View>
             </SafeAreaView>
         );

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Image, StyleSheet } from 'react-native';
+import { Animated, Easing, Image, StyleSheet, View, Text } from 'react-native';
 
-const Loading = ({ size = 'large', color = '#111827', style }) => {
+const Loading = ({ size = 'large', style, text }) => {
+    const color = '#8B5CF6';
     const rotateAnim = useRef(new Animated.Value(0)).current;
     const counterRotateAnim = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -68,51 +69,59 @@ const Loading = ({ size = 'large', color = '#111827', style }) => {
     const borderWidth = size === 'large' ? 2.5 : 1.5;
 
     return (
-        <Animated.View style={[styles.container, { width: containerSize, height: containerSize, opacity: fadeAnim }, style]}>
-            {/* Outer Counter-Rotating Ring */}
-            <Animated.View
-                style={[
-                    styles.ring,
-                    {
-                        width: containerSize,
-                        height: containerSize,
-                        borderRadius: containerSize / 2,
-                        borderWidth: borderWidth,
-                        borderColor: color,
-                        borderTopColor: 'transparent',
-                        borderBottomColor: 'transparent',
-                        opacity: 0.4,
-                        transform: [{ rotate: spinCounter }] },
-                ]}
-            />
-
-            {/* Inner Main Rotating Ring */}
-            <Animated.View
-                style={[
-                    styles.ring,
-                    {
-                        width: innerRingSize,
-                        height: innerRingSize,
-                        borderRadius: innerRingSize / 2,
-                        borderWidth: borderWidth,
-                        borderColor: color,
-                        borderLeftColor: 'transparent',
-                        borderRightColor: 'transparent',
-                        transform: [{ rotate: spin }] },
-                ]}
-            />
-
-            {/* Centered Pulsing Logo */}
-            <Animated.View style={[styles.logoContainer, { width: logoSize, height: logoSize, borderRadius: logoSize / 2, transform: [{ scale: logoScale }] }]}>
-                <Image
-                    source={require('../assets/images/letitout_logo.png')}
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        borderRadius: logoSize / 2 }}
-                    resizeMode="cover"
+        <Animated.View style={[styles.container, { opacity: fadeAnim }, style]}>
+            <View style={{ width: containerSize, height: containerSize, justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                {/* Outer Counter-Rotating Ring */}
+                <Animated.View
+                    style={[
+                        styles.ring,
+                        {
+                            width: containerSize,
+                            height: containerSize,
+                            borderRadius: containerSize / 2,
+                            borderWidth: borderWidth,
+                            borderColor: color,
+                            borderTopColor: 'transparent',
+                            borderBottomColor: 'transparent',
+                            opacity: 0.4,
+                            transform: [{ rotate: spinCounter }] },
+                    ]}
                 />
-            </Animated.View>
+
+                {/* Inner Main Rotating Ring */}
+                <Animated.View
+                    style={[
+                        styles.ring,
+                        {
+                            width: innerRingSize,
+                            height: innerRingSize,
+                            borderRadius: innerRingSize / 2,
+                            borderWidth: borderWidth,
+                            borderColor: color,
+                            borderLeftColor: 'transparent',
+                            borderRightColor: 'transparent',
+                            transform: [{ rotate: spin }] },
+                    ]}
+                />
+
+                {/* Centered Pulsing Logo */}
+                <Animated.View style={[styles.logoContainer, { width: logoSize, height: logoSize, borderRadius: logoSize / 2, transform: [{ scale: logoScale }] }]}>
+                    <Image
+                        source={require('../assets/images/letitout_logo.png')}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: logoSize / 2 }}
+                        resizeMode="cover"
+                    />
+                </Animated.View>
+            </View>
+            
+            {text && (
+                <Text style={{ marginTop: 16, color: '#9CA3AF', fontFamily: 'Frederick', fontSize: 20 }}>
+                    {text}
+                </Text>
+            )}
         </Animated.View>
     );
 };

@@ -592,10 +592,7 @@ export default function Profile() {
       <TabScreenWrapper>
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]} edges={["top"]}>
           <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-          <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
-          <Text style={{ marginTop: 16, color: theme.textSecondary, fontSize: 14, fontFamily: 'Fredoka-Bold' }}>
-            Loading Profile...
-          </Text>
+          <Loading size="large" text="Loading Profile..." />
         </SafeAreaView>
       </TabScreenWrapper>
     );
@@ -1039,8 +1036,8 @@ export default function Profile() {
               </View>
 
               {isLoadingFriends ? (
-                <View style={styles.loadingContainer}>
-                  <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <Loading size="large" />
                 </View>
               ) : (
                 <ScrollView style={[styles.modalScrollView, { backgroundColor: theme.surface }]}>

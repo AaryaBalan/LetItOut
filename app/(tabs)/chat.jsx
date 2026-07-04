@@ -265,7 +265,7 @@ export default function ChatTab() {
                 />
                 {loading && (
                     <View style={[styles.loadingOverlay, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>
-                        <Loading size="large" color="#111827" />
+                        <Loading size="large" text="Loading chats..." />
                     </View>
                 )}
             </SafeAreaView>

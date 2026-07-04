@@ -23,6 +23,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import Loading from "../../components/Loading";
 import { db } from "../../config/firebase";
 import { MOOD_OPTIONS } from "../../components/MoodSelector";
 
@@ -177,10 +178,7 @@ export default function JournalScreen() {
     if (loading) {
       return (
         <View style={{ padding: 40, alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
-          <Text style={{ marginTop: 16, color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>
-            Loading entries...
-          </Text>
+          <Loading size="large" text="Loading entries..." />
         </View>
       );
     }

@@ -224,7 +224,7 @@ export default function UserProfile() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["top"]}>
                 <View style={styles.loadingContainer}>
-                    <Loading size="large" color="#FF8A65" />
+                    <Loading size="large" text="Loading profile..." />
                 </View>
             </SafeAreaView>
         );

@@ -355,8 +355,7 @@ export default function CommunityDetail() {
         if (item.type === 'empty') {
             return loading ? (
                 <View style={styles.emptyState}>
-                    <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} />
-                    <Text style={[styles.emptyStateTitle, { color: theme.textSecondary }]}>Loading posts...</Text>
+                    <Loading size="large" text="Loading posts..." />
                 </View>
             ) : (
                 <View style={styles.emptyState}>

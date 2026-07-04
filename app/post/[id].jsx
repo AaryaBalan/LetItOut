@@ -546,8 +546,7 @@ export default function PostDetail() {
         return (
             <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
                 <StatusBar barStyle={theme.statusBar} backgroundColor={theme.background} />
-                <Loading size="large" color={theme.isDark ? '#B39DDB' : '#111827'} style={{ marginBottom: 16 }} />
-                <Text style={[styles.errorText, { color: theme.textSecondary }]}>Loading...</Text>
+                <Loading size="large" text="Loading..." style={{ marginBottom: 16 }} />
             </SafeAreaView>
         );
     }
