@@ -31,7 +31,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -91,10 +92,13 @@ export default function PostDetail() {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [showShareModal, setShowShareModal] = useState(false);
     const [friends, setFriends] = useState([]);
-    const [sharing, setSharing] = useState(false);
+    const [sharingId, setSharingId] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     const [saving, setSaving] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null); // Track which comment is being replied to
+    const [reactingType, setReactingType] = useState(null);
+    const [submittingComment, setSubmittingComment] = useState(false);
+    const [deletingPost, setDeletingPost] = useState(false);
 
 
     // Fetch post from Firebase or dummy data
@@ -427,9 +431,9 @@ export default function PostDetail() {
     }, [user, showShareModal]);
 
     const handleShare = async (friendId) => {
-        if (!user || sharing || !post) return;
+        if (!user || sharingId || !post) return;
 
-        setSharing(true);
+        setSharingId(friendId);
         try {
             const chatId = [user.uid, friendId].sort().join("_");
             const chatRef = doc(db, "chats", chatId);
@@ -468,7 +472,7 @@ export default function PostDetail() {
             console.error("Error sharing post:", error);
             showAlert("Error", "Failed to share post");
         } finally {
-            setSharing(false);
+            setSharingId(null);
         }
     };
 
@@ -570,6 +574,7 @@ export default function PostDetail() {
             return;
         }
 
+        setReactingType("hug");
         try {
             if (hugActive && userReactions.hug) {
                 // Remove reaction
@@ -615,6 +620,8 @@ export default function PostDetail() {
         } catch (error) {
             console.error("Error toggling hug reaction:", error);
             showAlert("Error", "Failed to update reaction. Please try again.");
+        } finally {
+            setReactingType(null);
         }
     };
 
@@ -624,6 +631,7 @@ export default function PostDetail() {
             return;
         }
 
+        setReactingType("metoo");
         try {
             if (meTooActive && userReactions.metoo) {
                 // Remove reaction
@@ -669,6 +677,8 @@ export default function PostDetail() {
         } catch (error) {
             console.error("Error toggling me too reaction:", error);
             showAlert("Error", "Failed to update reaction. Please try again.");
+        } finally {
+            setReactingType(null);
         }
     };
 
@@ -678,6 +688,7 @@ export default function PostDetail() {
             return;
         }
 
+        setReactingType("like");
         try {
             if (likeActive && userReactions.like) {
                 // Remove reaction
@@ -723,6 +734,8 @@ export default function PostDetail() {
         } catch (error) {
             console.error("Error toggling like reaction:", error);
             showAlert("Error", "Failed to update reaction. Please try again.");
+        } finally {
+            setReactingType(null);
         }
     };
 
@@ -734,6 +747,7 @@ export default function PostDetail() {
             return;
         }
 
+        setSubmittingComment(true);
         try {
             console.log("Creating comment for postId:", id, "Type:", typeof id);
             const commentText = newComment.trim();
@@ -792,6 +806,8 @@ export default function PostDetail() {
         } catch (error) {
             console.error("Error adding comment:", error);
             showAlert("Error", "Failed to add comment. Please try again.");
+        } finally {
+            setSubmittingComment(false);
         }
     };
 
@@ -886,6 +902,7 @@ export default function PostDetail() {
                     text: "Delete",
                     style: "destructive",
                     onPress: async () => {
+                        setDeletingPost(true);
                         try {
                             await deleteDoc(doc(db, "posts", id));
                             showAlert("Success", "Post deleted successfully");
@@ -896,6 +913,8 @@ export default function PostDetail() {
                                 "Error",
                                 "Failed to delete post. Please try again.",
                             );
+                        } finally {
+                            setDeletingPost(false);
                         }
                     }
                 },
@@ -945,11 +964,15 @@ export default function PostDetail() {
                         onPress={handleSavePost}
                         disabled={saving}
                     >
-                        <Ionicons
-                            name={isSaved ? "bookmark" : "bookmark-outline"}
-                            size={24}
-                            color={isSaved ? "#FFB74D" : activeTheme.text}
-                        />
+                        {saving ? (
+                            <ActivityIndicator size="small" color={isSaved ? "#FFB74D" : activeTheme.text} />
+                        ) : (
+                            <Ionicons
+                                name={isSaved ? "bookmark" : "bookmark-outline"}
+                                size={24}
+                                color={isSaved ? "#FFB74D" : activeTheme.text}
+                            />
+                        )}
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.headerButton}
@@ -961,8 +984,13 @@ export default function PostDetail() {
                         <TouchableOpacity
                             style={styles.headerButton}
                             onPress={handleDelete}
+                            disabled={deletingPost}
                         >
-                            <Ionicons name="trash-outline" size={24} color="#EF5350" />
+                            {deletingPost ? (
+                                <ActivityIndicator size="small" color="#EF5350" />
+                            ) : (
+                                <Ionicons name="trash-outline" size={24} color="#EF5350" />
+                            )}
                         </TouchableOpacity>
                     )}
                 </View>
@@ -1099,7 +1127,11 @@ export default function PostDetail() {
                                         ]}
                                         onPress={handleLike}
                                     >
-                                        <Ionicons name={likeActive ? "heart" : "heart-outline"} size={18} color="#6366F1" />
+                                        {reactingType === "like" ? (
+                                            <ActivityIndicator size="small" color="#6366F1" />
+                                        ) : (
+                                            <Ionicons name={likeActive ? "heart" : "heart-outline"} size={18} color="#6366F1" />
+                                        )}
                                         <Text style={[styles.actionButtonText, { color: "#6366F1" }]}>Like</Text>
                                     </TouchableOpacity>
 
@@ -1114,7 +1146,11 @@ export default function PostDetail() {
                                         ]}
                                         onPress={handleHug}
                                     >
-                                        <Ionicons name={hugActive ? "hand-left" : "hand-left-outline"} size={18} color="#F2C94C" />
+                                        {reactingType === "hug" ? (
+                                            <ActivityIndicator size="small" color="#F2C94C" />
+                                        ) : (
+                                            <Ionicons name={hugActive ? "hand-left" : "hand-left-outline"} size={18} color="#F2C94C" />
+                                        )}
                                         <Text style={[styles.actionButtonText, { color: "#F2C94C" }]}>Send Hug</Text>
                                     </TouchableOpacity>
 
@@ -1129,7 +1165,11 @@ export default function PostDetail() {
                                         ]}
                                         onPress={handleMeToo}
                                     >
-                                        <Ionicons name={meTooActive ? "happy" : "happy-outline"} size={18} color="#27AE60" />
+                                        {reactingType === "metoo" ? (
+                                            <ActivityIndicator size="small" color="#27AE60" />
+                                        ) : (
+                                            <Ionicons name={meTooActive ? "happy" : "happy-outline"} size={18} color="#27AE60" />
+                                        )}
                                         <Text style={[styles.actionButtonText, { color: "#27AE60" }]}>Me too</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -1221,13 +1261,17 @@ export default function PostDetail() {
                         <TouchableOpacity
                             style={[styles.sendButton, { backgroundColor: postTheme.color, shadowColor: postTheme.color }]}
                             onPress={handleAddComment}
-                            disabled={!newComment.trim()}
+                            disabled={!newComment.trim() || submittingComment}
                         >
-                            <Ionicons
-                                name="send"
-                                size={20}
-                                color={newComment.trim() ? "#FFFFFF" : "rgba(255,255,255,0.5)"}
-                            />
+                            {submittingComment ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Ionicons
+                                    name="send"
+                                    size={20}
+                                    color={newComment.trim() ? "#FFFFFF" : "rgba(255,255,255,0.5)"}
+                                />
+                            )}
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
@@ -1265,7 +1309,7 @@ export default function PostDetail() {
                                     <TouchableOpacity
                                         style={[styles.friendItem, { borderBottomColor: activeTheme.border }]}
                                         onPress={() => handleShare(item.id)}
-                                        disabled={sharing}
+                                        disabled={sharingId !== null}
                                     >
                                         {item.profileCode ? (
                                             <Avatar seed={item.profileCode} size={40} />
@@ -1275,7 +1319,11 @@ export default function PostDetail() {
                                             </View>
                                         )}
                                         <Text style={[styles.friendName, { color: activeTheme.text }]}>{item.name}</Text>
-                                        <Ionicons name="share-outline" size={20} color="#9F8BFF" />
+                                        {sharingId === item.id ? (
+                                            <ActivityIndicator size="small" color="#9F8BFF" />
+                                        ) : (
+                                            <Ionicons name="share-outline" size={20} color="#9F8BFF" />
+                                        )}
                                     </TouchableOpacity>
                                 )}
                             />

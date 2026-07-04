@@ -7,7 +7,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
 
@@ -45,24 +45,36 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeSnapshot = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
       if (user) {
-        // Fetch additional user data from Firestore
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUser({ ...user, ...userDoc.data() });
-        } else {
-          // If user exists in Auth but not in Firestore (e.g. DB deleted), create it
-          await createUserDocument(user);
-          setUser(user);
-        }
+        // Fetch additional user data from Firestore and listen to updates
+        unsubscribeSnapshot = onSnapshot(doc(db, "users", user.uid), async (userDoc) => {
+          if (userDoc.exists()) {
+            setUser({ ...user, ...userDoc.data() });
+          } else {
+            // If user exists in Auth but not in Firestore (e.g. DB deleted), create it
+            await createUserDocument(user);
+            setUser(user);
+          }
+          setLoading(false);
+        });
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
   }, []);
 
   // Create user document in Firestore

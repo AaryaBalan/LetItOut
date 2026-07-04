@@ -13,6 +13,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MoodSelector, { MOOD_OPTIONS } from "../../components/MoodSelector";
@@ -256,9 +257,7 @@ export default function LogMood() {
             onPress={handleSave}
           >
             {saving ? (
-              <Text style={[styles.saveBtnText, { color: theme.background }]}>
-                Saving...
-              </Text>
+              <ActivityIndicator size="small" color={theme.background} />
             ) : (
               <Text
                 style={[

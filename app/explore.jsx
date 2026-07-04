@@ -175,10 +175,6 @@ export default function Explore() {
                             {/* Discovery - Communities */}
                             <View style={[styles.sectionHeader, { backgroundColor: theme.surface, marginTop: 8 }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>EXPLORE COMMUNITIES</Text>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>View all</Text>
-                                    <Ionicons name="chevron-forward" size={12} color="#8B5CF6" style={{ marginLeft: 2 }} />
-                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -230,9 +226,6 @@ export default function Explore() {
                             {/* Top 10 Stories */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP 10 TODAY</Text>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>See all</Text>
-                                </TouchableOpacity>
                             </View>
 
                             <ScrollView
@@ -325,9 +318,6 @@ export default function Explore() {
                             {/* Posts That Need Your Help */}
                             <View style={[styles.sectionHeader, { marginTop: 32, backgroundColor: theme.surface }]}>
                                 <Text style={[styles.sectionTitle, { color: theme.text }]}>POSTS THAT NEED YOUR HELP</Text>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.viewAllText, { color: '#8B5CF6' }]}>See all</Text>
-                                </TouchableOpacity>
                             </View>
 
                             <ScrollView

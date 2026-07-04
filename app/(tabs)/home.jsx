@@ -14,7 +14,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Avatar from "../../components/Avatar";
@@ -62,6 +63,7 @@ export default function Home() {
   const { showTabBar, hideTabBar } = useTabBar();
   const insets = useSafeAreaInsets();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const drawerSlideAnim = useRef(new Animated.Value(-400)).current;
   const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -704,13 +706,25 @@ export default function Home() {
                 <View style={[styles.drawerFooter, { borderTopColor: theme.divider }]}>
                   <TouchableOpacity
                     style={styles.logoutButton}
+                    disabled={loggingOut}
                     onPress={async () => {
-                      closeDrawer();
-                      await logout();
+                      setLoggingOut(true);
+                      try {
+                          await logout();
+                      } finally {
+                          setLoggingOut(false);
+                          closeDrawer();
+                      }
                     }}
                   >
-                    <Ionicons name="log-out-outline" size={22} color="#E57373" />
-                    <Text style={styles.logoutText}>Logout</Text>
+                    {loggingOut ? (
+                      <ActivityIndicator size="small" color="#E57373" />
+                    ) : (
+                      <>
+                        <Ionicons name="log-out-outline" size={22} color="#E57373" />
+                        <Text style={styles.logoutText}>Logout</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}

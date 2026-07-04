@@ -56,6 +56,8 @@ export default function Profile() {
   const [loadingSaved, setLoadingSaved] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [profileCode, setProfileCode] = useState(
     user?.profileCode || user?.email || "",
   );
@@ -149,12 +151,13 @@ export default function Profile() {
 
   const handleAvatarSelect = async (newSeed) => {
     try {
+      setUpdatingAvatar(true);
       // Update profileCode in Firestore (creates document if it doesn't exist)
       const userRef = doc(db, "users", user.uid);
       await setDoc(userRef, {
         profileCode: newSeed,
         email: user.email,
-        displayName: user.displayName || "Anonymous",
+        displayName: userProfile?.displayName || user.displayName || "Anonymous",
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
@@ -163,6 +166,8 @@ export default function Profile() {
     } catch (error) {
       console.error("Error updating avatar:", error);
       showAlert("Error", "Failed to update profile image");
+    } finally {
+      setUpdatingAvatar(false);
     }
   };
 
@@ -513,11 +518,16 @@ export default function Profile() {
         text: "Logout",
         style: "destructive",
         onPress: async () => {
-          const result = await logout();
-          if (result.success) {
-            router.replace("/");
-          } else {
-            showAlert("Error", "Failed to logout");
+          setLoggingOut(true);
+          try {
+            const result = await logout();
+            if (result.success) {
+              router.replace("/");
+            } else {
+              showAlert("Error", "Failed to logout");
+            }
+          } finally {
+            setLoggingOut(false);
           }
         }
       },
@@ -636,7 +646,13 @@ export default function Profile() {
             {/* Horizontal Profile Header */}
             <View style={styles.profileHeader}>
               <View style={styles.avatarContainer}>
-                <Avatar seed={profileCode} size={80} />
+                {updatingAvatar ? (
+                    <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: theme.surface, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#8B5CF6" />
+                    </View>
+                ) : (
+                    <Avatar seed={profileCode} size={80} />
+                )}
                 <TouchableOpacity
                   style={[styles.editAvatarButton, { backgroundColor: "#8B5CF6", borderColor: theme.surface }]}
                   onPress={() => setShowAvatarModal(true)}
@@ -647,7 +663,7 @@ export default function Profile() {
 
               <View style={styles.profileInfo}>
                 <Text style={[styles.username, { color: theme.text }]}>
-                  {user.displayName || "Anonymous User"}
+                  {userProfile?.displayName || user.displayName || "Anonymous User"}
                 </Text>
                 <Text style={[styles.joinDate, { color: "#A78BFA" }]}>Joined {joinDate}</Text>
               </View>
@@ -684,7 +700,7 @@ export default function Profile() {
               )}
               <View style={[styles.infoItem, styles.dashedBorderBottom]}>
                 <Ionicons name="person-outline" size={18} color="#6B7280" />
-                <Text style={[styles.infoText, { color: theme.text }]}>{user.displayName || "Anonymous"}</Text>
+                <Text style={[styles.infoText, { color: theme.text }]}>{userProfile?.displayName || user.displayName || "Anonymous"}</Text>
               </View>
               <View style={styles.infoItem}>
                 <Ionicons name="calendar-outline" size={18} color="#6B7280" />
@@ -820,9 +836,16 @@ export default function Profile() {
             <TouchableOpacity
               style={styles.logoutButton}
               onPress={handleLogout}
+              disabled={loggingOut}
             >
-              <Ionicons name="log-out-outline" size={20} color="#111827" />
-              <Text style={styles.logoutButtonText}>Logout</Text>
+              {loggingOut ? (
+                <ActivityIndicator size="small" color="#111827" />
+              ) : (
+                <>
+                  <Ionicons name="log-out-outline" size={20} color="#111827" />
+                  <Text style={styles.logoutButtonText}>Logout</Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -861,7 +884,7 @@ export default function Profile() {
                   const postData = {
                     ...post,
                     timestamp: getTimeAgo(post.createdAt),
-                    authorName: user?.displayName || userProfile?.displayName || "Anonymous",
+                    authorName: userProfile?.displayName || user?.displayName || "Anonymous",
                     authorId: user?.uid || null,
                     isAnonymous: post.isAnonymous || false
                   };

@@ -11,7 +11,8 @@ import {
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  View
+  View,
+  ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
@@ -34,6 +35,7 @@ export default function MyCenter() {
   const [activeTab, setActiveTab] = useState("posts"); // "posts" or "insights"
   const [selectedPost, setSelectedPost] = useState(null); // Selected post for comments detail view
   const [ratingFeedback, setRatingFeedback] = useState({}); // Track saved status: { [commentId]: 'Saved!' }
+  const [savingRatingId, setSavingRatingId] = useState(null);
   const [expandedCommentId, setExpandedCommentId] = useState(null);
   const [commentSort, setCommentSort] = useState("impactful"); // "impactful" or "recent"
 
@@ -154,6 +156,7 @@ export default function MyCenter() {
 
   const handleRatingChange = async (post, comment, val) => {
     try {
+      setSavingRatingId(comment.id);
       const initial = post.feelPercentage ?? 0;
       const prevRating = comment.perspectiveRating !== undefined ? comment.perspectiveRating : initial;
       const delta = val - prevRating;
@@ -187,6 +190,8 @@ export default function MyCenter() {
     } catch (error) {
       console.error("Error saving perspective rating:", error);
       showAlert("Error", "Failed to save rating.");
+    } finally {
+      setSavingRatingId(null);
     }
   };
 
@@ -447,9 +452,7 @@ export default function MyCenter() {
             </Text>
           )}
         </View>
-        <TouchableOpacity style={[styles.settingsButton, { backgroundColor: theme.card }]}>
-          <Ionicons name="settings-outline" size={20} color={theme.text} />
-        </TouchableOpacity>
+        <View style={{ width: 44 }} />
       </View>
 
       {!selectedPost && (
@@ -664,6 +667,7 @@ export default function MyCenter() {
                           maximumValue={100}
                           step={5}
                           value={currentVal}
+                          disabled={savingRatingId === comment.id}
                           onSlidingComplete={(val) => handleRatingChange(selectedPost, comment, val)}
                           minimumTrackTintColor="#8B5CF6"
                           maximumTrackTintColor="#FBBF24"
