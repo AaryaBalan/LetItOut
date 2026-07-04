@@ -62,6 +62,50 @@ export default function Home() {
   const { showTabBar, hideTabBar } = useTabBar();
   const insets = useSafeAreaInsets();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const drawerSlideAnim = useRef(new Animated.Value(-400)).current;
+  const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
+
+  const openDrawer = useCallback(() => {
+    setIsDrawerOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      drawerSlideAnim.setValue(-400);
+      backdropOpacityAnim.setValue(0);
+      Animated.parallel([
+        Animated.timing(backdropOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(drawerSlideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [isDrawerOpen, drawerSlideAnim, backdropOpacityAnim]);
+
+  const closeDrawer = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(backdropOpacityAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(drawerSlideAnim, {
+        toValue: -400,
+        duration: 250,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      setIsDrawerOpen(false);
+    });
+  }, [drawerSlideAnim, backdropOpacityAnim]);
   const [selectedCategory, setSelectedCategory] = useState("All Feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [firebasePosts, setFirebasePosts] = useState([]);
@@ -337,7 +381,7 @@ export default function Home() {
                 <View style={styles.headerLeft}>
                   <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: theme.input }]}
-                    onPress={() => setIsDrawerOpen(true)}
+                    onPress={openDrawer}
                     delayPressIn={0}
                   >
                     <Ionicons name="menu-outline" size={24} color={theme.text} />
@@ -352,11 +396,11 @@ export default function Home() {
                 <View style={styles.headerRight}>
                   <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: theme.input }]}
-                    onPress={() => setIsSearchExpanded(true)}
+                    onPress={() => router.push('/notifications')}
                     delayPressIn={0}
                   >
                     <Ionicons
-                      name="search-outline"
+                      name="heart-outline"
                       size={22}
                       color={theme.text}
                     />
@@ -406,6 +450,24 @@ export default function Home() {
                   </TouchableOpacity>
                 )}
 
+              {/* Search Button in front of labels */}
+              <TouchableOpacity
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: theme.input,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: 8,
+                  marginLeft: (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly) ? 0 : 16
+                }}
+                onPress={() => setIsSearchExpanded(true)}
+                delayPressIn={0}
+              >
+                <Ionicons name="search-outline" size={18} color={theme.text} />
+              </TouchableOpacity>
+
               {categories.map((category) => {
                 const catTheme = getCategoryTheme(category, theme.isDark);
                 const isActive = selectedCategory === category;
@@ -417,7 +479,6 @@ export default function Home() {
                     style={[
                       styles.categoryChip,
                       { backgroundColor: theme.card, borderColor: 'transparent', borderWidth: 0, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-                      isFirst && !hasActiveFilters && { marginLeft: 16 },
                       isActive && {
                         backgroundColor: catTheme.bgColor,
                         elevation: 0 },
@@ -547,15 +608,17 @@ export default function Home() {
           animationType="none"
           transparent={true}
           visible={isDrawerOpen}
-          onRequestClose={() => setIsDrawerOpen(false)}
+          onRequestClose={closeDrawer}
         >
           <View style={styles.drawerOverlay}>
-            <TouchableOpacity
-              style={styles.drawerBackdrop}
-              activeOpacity={1}
-              onPress={() => setIsDrawerOpen(false)}
-            />
-            <View style={[styles.drawerContent, { backgroundColor: theme.surface }]}>
+            <Animated.View style={[styles.drawerBackdrop, { opacity: backdropOpacityAnim }]}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                activeOpacity={1}
+                onPress={closeDrawer}
+              />
+            </Animated.View>
+            <Animated.View style={[styles.drawerContent, { backgroundColor: theme.surface, transform: [{ translateX: drawerSlideAnim }] }]}>
               {/* Drawer Header */}
               <View style={[styles.drawerHeader, { borderBottomColor: theme.divider }]}>
                 {user ? (
@@ -585,7 +648,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
+                    closeDrawer();
                   }}
                 >
                   <Ionicons name="home-outline" size={22} color={theme.text} />
@@ -595,18 +658,18 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
+                    closeDrawer();
                     router.push("/my-center");
                   }}
                 >
-                  <Ionicons name="heart-half-outline" size={22} color="#111827" />
+                  <Ionicons name="heart-half-outline" size={22} color={theme.text} />
                   <Text style={[styles.drawerItemText, { color: theme.text }]}>My Center</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
+                    closeDrawer();
                     router.push("/explore");
                   }}
                 >
@@ -617,8 +680,8 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.drawerItem}
                   onPress={() => {
-                    setIsDrawerOpen(false);
-                    router.push("/(tabs)/notifications");
+                    closeDrawer();
+                    router.push("/notifications");
                   }}
                 >
                   <Ionicons name="notifications-outline" size={22} color={theme.text} />
@@ -642,7 +705,7 @@ export default function Home() {
                   <TouchableOpacity
                     style={styles.logoutButton}
                     onPress={async () => {
-                      setIsDrawerOpen(false);
+                      closeDrawer();
                       await logout();
                     }}
                   >
@@ -651,7 +714,7 @@ export default function Home() {
                   </TouchableOpacity>
                 </View>
               )}
-            </View>
+            </Animated.View>
           </View>
         </Modal>
       </View>
