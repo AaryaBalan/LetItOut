@@ -262,7 +262,7 @@ export default function PostCard({ post, hideDescription = false }) {
                     </View>
 
                     {/* Content Section */}
-                    <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
+                    <Text style={[styles.title, { color: getCategoryColors(post.category, theme.isDark).text }]}>{post.title}</Text>
 
                     {!hideDescription && (
                         <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={4}>

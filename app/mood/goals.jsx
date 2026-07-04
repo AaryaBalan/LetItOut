@@ -1,6 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, query, where, onSnapshot, updateDoc, doc, addDoc } from "firebase/firestore";
+import { db } from "../../config/firebase";
+import { useAuth } from "../../context/AuthContext";
 import {
   ScrollView,
   StatusBar,
@@ -14,59 +17,71 @@ import { useTheme } from "../../context/ThemeContext";
 
 const TABS = ["All Goals", "In Progress", "Completed"];
 
-const MOCK_GOALS = [
-  {
-    id: "1",
-    title: "Journal 5 days this week",
-    progress: 4,
-    total: 5,
-    unit: "days",
-    status: "in_progress",
-    icon: "book-outline",
-    color: "#8B7CFF"
-  },
-  {
-    id: "2",
-    title: "Keep mood above 0",
-    progress: 4,
-    total: 7,
-    unit: "days",
-    status: "in_progress",
-    icon: "happy-outline",
-    color: "#66BB6A"
-  },
-  {
-    id: "3",
-    title: "Help 3 people this week",
-    progress: 2,
-    total: 3,
-    unit: "people",
-    status: "in_progress",
-    icon: "people-outline",
-    color: "#FFC857"
-  },
-  {
-    id: "4",
-    title: "7 day mood streak",
-    completedDate: "18 May 2026",
-    status: "completed",
-    icon: "flame-outline",
-    color: "#FF6B6B"
-  },
-  {
-    id: "5",
-    title: "Exercise 3 times",
-    completedDate: "16 May 2026",
-    status: "completed",
-    icon: "barbell-outline",
-    color: "#8B7CFF"
-  }
-];
+
 
 export default function GoalsScreen() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("All Goals");
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "moodGoals"), where("userId", "==", user.uid));
+    const unsub = onSnapshot(q, (snap) => {
+      const dbGoals = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Sort in_progress first, then completed
+      dbGoals.sort((a, b) => {
+        if (a.status === b.status) return 0;
+        return a.status === "in_progress" ? -1 : 1;
+      });
+      setGoals(dbGoals);
+      setLoading(false);
+    });
+    return unsub;
+  }, [user]);
+
+  const handleIncrement = async (goal) => {
+    if (goal.status === "completed") return;
+    const newProgress = goal.progress + 1;
+    const isCompleted = newProgress >= goal.total;
+    
+    try {
+      await updateDoc(doc(db, "moodGoals", goal.id), {
+        progress: newProgress,
+        status: isCompleted ? "completed" : "in_progress",
+        completedDate: isCompleted ? new Date().toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }) : null
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const generateMockGoals = async () => {
+    if (!user) return;
+    setLoading(true);
+    const sampleGoals = [
+      { title: "Journal 5 days this week", progress: 2, total: 5, unit: "days", status: "in_progress", icon: "book-outline", color: "#8B7CFF" },
+      { title: "Keep mood above 0", progress: 4, total: 7, unit: "days", status: "in_progress", icon: "happy-outline", color: "#66BB6A" },
+      { title: "Help 3 people this week", progress: 1, total: 3, unit: "people", status: "in_progress", icon: "people-outline", color: "#FFC857" },
+      { title: "Drink 8 glasses of water", progress: 5, total: 8, unit: "glasses", status: "in_progress", icon: "water-outline", color: "#4ECDC4" },
+      { title: "7 day mood streak", progress: 7, total: 7, unit: "days", status: "completed", completedDate: "18 May 2026", icon: "flame-outline", color: "#FF6B6B" },
+      { title: "Exercise 3 times", progress: 3, total: 3, unit: "times", status: "completed", completedDate: "16 May 2026", icon: "barbell-outline", color: "#8B7CFF" }
+    ];
+
+    try {
+      const promises = sampleGoals.map(g => addDoc(collection(db, "moodGoals"), { ...g, userId: user.uid, createdAt: new Date().toISOString() }));
+      await Promise.all(promises);
+      alert("Added realistic mock goals! Tap them to increase progress.");
+    } catch (err) {
+      console.error(err);
+      alert("Error adding goals.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderGoal = (goal) => {
     if (goal.status === "completed") {
@@ -89,7 +104,12 @@ export default function GoalsScreen() {
     const progressPct = Math.round((goal.progress / goal.total) * 100);
 
     return (
-      <View key={goal.id} style={[styles.goalCard, { backgroundColor: theme.isDark ? "#1A1A1A" : "#FFFFFF", borderColor: theme.border, borderWidth: 1 }]}>
+      <TouchableOpacity 
+        key={goal.id} 
+        style={[styles.goalCard, { backgroundColor: theme.isDark ? "#1A1A1A" : "#FFFFFF", borderColor: theme.border, borderWidth: 1 }]}
+        activeOpacity={0.7}
+        onPress={() => handleIncrement(goal)}
+      >
         <View style={styles.goalHeader}>
           <View style={[styles.iconBox, { backgroundColor: goal.color + "1A" }]}>
             <Ionicons name={goal.icon} size={24} color={goal.color} />
@@ -98,8 +118,8 @@ export default function GoalsScreen() {
             <Text style={[styles.goalTitle, { color: theme.text }]}>{goal.title}</Text>
             <Text style={[styles.goalSub, { color: theme.textSecondary }]}>{goal.progress} / {goal.total} {goal.unit}</Text>
           </View>
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-vertical" size={20} color={theme.textSecondary} />
+          <TouchableOpacity onPress={() => handleIncrement(goal)}>
+            <Ionicons name="add-circle" size={28} color={goal.color} />
           </TouchableOpacity>
         </View>
         <View style={styles.progressRow}>
@@ -108,7 +128,7 @@ export default function GoalsScreen() {
           </View>
           <Text style={[styles.progressText, { color: theme.textSecondary }]}>{progressPct}%</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -156,14 +176,22 @@ export default function GoalsScreen() {
         {activeTab !== "Completed" && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>In Progress</Text>
-            {MOCK_GOALS.filter(g => g.status === "in_progress").map(renderGoal)}
+            {goals.filter(g => g.status === "in_progress").length === 0 ? (
+              <Text style={{ color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>No goals in progress.</Text>
+            ) : (
+              goals.filter(g => g.status === "in_progress").map(renderGoal)
+            )}
           </View>
         )}
 
         {activeTab !== "In Progress" && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Completed</Text>
-            {MOCK_GOALS.filter(g => g.status === "completed").map(renderGoal)}
+            {goals.filter(g => g.status === "completed").length === 0 ? (
+              <Text style={{ color: theme.textSecondary, fontFamily: "Fredoka-Regular" }}>No completed goals yet.</Text>
+            ) : (
+              goals.filter(g => g.status === "completed").map(renderGoal)
+            )}
           </View>
         )}
 
@@ -172,20 +200,29 @@ export default function GoalsScreen() {
           <Text style={[styles.summaryTitle, { color: "#1A1A1A" }]}>Your Progress</Text>
           <View style={styles.summaryStats}>
             <View style={styles.statCol}>
-              <Text style={[styles.statNum, { color: "#1A1A1A" }]}>3</Text>
+              <Text style={[styles.statNum, { color: "#1A1A1A" }]}>{goals.filter(g => g.status === "in_progress").length}</Text>
               <Text style={[styles.statLabel, { color: "#666" }]}>In Progress</Text>
             </View>
             <View style={styles.statCol}>
-              <Text style={[styles.statNum, { color: "#1A1A1A" }]}>2</Text>
+              <Text style={[styles.statNum, { color: "#1A1A1A" }]}>{goals.filter(g => g.status === "completed").length}</Text>
               <Text style={[styles.statLabel, { color: "#666" }]}>Completed</Text>
             </View>
             <View style={styles.statCol}>
-              <Text style={[styles.statNum, { color: "#1A1A1A" }]}>5</Text>
+              <Text style={[styles.statNum, { color: "#1A1A1A" }]}>{goals.length}</Text>
               <Text style={[styles.statLabel, { color: "#666" }]}>Total Goals</Text>
             </View>
             <MaterialCommunityIcons name="flower" size={40} color="#8B7CFF" style={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.8 }} />
           </View>
         </View>
+
+        {goals.length === 0 && !loading && (
+          <TouchableOpacity 
+            style={{ backgroundColor: "#8B7CFF", padding: 16, borderRadius: 16, marginTop: 20, alignItems: "center" }}
+            onPress={generateMockGoals}
+          >
+            <Text style={{ color: "#FFF", fontFamily: "Fredoka-Bold", fontSize: 16 }}>🛠️ Generate Mock Goals</Text>
+          </TouchableOpacity>
+        )}
 
         <View style={{ height: 60 }} />
       </ScrollView>
