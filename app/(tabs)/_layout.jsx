@@ -73,7 +73,7 @@ function TabsLayoutInner() {
                     title: "Feed",
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
-                            name={focused ? "home" : "home-outline"}
+                            name={focused ? "ghost" : "ghost-outline"}
                             size={27}
                             color={color}
                         />
