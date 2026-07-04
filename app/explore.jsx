@@ -129,25 +129,24 @@ export default function Explore() {
                             {/* Top Row */}
                             <View style={styles.headerTop}>
                                 <View style={styles.headerLeft}>
+                                    <TouchableOpacity 
+                                        style={{ marginRight: 12 }}
+                                        onPress={() => router.back()}
+                                    >
+                                        <Ionicons name="arrow-back" size={24} color={theme.text} />
+                                    </TouchableOpacity>
                                     <View>
                                         <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
                                         <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Discover & Connect</Text>
                                     </View>
                                 </View>
                                 <View style={styles.headerRight}>
-                                    <TouchableOpacity
-                                        style={[styles.iconButton, { backgroundColor: theme.isDark ? '#2A2A2A' : '#F8F5FF' }]}
-                                        onPress={() => router.push('/(tabs)/notifications')}
-                                    >
-                                        <Ionicons name="notifications-outline" size={20} color={theme.isDark ? '#B39DDB' : '#8B5CF6'} />
-                                        <View style={[styles.badge, { backgroundColor: '#8B5CF6', top: 8, right: 8, width: 6, height: 6, borderRadius: 3, borderWidth: 0 }]} />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
 
                             {/* Enhanced Search Bar */}
                             <View style={styles.searchContainer}>
-                                <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F8F9FA', borderColor: theme.border, borderWidth: 0 }]}>
+                                <View style={[styles.searchBar, { backgroundColor: theme.isDark ? '#1A1A1A' : '#F3F4F6', borderColor: theme.border, borderWidth: 0 }]}>
                                     <Ionicons name="search" size={20} color={theme.textSecondary} />
                                     <TextInput
                                         style={[styles.searchInput, { color: theme.text }]}
