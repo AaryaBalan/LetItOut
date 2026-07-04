@@ -18,11 +18,11 @@ import Avatar from "./Avatar";
 const getCategoryColors = (category, isDark) => {
     const normalized = category === "Anxiety" ? "Stress" : (category === "Mindfulness" ? "Mental Health" : category);
     const colors = {
-        "Family": { bg: isDark ? "#1A2A3A" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#2F80ED" },
-        "Stress": { bg: isDark ? "#3A1A1A" : "#FCEEEE", text: isDark ? "#F28B82" : "#EB5757" },
-        "Relationship": { bg: isDark ? "#3A3A1A" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F2C94C" },
-        "Study": { bg: isDark ? "#1A3A2A" : "#E9F7EF", text: isDark ? "#81C995" : "#27AE60" },
-        "Mental Health": { bg: isDark ? "#1A1A3A" : "#EEF2FF", text: isDark ? "#FDD663" : "#6366F1" },
+        "Family": { bg: isDark ? "#1A2A3A" : "#EBF3FE", text: isDark ? "#8AB4F8" : "#3B82F6" },
+        "Stress": { bg: isDark ? "#3A1A1A" : "#FCEEEE", text: isDark ? "#F28B82" : "#EF4444" },
+        "Relationship": { bg: isDark ? "#3A3A1A" : "#FEF9E6", text: isDark ? "#F8BBD0" : "#F59E0B" },
+        "Study": { bg: isDark ? "#1A3A2A" : "#E9F7EF", text: isDark ? "#81C995" : "#10B981" },
+        "Mental Health": { bg: isDark ? "#1A1A3A" : "#EEF2FF", text: isDark ? "#FDD663" : "#8B5CF6" },
         "Other": { bg: isDark ? "#2A2A2A" : "#F1F3F4", text: isDark ? "#E8EAED" : "#3C4043" } };
     return colors[normalized] || colors["Other"];
 };
@@ -293,17 +293,17 @@ export default function PostCard({ post, hideDescription = false }) {
                     <View style={styles.footer}>
                         <View style={styles.reactions}>
                             <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                <Ionicons name="heart" size={16} color="#EB5757" />
+                                <Ionicons name="heart" size={16} color="#EF4444" />
                                 <Text style={[styles.reactionCount, { color: theme.text }]}>{likeCount}</Text>
                             </View>
 
                             <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                <Ionicons name="hand-left" size={16} color="#F2C94C" />
+                                <Ionicons name="hand-left" size={16} color="#F59E0B" />
                                 <Text style={[styles.reactionCount, { color: theme.text }]}>{hugCount}</Text>
                             </View>
 
                             <View style={[styles.reactionPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                                <Ionicons name="happy" size={16} color="#27AE60" />
+                                <Ionicons name="happy" size={16} color="#10B981" />
                                 <Text style={[styles.reactionCount, { color: theme.text }]}>{meTooCount}</Text>
                             </View>
 

@@ -296,15 +296,15 @@ export default function MyCenter() {
               {
                 left: delta >= 0 ? initialPct : currentPct,
                 width: `${Math.abs(delta) / 2}%`,
-                backgroundColor: isImprovement ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757')
+                backgroundColor: isImprovement ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444')
               }
             ]} />
             <View style={[styles.miniMoodPoint, { left: initialPct, backgroundColor: '#8B5CF6', zIndex: 1 }]} />
-            <View style={[styles.miniMoodPoint, { left: currentPct, backgroundColor: isImprovement ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'), zIndex: 2 }]} />
+            <View style={[styles.miniMoodPoint, { left: currentPct, backgroundColor: isImprovement ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'), zIndex: 2 }]} />
           </View>
           <View style={styles.miniTrackLabels}>
             <Text style={[styles.miniTrackText, { color: '#6B7280' }]}>INITIAL: <Text style={{ color: '#6B7280' }}>{initial}</Text></Text>
-            <Text style={[styles.miniTrackText, { color: isImprovement ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757') }]}>
+            <Text style={[styles.miniTrackText, { color: isImprovement ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444') }]}>
               CURRENT: <Text style={{ fontFamily: 'Fredoka-Bold' }}>{current} ({delta >= 0 ? `+${delta}` : delta})</Text>
             </Text>
           </View>
@@ -336,7 +336,7 @@ export default function MyCenter() {
             {
               left: 0,
               width: `${Math.max(initialPct, currentPct)}%`,
-              backgroundColor: isImprovement ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'),
+              backgroundColor: isImprovement ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'),
               height: '100%',
               borderRadius: 3
             }
@@ -345,8 +345,8 @@ export default function MyCenter() {
         </View>
 
         <View style={[styles.moodTrackInfoRow, { marginTop: 4 }]}>
-          <Ionicons name={isImprovement ? "trending-up" : "trending-down"} size={16} color={isImprovement ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757')} />
-          <Text style={[styles.moodShiftText, { color: isImprovement ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'), fontSize: 12, fontFamily: 'Fredoka-Bold' }]}>
+          <Ionicons name={isImprovement ? "trending-up" : "trending-down"} size={16} color={isImprovement ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444')} />
+          <Text style={[styles.moodShiftText, { color: isImprovement ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'), fontSize: 12, fontFamily: 'Fredoka-Bold' }]}>
             {delta === 0 ? "No shift in perspective yet" : `Perspective shifted by ${delta > 0 ? '+' : ''}${delta} points`}
           </Text>
         </View>
@@ -403,19 +403,19 @@ export default function MyCenter() {
     if (mood > 50) {
       return (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="happy-outline" size={26} color={theme.isDark ? '#81C995' : '#27AE60'} />
-          <Ionicons name="sparkles-outline" size={14} color={theme.isDark ? '#81C995' : '#27AE60'} style={{ position: 'absolute', top: -6, right: -8 }} />
+          <Ionicons name="happy-outline" size={26} color={theme.isDark ? '#81C995' : '#10B981'} />
+          <Ionicons name="sparkles-outline" size={14} color={theme.isDark ? '#81C995' : '#10B981'} style={{ position: 'absolute', top: -6, right: -8 }} />
         </View>
       );
     } else if (mood > 0) {
-      return <Ionicons name="happy-outline" size={26} color={theme.isDark ? '#81C995' : '#27AE60'} />;
+      return <Ionicons name="happy-outline" size={26} color={theme.isDark ? '#81C995' : '#10B981'} />;
     } else if (mood > -50) {
-      return <Ionicons name="sad-outline" size={26} color={theme.isDark ? '#F28B82' : '#EB5757'} />;
+      return <Ionicons name="sad-outline" size={26} color={theme.isDark ? '#F28B82' : '#EF4444'} />;
     } else {
       return (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="sad-outline" size={26} color={theme.isDark ? '#F28B82' : '#EB5757'} />
-          <Ionicons name="water-outline" size={14} color={theme.isDark ? '#F28B82' : '#EB5757'} style={{ position: 'absolute', top: 12, right: -6 }} />
+          <Ionicons name="sad-outline" size={26} color={theme.isDark ? '#F28B82' : '#EF4444'} />
+          <Ionicons name="water-outline" size={14} color={theme.isDark ? '#F28B82' : '#EF4444'} style={{ position: 'absolute', top: 12, right: -6 }} />
         </View>
       );
     }
@@ -589,7 +589,7 @@ export default function MyCenter() {
                       marginBottom: 8,
                       shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
                       borderLeftWidth: 3,
-                      borderLeftColor: currentVal > baselineVal ? (theme.isDark ? '#81C995' : '#27AE60') : currentVal < baselineVal ? (theme.isDark ? '#F28B82' : '#EB5757') : '#8B5CF6'
+                      borderLeftColor: currentVal > baselineVal ? (theme.isDark ? '#81C995' : '#10B981') : currentVal < baselineVal ? (theme.isDark ? '#F28B82' : '#EF4444') : '#8B5CF6'
                     }
                   ]}
                 >
@@ -680,7 +680,7 @@ export default function MyCenter() {
                         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, width: '100%' }}>
                           <Ionicons name="bulb-outline" size={16} color="#8B5CF6" style={{ marginRight: 8 }} />
                           <Text style={{ fontSize: 12, color: theme.isDark ? '#D1D5DB' : '#4B5563', flex: 1 }}>
-                            This comment helped shift your perspective <Text style={{ color: currentVal > baselineVal ? (theme.isDark ? '#81C995' : '#27AE60') : currentVal < baselineVal ? (theme.isDark ? '#F28B82' : '#EB5757') : '#8B5CF6', fontFamily: 'Fredoka-Bold' }}>{currentVal > baselineVal ? 'positively' : currentVal < baselineVal ? 'negatively' : 'neutrally'}</Text>.
+                            This comment helped shift your perspective <Text style={{ color: currentVal > baselineVal ? (theme.isDark ? '#81C995' : '#10B981') : currentVal < baselineVal ? (theme.isDark ? '#F28B82' : '#EF4444') : '#8B5CF6', fontFamily: 'Fredoka-Bold' }}>{currentVal > baselineVal ? 'positively' : currentVal < baselineVal ? 'negatively' : 'neutrally'}</Text>.
                           </Text>
                         </View>
                       </View>
@@ -744,7 +744,7 @@ export default function MyCenter() {
                   onPress={() => setSelectedPost(post)}
                   activeOpacity={0.9}
                 >
-                  <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757') }]} />
+                  <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444') }]} />
                   {renderBackgroundBlob(current)}
 
                   <View style={styles.postCardContent}>
@@ -753,7 +753,7 @@ export default function MyCenter() {
                       <View style={{ flex: 1, marginLeft: 14 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
                           <View style={{ flex: 1, marginRight: 40 }}>
-                            <Text style={[styles.postTitle, { color: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'), fontFamily: 'Frederick' }]} numberOfLines={2}>
+                            <Text style={[styles.postTitle, { color: current >= 0 ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'), fontFamily: 'Frederick' }]} numberOfLines={2}>
                               {post.title}
                             </Text>
                           </View>
@@ -786,7 +786,7 @@ export default function MyCenter() {
                     {/* MINI MOOD SHIFT TRACK */}
                     <View style={{ marginTop: 4 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <Text style={{ fontSize: 12, color: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'), fontFamily: 'Frederick', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        <Text style={{ fontSize: 12, color: current >= 0 ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'), fontFamily: 'Frederick', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Perspective Shift
                         </Text>
                         {renderMoodIcon(current)}
@@ -892,7 +892,7 @@ export default function MyCenter() {
 
               return (
                 <View key={post.id} style={[styles.postCard, { backgroundColor: theme.card }]}>
-                  <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757') }]} />
+                  <View style={[styles.cardLeftStrip, { backgroundColor: current >= 0 ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444') }]} />
                   {renderBackgroundBlob(current)}
 
                   <View style={styles.postCardContent}>
@@ -901,7 +901,7 @@ export default function MyCenter() {
                       <View style={{ flex: 1, marginLeft: 14 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
                           <View style={{ flex: 1, marginRight: 40 }}>
-                            <Text style={[styles.postTitle, { color: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'), fontFamily: 'Frederick' }]} numberOfLines={2}>
+                            <Text style={[styles.postTitle, { color: current >= 0 ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'), fontFamily: 'Frederick' }]} numberOfLines={2}>
                               {post.title}
                             </Text>
                           </View>
@@ -927,7 +927,7 @@ export default function MyCenter() {
 
                     <View style={{ marginTop: 12 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <Text style={{ fontSize: 12, color: current >= 0 ? (theme.isDark ? '#81C995' : '#27AE60') : (theme.isDark ? '#F28B82' : '#EB5757'), fontFamily: 'Frederick', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        <Text style={{ fontSize: 12, color: current >= 0 ? (theme.isDark ? '#81C995' : '#10B981') : (theme.isDark ? '#F28B82' : '#EF4444'), fontFamily: 'Frederick', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Perspective Shift
                         </Text>
                         {renderMoodIcon(current)}
@@ -1128,7 +1128,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontFamily: 'Fredoka-Regular' },
   savedBadge: {
-    backgroundColor: "#27AE60",
+    backgroundColor: "#10B981",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10 },

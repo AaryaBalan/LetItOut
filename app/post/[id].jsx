@@ -52,11 +52,11 @@ import {
 const getCategoryColors = (category, isDark) => {
     switch (category) {
         case "Study Support":
-        case "Study": return { color: isDark ? "#81C995" : "#27AE60", bg: isDark ? "#1E2A22" : "#E9F7EF" };
-        case "Mental Health": return { color: isDark ? "#FDD663" : "#6366F1", bg: isDark ? "#282A3A" : "#EEF2FF" };
-        case "Stress": return { color: isDark ? "#F28B82" : "#EB5757", bg: isDark ? "#2A1E1E" : "#FCEEEE" };
-        case "Relationship": return { color: isDark ? "#F8BBD0" : "#F2C94C", bg: isDark ? "#2A271E" : "#FEF9E6" };
-        case "Family": return { color: isDark ? "#8AB4F8" : "#2F80ED", bg: isDark ? "#1E2430" : "#EBF3FE" };
+        case "Study": return { color: isDark ? "#81C995" : "#10B981", bg: isDark ? "#1E2A22" : "#E9F7EF" };
+        case "Mental Health": return { color: isDark ? "#FDD663" : "#8B5CF6", bg: isDark ? "#282A3A" : "#EEF2FF" };
+        case "Stress": return { color: isDark ? "#F28B82" : "#EF4444", bg: isDark ? "#2A1E1E" : "#FCEEEE" };
+        case "Relationship": return { color: isDark ? "#F8BBD0" : "#F59E0B", bg: isDark ? "#2A271E" : "#FEF9E6" };
+        case "Family": return { color: isDark ? "#8AB4F8" : "#3B82F6", bg: isDark ? "#1E2430" : "#EBF3FE" };
         default: return { color: isDark ? "#E8EAED" : "#A78BFA", bg: isDark ? "#222" : "#F3E8FF" }; // Other
     }
 };
@@ -985,33 +985,33 @@ export default function PostDetail() {
                             <View style={styles.blobContainer}>
                                 {post.category === "Study" || post.category === "Study Support" ? (
                                     <View style={styles.studyBlobWrapper}>
-                                        <View style={styles.studyBlobShape} />
-                                        <Ionicons name="school" size={60} color="#C8E6C9" style={styles.studyBlobIcon} />
+                                        <View style={[styles.studyBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="school" size={60} color={activeTheme.isDark ? "#2A4A3A" : "#C8E6C9"} style={styles.studyBlobIcon} />
                                     </View>
                                 ) : post.category === "Stress" ? (
                                     <View style={styles.stressBlobWrapper}>
-                                        <View style={styles.stressBlobShape} />
-                                        <Ionicons name="sad" size={60} color="#FFCDD2" style={styles.stressBlobIcon} />
+                                        <View style={[styles.stressBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="sad" size={60} color={activeTheme.isDark ? "#4A2A2A" : "#FFCDD2"} style={styles.stressBlobIcon} />
                                     </View>
                                 ) : post.category === "Relationship" ? (
                                     <View style={styles.relationshipBlobWrapper}>
-                                        <View style={styles.relationshipBlobShape} />
-                                        <Ionicons name="heart" size={60} color="#FFE0B2" style={styles.relationshipBlobIcon} />
+                                        <View style={[styles.relationshipBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="heart" size={60} color={activeTheme.isDark ? "#4A4A2A" : "#FFE0B2"} style={styles.relationshipBlobIcon} />
                                     </View>
                                 ) : post.category === "Family" ? (
                                     <View style={styles.familyBlobWrapper}>
-                                        <View style={styles.familyBlobShape} />
-                                        <Ionicons name="people" size={60} color="#BBDEFB" style={styles.familyBlobIcon} />
+                                        <View style={[styles.familyBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="people" size={60} color={activeTheme.isDark ? "#2A3A4A" : "#BBDEFB"} style={styles.familyBlobIcon} />
                                     </View>
                                 ) : post.category === "Mental Health" ? (
                                     <View style={styles.mentalBlobWrapper}>
-                                        <View style={styles.mentalBlobShape} />
-                                        <Ionicons name="heart" size={60} color="#D8D8FE" style={styles.mentalBlobIcon} />
+                                        <View style={[styles.mentalBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <Ionicons name="heart" size={60} color={activeTheme.isDark ? "#3A3A5A" : "#D8D8FE"} style={styles.mentalBlobIcon} />
                                     </View>
                                 ) : (
                                     <View style={styles.otherBlobWrapper}>
-                                        <View style={styles.otherBlobShape} />
-                                        <MaterialCommunityIcons name="ghost" size={60} color="#D8D8FE" style={styles.otherBlobGhost} />
+                                        <View style={[styles.otherBlobShape, { backgroundColor: postTheme.bg }]} />
+                                        <MaterialCommunityIcons name="ghost" size={60} color={activeTheme.isDark ? "#3A3A5A" : "#D8D8FE"} style={styles.otherBlobGhost} />
                                     </View>
                                 )}
                             </View>

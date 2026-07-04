@@ -31,11 +31,11 @@ import { posts as dummyPosts } from "../../data/dummyData";
 const getCategoryTheme = (category, isDark) => {
   const themes = {
     "All Feed": { color: isDark ? "#FFFFFF" : "#FFFFFF", bgColor: isDark ? "#333333" : "#111827" },
-    "Family": { color: isDark ? "#8AB4F8" : "#2F80ED", bgColor: isDark ? "#1A2A3A" : "#EBF3FE" },
-    "Stress": { color: isDark ? "#F28B82" : "#EB5757", bgColor: isDark ? "#3A1A1A" : "#FCEEEE" },
-    "Relationship": { color: isDark ? "#F8BBD0" : "#F2C94C", bgColor: isDark ? "#3A3A3A" : "#FEF9E6" },
-    "Study": { color: isDark ? "#81C995" : "#27AE60", bgColor: isDark ? "#1A3A2A" : "#E9F7EF" },
-    "Mental Health": { color: isDark ? "#FDD663" : "#6366F1", bgColor: isDark ? "#1A1A3A" : "#EEF2FF" },
+    "Family": { color: isDark ? "#8AB4F8" : "#3B82F6", bgColor: isDark ? "#1A2A3A" : "#EBF3FE" },
+    "Stress": { color: isDark ? "#F28B82" : "#EF4444", bgColor: isDark ? "#3A1A1A" : "#FCEEEE" },
+    "Relationship": { color: isDark ? "#F8BBD0" : "#F59E0B", bgColor: isDark ? "#3A3A3A" : "#FEF9E6" },
+    "Study": { color: isDark ? "#81C995" : "#10B981", bgColor: isDark ? "#1A3A2A" : "#E9F7EF" },
+    "Mental Health": { color: isDark ? "#FDD663" : "#8B5CF6", bgColor: isDark ? "#1A1A3A" : "#EEF2FF" },
     "Other": { color: isDark ? "#E8EAED" : "#A78BFA", bgColor: isDark ? "#2A2A2A" : "#3C4043" }
   };
   return themes[category] || themes["Other"];
@@ -44,12 +44,12 @@ const getCategoryTheme = (category, isDark) => {
 const getCategoryIcon = (category) => {
   switch (category) {
     case "Other": return <MaterialCommunityIcons name="ghost-outline" size={14} color="#A78BFA" />;
-    case "Stress": return <Ionicons name="sad-outline" size={14} color="#EB5757" />;
+    case "Stress": return <Ionicons name="sad-outline" size={14} color="#EF4444" />;
     case "Study Support":
-    case "Study": return <Ionicons name="school-outline" size={14} color="#27AE60" />;
-    case "Family": return <Ionicons name="people-outline" size={14} color="#2F80ED" />;
-    case "Mental Health": return <Ionicons name="heart-outline" size={14} color="#6366F1" />;
-    case "Relationship": return <Ionicons name="flower-outline" size={14} color="#F2C94C" />;
+    case "Study": return <Ionicons name="school-outline" size={14} color="#10B981" />;
+    case "Family": return <Ionicons name="people-outline" size={14} color="#3B82F6" />;
+    case "Mental Health": return <Ionicons name="heart-outline" size={14} color="#8B5CF6" />;
+    case "Relationship": return <Ionicons name="flower-outline" size={14} color="#F59E0B" />;
     default: return null;
   }
 };
