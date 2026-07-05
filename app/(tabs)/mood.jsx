@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Svg, { Circle, G, Path } from "react-native-svg";
+import TabScreenWrapper from "../../components/TabScreenWrapper";
 import {
   collection,
   onSnapshot,
@@ -190,6 +191,7 @@ export default function MoodDashboard() {
   const todayMood = todayEntry ? getMoodMeta(todayEntry.moodType) : null;
 
   return (
+    <TabScreenWrapper>
     <SafeAreaView
       style={[
         styles.container,
@@ -489,6 +491,7 @@ export default function MoodDashboard() {
         <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
+    </TabScreenWrapper>
   );
 }
 

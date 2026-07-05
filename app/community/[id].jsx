@@ -17,6 +17,7 @@ import Loading from "../../components/Loading";
 import PostCard from "../../components/PostCard";
 import { db } from "../../config/firebase";
 import { useTheme } from "../../context/ThemeContext";
+import BannerAds from "../ads/BannerAds";
 
 const CATEGORIES = [
     {
@@ -529,6 +530,10 @@ export default function CommunityDetail() {
                     </View>
                 </View>
             </Modal>
+            
+            <View style={{ borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.background }}>
+                <BannerAds />
+            </View>
         </SafeAreaView>
     );
 }

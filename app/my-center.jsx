@@ -22,6 +22,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { createPerspectiveNotification } from "../utils/notifications";
 import { useAlert } from "../context/AlertContext";
+import BannerAds from "./ads/BannerAds";
 
 export default function MyCenter() {
   const { showAlert } = useAlert();
@@ -990,6 +991,10 @@ export default function MyCenter() {
           )}
         </ScrollView>
       )}
+
+      <View style={{ borderTopWidth: 1, borderTopColor: theme.divider, backgroundColor: theme.background }}>
+        <BannerAds />
+      </View>
     </SafeAreaView>
   );
 }

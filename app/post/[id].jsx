@@ -43,6 +43,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { getPostById } from "../../data/dummyData";
 import { useAlert } from "../../context/AlertContext";
+import BannerAds from "../ads/BannerAds";
 import {
     createCommentNotification,
     createHugNotification,
@@ -1331,6 +1332,10 @@ export default function PostDetail() {
                     </Pressable>
                 </Pressable>
             </Modal>
+            
+            <View style={{ borderTopWidth: 1, borderTopColor: activeTheme.border, backgroundColor: activeTheme.background }}>
+                <BannerAds />
+            </View>
         </SafeAreaView>
     );
 }
