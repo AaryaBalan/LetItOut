@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import Avatar from './Avatar';
+import ReframingBadge from './ReframingBadge';
+import { computeReframingScore } from '../utils/algorithms/cbtReframing';
 
 const CommentThread = ({
     comment,
@@ -13,11 +15,18 @@ const CommentThread = ({
     commentSupports = {},
     userCommentSupports = {},
     commentorProfiles = {},
-    themeOverride = null // Optional prop to override theme
+    themeOverride = null,
+    postText = ""
 }) => {
     const { theme: contextTheme } = useTheme();
     const theme = themeOverride || contextTheme;
     const [isCollapsed, setIsCollapsed] = useState(false);
+
+    const reframingAnalysis = computeReframingScore(
+        comment.text || comment.comment || "",
+        postText,
+        comment.perspectiveRating !== undefined ? Number(comment.perspectiveRating) : 0
+    );
 
     const hasReplies = comment.replies && comment.replies.length > 0;
     const canReply = depth < maxDepth;
@@ -90,6 +99,15 @@ const CommentThread = ({
                                 {comment.text}
                             </Text>
 
+                            {/* Cognitive Reframing Indicator */}
+                            {reframingAnalysis.isReframing && (
+                                <ReframingBadge
+                                    badge={reframingAnalysis.badge}
+                                    quality={reframingAnalysis.quality}
+                                    score={reframingAnalysis.score}
+                                />
+                            )}
+
                             {/* Actions */}
                             <View style={styles.commentActions}>
                                 <TouchableOpacity
@@ -152,7 +170,8 @@ const CommentThread = ({
                             commentSupports={commentSupports}
                             userCommentSupports={userCommentSupports}
                             commentorProfiles={commentorProfiles}
-                            themeOverride={themeOverride} // Pass theme override recursively
+                            themeOverride={themeOverride}
+                            postText={postText}
                         />
                     ))}
                 </View>

@@ -1209,6 +1209,7 @@ export default function PostDetail() {
                                             userCommentSupports={userCommentSupports}
                                             commentorProfiles={commentorProfiles}
                                             themeOverride={activeTheme}
+                                            postText={post?.description || ""}
                                         />
                                     ))}
                                 </View>
