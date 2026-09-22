@@ -25,6 +25,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
 import { showInterstitialAd } from "../ads/InterstitialAds";
 import { useAlert } from "../../context/AlertContext";
+import { applyGhostVoice } from "../../utils/algorithms/ghostVoice";
 
 const getCategoryTheme = (category, isDark) => {
   switch (category) {
@@ -54,6 +55,7 @@ export default function CreatePost() {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true); // Default to true for anonymous posting
+  const [useGhostVoice, setUseGhostVoice] = useState(false); // Ghost Voice stylometric shield
   const [helpNeeded, setHelpNeeded] = useState(false);
   const [moodLevel, setMoodLevel] = useState(0); // Range: -100 to 100
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,11 +100,16 @@ export default function CreatePost() {
     setIsSubmitting(true);
 
     try {
+      const maskedDescription = (isAnonymous && useGhostVoice)
+        ? applyGhostVoice(description.trim())
+        : description.trim();
+
       // Create post object with proper schema
       const postData = {
         title: title.trim(),
         category: category,
-        description: description.trim(),
+        description: maskedDescription,
+        stylometryMasked: isAnonymous && useGhostVoice,
         authorName: isAnonymous
           ? "Anonymous"
           : user.displayName || "Anonymous",
@@ -369,6 +376,40 @@ export default function CreatePost() {
                 ios_backgroundColor="#E5E7EB"
               />
             </View>
+
+            {/* Ghost Voice Toggle (only visible when posting anonymously) */}
+            {isAnonymous && (
+              <>
+                <View style={[styles.separator, { backgroundColor: theme.divider }]} />
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleTextContainer}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                      <Ionicons name="finger-print-outline" size={20} color="#8B5CF6" />
+                      <Text style={[styles.toggleTitle, { color: theme.text }]}>Ghost Voice™</Text>
+                    </View>
+                    <Text style={[styles.toggleSubtitle, { color: theme.textSecondary }]}>
+                      Mask writing quirks so friends won't recognize you
+                    </Text>
+                  </View>
+                  <Switch
+                    value={useGhostVoice}
+                    onValueChange={setUseGhostVoice}
+                    trackColor={{ false: theme.isDark ? "#3E3E3E" : "#E5E7EB", true: "#8B5CF6" }}
+                    thumbColor={useGhostVoice ? "#7C3AED" : "#F3F4F6"}
+                  />
+                </View>
+                {useGhostVoice && description.length > 5 && (
+                  <View style={{ backgroundColor: theme.isDark ? '#2E224D' : '#F3E8FF', padding: 12, borderRadius: 14, marginVertical: 6 }}>
+                    <Text style={{ fontSize: 11, fontFamily: 'Fredoka-Bold', color: '#8B5CF6' }}>
+                      🛡️ GHOST VOICE PREVIEW:
+                    </Text>
+                    <Text style={{ fontSize: 13, fontFamily: 'Fredoka-Regular', color: theme.text, marginTop: 4 }}>
+                      {applyGhostVoice(description)}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
 
             {/* Info Message */}
             <View style={[styles.infoBox, { backgroundColor: theme.isDark ? "#2E2A3A" : "#F3E5F5" }]}>
