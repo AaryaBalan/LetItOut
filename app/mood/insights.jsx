@@ -19,6 +19,7 @@ import Loading from "../../components/Loading";
 import { db } from "../../config/firebase";
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, orderBy, limit } from "firebase/firestore";
 import { MOOD_OPTIONS } from "../../components/MoodSelector";
+import { analyzeActivityCausality } from "../../utils/algorithms/moodCausality";
 
 const getMoodMeta = (type) => MOOD_OPTIONS.find((m) => m.id === type) || MOOD_OPTIONS[2];
 
@@ -180,6 +181,10 @@ export default function InsightsScreen() {
       daysLabels: dLabels
     };
   }, [entries, timeframe]);
+
+  const causalInsights = useMemo(() => {
+    return analyzeActivityCausality(entries);
+  }, [entries]);
 
   const generate1YearMockData = async () => {
     if (!user) return;
@@ -538,6 +543,63 @@ export default function InsightsScreen() {
         {/* Top Days */}
         {renderDayCard(topPositive, "Top Positive Day", "positive")}
         {renderDayCard(topChallenging, "Top Challenging Day", "challenging")}
+
+        {/* MoodCausal-AI™ Habit Patterns */}
+        {causalInsights.hasEnoughData && (
+          <View style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, marginTop: 12 }]}>
+            <View style={styles.chartHeader}>
+              <Text style={[styles.chartTitle, { color: theme.text }]}>MoodCausal-AI™ Habit Patterns</Text>
+              <Ionicons name="git-network-outline" size={22} color="#10B981" />
+            </View>
+            <Text style={{ fontSize: 13, fontFamily: "Fredoka-Regular", color: theme.textSecondary, marginBottom: 14 }}>
+              Lagged cross-correlation identifying which daily habits lift or suppress your mood 24-48h later.
+            </Text>
+
+            {/* Catalysts */}
+            {causalInsights.catalysts.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontFamily: "Fredoka-Bold", color: "#10B981", textTransform: "uppercase", marginBottom: 6 }}>
+                  🌟 Mood Catalysts (Lifting Habits)
+                </Text>
+                {causalInsights.catalysts.map(item => (
+                  <View key={item.tag} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: theme.input, padding: 10, borderRadius: 12, marginBottom: 6 }}>
+                    <Text style={{ fontSize: 14, fontFamily: "Fredoka-Bold", color: theme.text, textTransform: "capitalize" }}>{item.tag}</Text>
+                    <Text style={{ fontSize: 13, fontFamily: "Fredoka-Bold", color: "#10B981" }}>
+                      {item.nextDayLift > 0 ? `+${item.nextDayLift} next-day` : `Avg ${item.avgScore > 0 ? '+' : ''}${item.avgScore}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Triggers */}
+            {causalInsights.triggers.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontFamily: "Fredoka-Bold", color: "#EF4444", textTransform: "uppercase", marginBottom: 6 }}>
+                  ⚠️ Vulnerability Triggers
+                </Text>
+                {causalInsights.triggers.map(item => (
+                  <View key={item.tag} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: theme.input, padding: 10, borderRadius: 12, marginBottom: 6 }}>
+                    <Text style={{ fontSize: 14, fontFamily: "Fredoka-Bold", color: theme.text, textTransform: "capitalize" }}>{item.tag}</Text>
+                    <Text style={{ fontSize: 13, fontFamily: "Fredoka-Bold", color: "#EF4444" }}>
+                      {item.nextDayLift < 0 ? `${item.nextDayLift} drop` : `Avg ${item.avgScore}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Circadian Rhythm */}
+            {causalInsights.circadianSummary && (
+              <View style={{ backgroundColor: theme.input, padding: 12, borderRadius: 14, marginTop: 4 }}>
+                <Text style={{ fontSize: 12, fontFamily: "Fredoka-Bold", color: theme.textSecondary }}>🕒 Circadian Rhythm Pattern</Text>
+                <Text style={{ fontSize: 13, fontFamily: "Fredoka-Regular", color: theme.text, marginTop: 4 }}>
+                  Peak emotional resilience occurs on <Text style={{ fontFamily: "Fredoka-Bold", color: "#10B981" }}>{causalInsights.circadianSummary.peakDay}s</Text>, while vulnerability tends to dip on <Text style={{ fontFamily: "Fredoka-Bold", color: "#EF4444" }}>{causalInsights.circadianSummary.vulnerabilityDay}s</Text>.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         <TouchableOpacity 
           style={{ backgroundColor: theme.text, padding: 16, borderRadius: 16, marginTop: 20, alignItems: "center" }}
