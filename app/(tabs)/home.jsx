@@ -28,6 +28,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 import { posts as dummyPosts } from "../../data/dummyData";
+import { calculateSafeTriageRank, detectCrisisDistress } from "../../utils/algorithms/safeTriage";
 
 const getCategoryTheme = (category, isDark) => {
   const themes = {
@@ -315,6 +316,9 @@ export default function Home() {
     }
 
     // 6. Sorting
+    if (selectedSort === "safeTriage" || selectedFilter === "safeTriage") {
+      return calculateSafeTriageRank(b) - calculateSafeTriageRank(a);
+    }
     if (selectedSort === "popular") {
       return (b.reactionCount || 0) - (a.reactionCount || 0);
     }

@@ -48,6 +48,7 @@ export default function FilterModal({
                         <Text style={[styles.modalSectionTitle, { color: theme.textSecondary }]}>SORT FEED BY</Text>
                         <View style={styles.modalChipsRow}>
                             {[
+                                { label: "SafeTriage™", value: { filter: "safeTriage", sort: "safeTriage" }, icon: "shield-checkmark-outline" },
                                 { label: "Latest", value: { filter: "latest", sort: "recent" }, icon: "time-outline" },
                                 { label: "Popular", value: { filter: "latest", sort: "popular" }, icon: "trending-up-outline" },
                                 { label: "Most Commented", value: { filter: "latest", sort: "mostCommented" }, icon: "chatbubbles-outline" },
