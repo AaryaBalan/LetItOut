@@ -21,6 +21,8 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useAlert } from "../../context/AlertContext";
+import CopingModal from "../../components/CopingModal";
+import { selectCopingIntervention } from "../../utils/algorithms/copingBandit";
 
 const ACTIVITY_TAGS = [
   { id: "work", label: "Work", icon: "briefcase-outline" },
@@ -46,6 +48,8 @@ export default function LogMood() {
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [copingIntervention, setCopingIntervention] = useState(null);
+  const [showCopingModal, setShowCopingModal] = useState(false);
 
   const toggleTag = (tagId) => {
     setSelectedTags((prev) =>
@@ -84,9 +88,16 @@ export default function LogMood() {
         timestamp: serverTimestamp(),
       });
 
-      showAlert("Mood Logged! 🎉", "Your mood has been saved.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      // If low mood, trigger adaptive coping intervention
+      if (selectedMood === "awful" || selectedMood === "bad") {
+        const intervention = await selectCopingIntervention();
+        setCopingIntervention(intervention);
+        setShowCopingModal(true);
+      } else {
+        showAlert("Mood Logged! 🎉", "Your mood has been saved.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      }
     } catch (err) {
       console.error("Error saving mood:", err);
       showAlert("Error", "Failed to save mood. Please try again.");
@@ -273,6 +284,16 @@ export default function LogMood() {
           <View style={{ height: 60 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Adaptive Coping Micro-Intervention Modal */}
+      <CopingModal
+        visible={showCopingModal}
+        intervention={copingIntervention}
+        onClose={() => {
+          setShowCopingModal(false);
+          router.back();
+        }}
+      />
     </SafeAreaView>
   );
 }
