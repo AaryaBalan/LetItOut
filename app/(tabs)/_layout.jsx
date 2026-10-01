@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { BottomTabBar } from "@react-navigation/bottom-tabs";
+import { BottomTabBar } from "expo-router/js-tabs";
 import { Tabs } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
