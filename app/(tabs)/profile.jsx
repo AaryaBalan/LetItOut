@@ -132,7 +132,20 @@ export default function Profile() {
       if (userIds.length > 0) {
         // Fetch users. For simplicity, fetching all users in parallel. 
         // In prod, chunking or an 'in' query is better.
-        const userPromises = userIds.map(uid => getDoc(doc(db, "publicProfiles", uid)));
+        const userPromises = userIds.map(async (uid) => {
+          try {
+            let snap = await getDoc(doc(db, "publicProfiles", uid));
+            if (!snap.exists()) {
+              try {
+                const legacySnap = await getDoc(doc(db, "users", uid));
+                if (legacySnap.exists()) snap = legacySnap;
+              } catch (_e) {}
+            }
+            return snap;
+          } catch (_e) {
+            return { exists: () => false };
+          }
+        });
         const userSnaps = await Promise.all(userPromises);
         const usersData = userSnaps
           .filter(snap => snap.exists())

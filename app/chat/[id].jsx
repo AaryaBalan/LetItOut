@@ -226,7 +226,13 @@ export default function ChatScreen() {
     useEffect(() => {
         const fetchRecipient = async () => {
             try {
-                const userDoc = await getDoc(doc(db, "publicProfiles", id));
+                let userDoc = await getDoc(doc(db, "publicProfiles", id));
+                if (!userDoc.exists()) {
+                    try {
+                        const legacyDoc = await getDoc(doc(db, "users", id));
+                        if (legacyDoc.exists()) userDoc = legacyDoc;
+                    } catch (_e) {}
+                }
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     setRecipient({

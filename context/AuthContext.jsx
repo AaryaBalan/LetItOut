@@ -31,12 +31,26 @@ export const useAuth = () => useContext(AuthContext);
 async function createUserDocument(user, additionalData = {}) {
   if (!user) return;
   const ref = doc(db, "users", user.uid);
+  const publicRef = doc(db, "publicProfiles", user.uid);
   await runTransaction(db, async transaction => {
     const snapshot = await transaction.get(ref);
+    const publicSnapshot = await transaction.get(publicRef);
+
     if (snapshot.exists()) {
-      if (additionalData.displayName) {
+      const existingData = snapshot.data();
+      if (!publicSnapshot.exists()) {
+        const createdAt = existingData.createdAt || serverTimestamp();
+        transaction.set(publicRef, {
+          displayName: existingData.displayName || user.displayName || "Member",
+          photoURL: existingData.photoURL || user.photoURL || null,
+          profileCode: typeof existingData.profileCode === 'string' && !existingData.profileCode.includes('@') ? existingData.profileCode : user.uid,
+          bio: existingData.bio || "",
+          createdAt,
+          updatedAt: serverTimestamp(),
+        });
+      } else if (additionalData.displayName) {
         transaction.update(ref, { displayName: additionalData.displayName });
-        transaction.set(doc(db, "publicProfiles", user.uid), { displayName: additionalData.displayName }, { merge: true });
+        transaction.set(publicRef, { displayName: additionalData.displayName }, { merge: true });
       }
       return;
     }
@@ -48,7 +62,7 @@ async function createUserDocument(user, additionalData = {}) {
       bio: "", createdAt, updatedAt: createdAt,
     };
     transaction.set(ref, { ...profile, email: user.email, loveSent: 0, postCount: 0 });
-    transaction.set(doc(db, "publicProfiles", user.uid), profile);
+    transaction.set(publicRef, profile);
   });
 }
 

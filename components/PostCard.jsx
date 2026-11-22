@@ -103,14 +103,23 @@ export default function PostCard({ post, hideDescription = false }) {
         const userRef = doc(db, "publicProfiles", post.authorId);
         const unsubscribe = onSnapshot(
             userRef,
-            (docSnapshot) => {
+            async (docSnapshot) => {
                 if (docSnapshot.exists()) {
                     const userData = docSnapshot.data();
                     setAuthorProfileCode(
                         userData.profileCode || userData.email || null,
                     );
                 } else {
-                    setAuthorProfileCode(null);
+                    try {
+                        const legacyDoc = await getDoc(doc(db, "users", post.authorId));
+                        if (legacyDoc.exists()) {
+                            setAuthorProfileCode(legacyDoc.data().profileCode || legacyDoc.data().email || null);
+                        } else {
+                            setAuthorProfileCode(null);
+                        }
+                    } catch (_e) {
+                        setAuthorProfileCode(null);
+                    }
                 }
             },
             (error) => {
@@ -173,7 +182,13 @@ export default function PostCard({ post, hideDescription = false }) {
             for (const comment of fetchedComments) {
                 if (comment.commentorId) {
                     try {
-                        const userDoc = await getDoc(doc(db, "publicProfiles", comment.commentorId));
+                        let userDoc = await getDoc(doc(db, "publicProfiles", comment.commentorId));
+                        if (!userDoc.exists()) {
+                            try {
+                                const legacyDoc = await getDoc(doc(db, "users", comment.commentorId));
+                                if (legacyDoc.exists()) userDoc = legacyDoc;
+                            } catch (_e) {}
+                        }
                         if (userDoc.exists()) {
                             const userData = userDoc.data();
                             profiles[comment.commentorId] = userData.profileCode || userData.email || null;

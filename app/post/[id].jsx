@@ -182,12 +182,24 @@ export default function PostDetail() {
 
                     // Fetch author profile code
                     if (data.authorId && !data.isAnonymous) {
-                        const userDoc = await getDoc(doc(db, "publicProfiles", data.authorId));
-                        if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            setAuthorProfileCode(
-                                userData.profileCode || userData.email || null,
-                            );
+                        try {
+                            let userDoc = await getDoc(doc(db, "publicProfiles", data.authorId));
+                            if (!userDoc.exists()) {
+                                try {
+                                    const legacyDoc = await getDoc(doc(db, "users", data.authorId));
+                                    if (legacyDoc.exists()) userDoc = legacyDoc;
+                                } catch (_e) {}
+                            }
+                            if (userDoc.exists()) {
+                                const userData = userDoc.data();
+                                setAuthorProfileCode(
+                                    userData.profileCode || userData.email || null,
+                                );
+                            } else {
+                                setAuthorProfileCode(null);
+                            }
+                        } catch (_err) {
+                            setAuthorProfileCode(null);
                         }
                     } else {
                         setAuthorProfileCode(null);
@@ -265,7 +277,13 @@ export default function PostDetail() {
                 for (const comment of fetchedComments) {
                     if (comment.commentorId) {
                         try {
-                            const userDoc = await getDoc(doc(db, "publicProfiles", comment.commentorId));
+                            let userDoc = await getDoc(doc(db, "publicProfiles", comment.commentorId));
+                            if (!userDoc.exists()) {
+                                try {
+                                    const legacyDoc = await getDoc(doc(db, "users", comment.commentorId));
+                                    if (legacyDoc.exists()) userDoc = legacyDoc;
+                                } catch (_e) {}
+                            }
                             if (userDoc.exists()) {
                                 const userData = userDoc.data();
                                 profiles[comment.commentorId] = userData.profileCode || userData.email || null;

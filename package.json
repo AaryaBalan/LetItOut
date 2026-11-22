@@ -58,7 +58,8 @@
     "eslint": "^9.25.0",
     "eslint-config-expo": "~58.0.4",
     "firebase-admin": "^13.10.0",
-    "firebase-tools": "^15.32.1"
+    "firebase-tools": "^15.32.1",
+    "typescript": "^6.0.3"
   },
   "private": true
 }

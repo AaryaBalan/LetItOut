@@ -57,16 +57,29 @@ export default function UserProfile() {
         const fetchUserAndPosts = async () => {
             try {
                 // Fetch User Profile
-                const userDocRef = doc(db, "publicProfiles", id);
-                const userDocSnap = await getDoc(userDocRef);
+                let userDocSnap = await getDoc(doc(db, "publicProfiles", id));
+                let userData = null;
 
                 if (userDocSnap.exists()) {
+                    userData = userDocSnap.data();
+                } else {
+                    try {
+                        const legacySnap = await getDoc(doc(db, "users", id));
+                        if (legacySnap.exists()) {
+                            userData = legacySnap.data();
+                        }
+                    } catch (_e) {
+                        // Ignore permission error if legacy collection is restricted
+                    }
+                }
+
+                if (userData) {
                     const [reactionsCount, commentsCount] = await Promise.all([
                       getCountFromServer(query(collection(db, "reactions"), where("userId", "==", id))),
                       getCountFromServer(query(collection(db, "comments"), where("commentorId", "==", id)))
                     ]);
                     if (stopped) return;
-                    setUserProfile({ ...userDocSnap.data(), loveSent: reactionsCount.data().count + commentsCount.data().count });
+                    setUserProfile({ ...userData, loveSent: reactionsCount.data().count + commentsCount.data().count });
                 } else {
                     console.log("No such user!");
                 }

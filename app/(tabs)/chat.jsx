@@ -89,7 +89,13 @@ export default function ChatTab() {
             for (const friendId of ids) {
                 if (friendId === user.uid) continue;
 
-                const userDoc = await getDoc(doc(db, "publicProfiles", friendId));
+                let userDoc = await getDoc(doc(db, "publicProfiles", friendId));
+                if (!userDoc.exists()) {
+                    try {
+                        const legacyDoc = await getDoc(doc(db, "users", friendId));
+                        if (legacyDoc.exists()) userDoc = legacyDoc;
+                    } catch (_e) {}
+                }
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     friendsData.push({
