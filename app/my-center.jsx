@@ -1,3 +1,4 @@
+import { subscribeOwnedPosts } from "../services/ownedPosts";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
@@ -10,9 +11,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
-  ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
@@ -30,7 +29,6 @@ export default function MyCenter() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const [commentsByPost, setCommentsByPost] = useState({});
   const [activeTab, setActiveTab] = useState("posts"); // "posts" or "insights"
   const [selectedPost, setSelectedPost] = useState(null); // Selected post for comments detail view
@@ -43,41 +41,13 @@ export default function MyCenter() {
   useEffect(() => {
     if (!user) return;
 
-    const postsRef = collection(db, "posts");
-    const q = query(postsRef, where("authorId", "==", user.uid));
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const fetchedPosts = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            title: data.title,
-            description: data.description,
-            feelPercentage: data.feelPercentage ?? 0,
-            category: data.category || "Other",
-            createdAt: data.createdAt };
-        });
-
-        fetchedPosts.sort((a, b) => {
-          const aTime = a.createdAt?.seconds
-            ? a.createdAt.seconds * 1000
-            : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-          const bTime = b.createdAt?.seconds
-            ? b.createdAt.seconds * 1000
-            : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-          return bTime - aTime;
-        });
-
-        setPosts(fetchedPosts);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching my posts:", error);
-        setLoading(false);
-      }
-    );
+    const unsubscribe = subscribeOwnedPosts(user.uid, fetchedPosts => {
+      setPosts(fetchedPosts);
+      setLoading(false);
+    }, error => {
+      console.error("Error fetching owned posts", error);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, [user]);
@@ -137,12 +107,12 @@ export default function MyCenter() {
       
       for (const id of idsToFetch) {
          try {
-             const userDoc = await getDoc(doc(db, "users", id));
+             const userDoc = await getDoc(doc(db, "publicProfiles", id));
              if (userDoc.exists()) {
                  newProfiles[id] = userDoc.data().profileCode || userDoc.data().email || "anonymous";
                  hasChanges = true;
              }
-         } catch(e) {}
+         } catch(_error) {}
       }
       
       if (hasChanges) {
@@ -150,7 +120,7 @@ export default function MyCenter() {
       }
     };
     fetchProfiles();
-  }, [commentsByPost]);
+  }, [commentsByPost, commentorProfiles]);
 
 
 
@@ -165,7 +135,7 @@ export default function MyCenter() {
       await updateDoc(commentRef, {
         perspectiveRating: val });
 
-      if (delta !== 0) {
+      if (delta !== 0 && !post.isAnonymous) {
         await createPerspectiveNotification(
           comment.commentorId,
           post.id,
@@ -707,7 +677,7 @@ export default function MyCenter() {
               <Text style={[styles.staticNoteTitle, { color: theme.text }]}>Perspective Journals</Text>
             </View>
             <Text style={[styles.staticNoteText, { color: theme.textSecondary }]}>
-              Below are the feelings you've shared. Tap any post to view replies and rate how comments shifted your perspective.
+              Below are the feelings you&apos;ve shared. Tap any post to view replies and rate how comments shifted your perspective.
             </Text>
           </View>
 
@@ -1262,7 +1232,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1 },
   staticNoteTitle: {
-    fontSize: 14,
     fontSize: 14,
     fontFamily: 'Frederick',
     textTransform: 'uppercase',

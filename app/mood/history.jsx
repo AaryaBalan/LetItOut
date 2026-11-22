@@ -268,7 +268,7 @@ export default function MoodHistory() {
 
                 {entry.note && (
                   <Text style={[styles.entryNote, { color: theme.textSecondary }]} numberOfLines={3}>
-                    "{entry.note}"
+                    &quot;{entry.note}&quot;
                   </Text>
                 )}
 

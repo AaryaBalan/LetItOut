@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
@@ -16,7 +15,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MoodSelector, { MOOD_OPTIONS } from "../../components/MoodSelector";
+import MoodSelector from "../../components/MoodSelector";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -53,7 +52,6 @@ export default function LogMood() {
     );
   };
 
-  const selectedMoodMeta = MOOD_OPTIONS.find((m) => m.id === selectedMood);
 
   const getMoodScore = (type) => {
     if (type === "amazing") return 10;
@@ -132,7 +130,7 @@ export default function LogMood() {
             How are you feeling today?
           </Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Your mood matters. Let's capture it.
+            Your mood matters. Let&apos;s capture it.
           </Text>
 
           {/* ── Mood Selector ────────────────────── */}

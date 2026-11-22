@@ -1,113 +1,180 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Users collection
-    match /users/{userId} {
-      allow read: if true; // Anyone can read user profiles
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    function signedIn() { return request.auth != null; }
+    function self(uid) { return signedIn() && request.auth.uid == uid; }
+    function moderator() { return signedIn() && request.auth.token.get('moderator', false) == true; }
+    function text(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
+    function rating(value) { return value is number && value >= -100 && value <= 100; }
+    function ownsPost(id) {
+      return signedIn() && (get(/databases/$(database)/documents/posts/$(id)).data.get('authorId', '') == request.auth.uid ||
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/ownedPosts/$(id)));
     }
-    
-    // Posts collection
-    match /posts/{postId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      // Allow author to update/delete their own posts
-      allow delete: if request.auth != null && 
-                       resource.data.authorId == request.auth.uid;
-      // Allow author to update all fields, but allow anyone to update reactionCount
-      allow update: if request.auth != null && (
-        resource.data.authorId == request.auth.uid ||
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionCount']))
-      );
-    }
-    
-    // Comments collection
-    match /comments/{commentId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow delete: if request.auth != null && 
-                       resource.data.commentorId == request.auth.uid;
-      // Allow author to update content, OR anyone to update reactionCount, OR post author to update perspectiveRating
-      allow update: if request.auth != null && (
-        resource.data.commentorId == request.auth.uid ||
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionCount'])) ||
-        (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['perspectiveRating']) &&
-          get(/databases/$(database)/documents/posts/$(resource.data.postId)).data.authorId == request.auth.uid
-        )
-      );
-    }
+    function member(id) { return signedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(id)).data.participants; }
+    function memberAfter(id) { return signedIn() && request.auth.uid in getAfter(/databases/$(database)/documents/chats/$(id)).data.participants; }
 
-    // Comment Supports collection
-    match /commentSupports/{supportId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow delete: if request.auth != null && 
-                       resource.data.userId == request.auth.uid;
-    }
-    
-    // Reactions collection
-    match /reactions/{reactionId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow delete: if request.auth != null && 
-                       resource.data.userId == request.auth.uid;
-    }
-    
-    // Friends collection (Follows)
-    match /friends/{friendshipId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.followerId == request.auth.uid;
-      allow delete: if request.auth != null && (resource.data.followerId == request.auth.uid || resource.data.followingId == request.auth.uid);
-      allow update: if request.auth != null && resource.data.followingId == request.auth.uid;
-    }
-
-    // Chats collection
-    match /chats/{chatId} {
-      allow read: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
-      allow create: if request.auth != null; // Users create chat doc on first message
-      allow update: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
-      
-      match /messages/{messageId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+    // Legacy user documents may contain email, phone and saved posts. Never publish them.
+    match /users/{uid} {
+      allow read, create, update, delete: if self(uid);
+      match /ownedPosts/{postId} {
+        allow read: if self(uid);
+        allow create: if self(uid) && request.resource.data.keys().hasOnly(['createdAt']) &&
+          !exists(/databases/$(database)/documents/posts/$(postId)) &&
+          existsAfter(/databases/$(database)/documents/posts/$(postId));
+        allow delete: if self(uid) && !existsAfter(/databases/$(database)/documents/posts/$(postId));
       }
     }
-
-    // Notifications collection
-    match /notifications/{notificationId} {
-      // Users can read a single notification if it's theirs
-      allow get: if request.auth != null && 
-                    resource.data.toUserId == request.auth.uid;
-      
-      // Users can list/query their notifications
-      // This rule allows queries like: where("toUserId", "==", user.uid)
-      allow list: if request.auth != null;
-      
-      // Authenticated users can create notifications
-      allow create: if request.auth != null;
-      
-      // Users can update their own notifications (mark as read), or the sender can update it (e.g., updating perspective rating)
-      allow update: if request.auth != null && 
-                       (resource.data.toUserId == request.auth.uid || resource.data.fromUserId == request.auth.uid);
-      
-      // Users can delete their own notifications
-      allow delete: if request.auth != null && 
-                       resource.data.toUserId == request.auth.uid;
+    match /publicProfiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if self(uid) && request.resource.data.keys().hasOnly([
+        'displayName', 'bio', 'profileCode', 'photoURL', 'createdAt', 'updatedAt'
+      ]) && text(request.resource.data.displayName, 80) &&
+        request.resource.data.get('bio', '') is string && request.resource.data.get('bio', '').size() <= 1000 &&
+        request.resource.data.get('profileCode', '') is string && request.resource.data.get('profileCode', '').size() <= 160 && !request.resource.data.get('profileCode', '').matches('.*@.*');
+      allow delete: if self(uid);
     }
-
-    // Mood Entries
-    match /moodEntries/{entryId} {
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    function postCounterChange(postId) {
+      let after = request.resource.data;
+      let event = after.lastInteraction;
+      let reaction = /databases/$(database)/documents/reactions/$(event.id);
+      let comment = /databases/$(database)/documents/comments/$(event.id);
+      return after.diff(resource.data).affectedKeys().hasOnly(['reactionCount', 'lastInteraction']) &&
+        after.reactionCount >= 0 && (
+          (event.kind == 'reaction' && (
+            (!exists(reaction) && getAfter(reaction).data.userId == request.auth.uid && getAfter(reaction).data.postId == postId && after.reactionCount == resource.data.reactionCount + 1) ||
+            (exists(reaction) && get(reaction).data.userId == request.auth.uid && get(reaction).data.postId == postId && !existsAfter(reaction) && after.reactionCount == resource.data.reactionCount - 1)
+          )) ||
+          (event.kind == 'comment' && !exists(comment) && getAfter(comment).data.commentorId == request.auth.uid &&
+            getAfter(comment).data.postId == postId && after.reactionCount == resource.data.reactionCount + 1)
+        );
     }
-
-    // Mood Goals
-    match /moodGoals/{goalId} {
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.keys().hasOnly([
+        'title', 'description', 'category', 'authorName', 'authorId', 'isAnonymous', 'helpNeeded',
+        'feelPercentage', 'timestamp', 'createdAt', 'reactionCount'
+      ]) && text(request.resource.data.title, 200) && text(request.resource.data.description, 10000) &&
+        text(request.resource.data.category, 80) && rating(request.resource.data.feelPercentage) &&
+        request.resource.data.reactionCount == 0 && request.resource.data.isAnonymous is bool &&
+        request.resource.data.helpNeeded is bool && request.resource.data.timestamp == request.time &&
+        existsAfter(/databases/$(database)/documents/users/$(request.auth.uid)/ownedPosts/$(postId)) &&
+        ((request.resource.data.isAnonymous && !('authorId' in request.resource.data) && request.resource.data.authorName == 'Anonymous') ||
+         (!request.resource.data.isAnonymous && request.resource.data.authorId == request.auth.uid));
+      allow update: if signedIn() && (
+        (ownsPost(postId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'category', 'helpNeeded']) &&
+          text(request.resource.data.title, 200) && text(request.resource.data.description, 10000)) || postCounterChange(postId)
+      );
+      allow delete: if ownsPost(postId) || moderator();
+    }
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.keys().hasOnly([
+        'postId', 'commentorId', 'commentorName', 'comment', 'timestamp', 'createdAt', 'reactionCount', 'parentId'
+      ]) && request.resource.data.commentorId == request.auth.uid && text(request.resource.data.comment, 5000) &&
+        request.resource.data.reactionCount == 0 && request.resource.data.timestamp == request.time &&
+        exists(/databases/$(database)/documents/posts/$(request.resource.data.postId)) &&
+        (request.resource.data.parentId == null || get(/databases/$(database)/documents/comments/$(request.resource.data.parentId)).data.postId == request.resource.data.postId) &&
+        getAfter(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.lastInteraction == {'id': commentId, 'kind': 'comment'} &&
+        getAfter(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.reactionCount == get(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.reactionCount + 1;
+      allow update: if signedIn() && (
+        (self(resource.data.commentorId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comment']) && text(request.resource.data.comment, 5000)) ||
+        (ownsPost(resource.data.postId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['perspectiveRating']) && rating(request.resource.data.perspectiveRating)) ||
+        supportCounterChange(commentId)
+      );
+      allow delete: if moderator();
+    }
+    function supportCounterChange(commentId) {
+      let support = /databases/$(database)/documents/commentSupports/$(request.resource.data.lastSupportId);
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionCount', 'lastSupportId']) &&
+        request.resource.data.reactionCount >= 0 && (
+          (!exists(support) && getAfter(support).data.userId == request.auth.uid && getAfter(support).data.commentId == commentId && request.resource.data.reactionCount == resource.data.reactionCount + 1) ||
+          (exists(support) && get(support).data.userId == request.auth.uid && get(support).data.commentId == commentId && !existsAfter(support) && request.resource.data.reactionCount == resource.data.reactionCount - 1)
+        );
+    }
+    match /reactions/{reactionId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['postId','userId','userName','type','timestamp','createdAt']) &&
+        self(request.resource.data.userId) && request.resource.data.type in ['like','hug','metoo'] &&
+        reactionId == request.resource.data.postId + '_' + request.auth.uid + '_' + request.resource.data.type &&
+        getAfter(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.lastInteraction == {'id': reactionId, 'kind': 'reaction'} &&
+        getAfter(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.reactionCount == get(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.reactionCount + 1;
+      allow delete: if self(resource.data.userId) &&
+        getAfter(/databases/$(database)/documents/posts/$(resource.data.postId)).data.lastInteraction == {'id': reactionId, 'kind': 'reaction'} &&
+        getAfter(/databases/$(database)/documents/posts/$(resource.data.postId)).data.reactionCount == get(/databases/$(database)/documents/posts/$(resource.data.postId)).data.reactionCount - 1;
+    }
+    match /commentSupports/{supportId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['commentId','postId','userId','userName','timestamp','createdAt']) &&
+        self(request.resource.data.userId) && supportId == request.resource.data.commentId + '_' + request.auth.uid &&
+        get(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.postId == request.resource.data.postId &&
+        getAfter(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.lastSupportId == supportId &&
+        getAfter(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.reactionCount == get(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.reactionCount + 1;
+      allow delete: if self(resource.data.userId) &&
+        getAfter(/databases/$(database)/documents/comments/$(resource.data.commentId)).data.lastSupportId == supportId &&
+        getAfter(/databases/$(database)/documents/comments/$(resource.data.commentId)).data.reactionCount == get(/databases/$(database)/documents/comments/$(resource.data.commentId)).data.reactionCount - 1;
+    }
+    match /friends/{id} {
+      allow read: if signedIn();
+      allow create: if self(request.resource.data.followerId) && request.resource.data.followingId != request.auth.uid && request.resource.data.status == 0 && request.resource.data.keys().hasOnly(['followerId','followingId','status','createdAt']);
+      allow update: if self(resource.data.followingId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in [-1, 1];
+      allow delete: if self(resource.data.followerId) || self(resource.data.followingId);
+    }
+    match /chats/{chatId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn() && request.resource.data.participants is list && request.resource.data.participants.size() == 2 &&
+        request.resource.data.participants[0] != request.resource.data.participants[1] && request.auth.uid in request.resource.data.participants &&
+        chatId == request.resource.data.participants[0] + '_' + request.resource.data.participants[1];
+      allow update: if member(chatId) && request.resource.data.participants == resource.data.participants &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage','lastMessageTimestamp','updatedAt',
+          'unreadCount_' + resource.data.participants[0], 'unreadCount_' + resource.data.participants[1]]);
+      match /messages/{messageId} {
+        allow read: if member(chatId);
+        allow create: if memberAfter(chatId) && self(request.resource.data.senderId) &&
+          text(request.resource.data.text, 12000) && request.resource.data.createdAt == request.time &&
+          request.resource.data.keys().hasOnly(['text','senderId','senderName','createdAt','replyToId','replyToText','replyToSender','type','sharedPost']);
+      }
+    }
+    function notificationSource(data) {
+      let post = /databases/$(database)/documents/posts/$(data.get('postId', '_'));
+      let comment = /databases/$(database)/documents/comments/$(data.get('commentId', '_'));
+      let friendship = /databases/$(database)/documents/friends/$(data.get('friendshipId', '_'));
+      let reactionId = data.get('postId', '_') + '_' + request.auth.uid + '_' + data.type;
+      return
+        (data.type in ['like','hug','metoo'] && exists(/databases/$(database)/documents/reactions/$(reactionId)) && get(post).data.get('authorId', '') == data.toUserId) ||
+        (data.type == 'comment' && get(comment).data.commentorId == request.auth.uid && get(comment).data.postId == data.postId &&
+          (get(post).data.get('authorId', '') == data.toUserId || get(/databases/$(database)/documents/comments/$(get(comment).data.parentId)).data.commentorId == data.toUserId)) ||
+        (data.type == 'friend_request' && get(friendship).data.followerId == request.auth.uid && get(friendship).data.followingId == data.toUserId && get(friendship).data.status == 0) ||
+        (data.type == 'friend_request_accepted' && get(friendship).data.followingId == request.auth.uid && get(friendship).data.followerId == data.toUserId && get(friendship).data.status == 1) ||
+        (data.type == 'perspective_change' && get(post).data.get('authorId', '') == request.auth.uid && get(comment).data.postId == data.postId && get(comment).data.commentorId == data.toUserId);
+    }
+    match /notifications/{id} {
+      allow read: if self(resource.data.toUserId);
+      allow create: if self(request.resource.data.fromUserId) && text(request.resource.data.toUserId, 128) &&
+        request.resource.data.type in ['like','hug','metoo','comment','friend_request','friend_request_accepted','perspective_change'] &&
+        request.resource.data.read == false && request.resource.data.timestamp == request.time &&
+        request.resource.data.keys().hasOnly(['type','fromUserId','fromUserName','toUserId','postId','postTitle','commentText','commentId','friendshipId','rating','read','createdAt','timestamp']) && notificationSource(request.resource.data) &&
+        (request.resource.data.type != 'perspective_change' || (get(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.get('authorId', '') == request.auth.uid && get(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.commentorId == request.resource.data.toUserId && request.resource.data.rating is number && request.resource.data.rating >= -200 && request.resource.data.rating <= 200));
+      allow update: if self(resource.data.toUserId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'status']) && request.resource.data.read is bool &&
+        (!('status' in request.resource.data) || (resource.data.type == 'friend_request' && request.resource.data.status in ['accepted', 'rejected']));
+      allow delete: if self(resource.data.toUserId);
+    }
+    match /reports/{id} {
+      allow create: if self(request.resource.data.reporterId) && request.resource.data.keys().hasOnly(['reporterId','postId','reason','status','createdAt']) &&
+        request.resource.data.status == 'pending' && text(request.resource.data.reason, 1000) && request.resource.data.createdAt == request.time &&
+        exists(/databases/$(database)/documents/posts/$(request.resource.data.postId));
+      allow read: if moderator() || self(resource.data.reporterId);
+      allow update: if moderator() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','resolution','reviewedAt']) &&
+        request.resource.data.status in ['reviewing','resolved','dismissed'] && text(request.resource.data.resolution,1000);
+    }
+    match /moodEntries/{id} {
+      allow read, delete: if self(resource.data.userId);
+      allow create: if self(request.resource.data.userId);
+      allow update: if self(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+    }
+    match /moodGoals/{id} {
+      allow read, delete: if self(resource.data.userId);
+      allow create: if self(request.resource.data.userId);
+      allow update: if self(resource.data.userId) && request.resource.data.userId == resource.data.userId;
     }
   }
 }

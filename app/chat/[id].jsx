@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-    addDoc,
     collection,
     doc,
     getDoc,
@@ -11,6 +10,7 @@ import {
     query,
     serverTimestamp,
     setDoc,
+    writeBatch,
     where
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
@@ -33,20 +33,6 @@ import Avatar from "../../components/Avatar";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-
-// Helper functions for category colors
-const getCategoryColor = (category) => {
-    const colors = {
-        Study: "#FFE082",
-        "Mental Health": "#B39DDB",
-        Mindfulness: "#FFE082",
-        Stress: "#FFAB91",
-        Anxiety: "#B39DDB",
-        Relationship: "#F48FB1",
-        Family: "#80CBC4"
-    };
-    return colors[category] || "#E5E7EB";
-};
 
 // SharedPostCard component with live data
 function SharedPostCard({ postData, isMe }) {
@@ -107,11 +93,10 @@ function SharedPostCard({ postData, isMe }) {
 
     useEffect(() => {
         if (!postData.authorId || postData.isAnonymous) {
-            setAuthorProfileCode(null);
             return;
         }
 
-        const userRef = doc(db, "users", postData.authorId);
+        const userRef = doc(db, "publicProfiles", postData.authorId);
         const unsubscribe = onSnapshot(
             userRef,
             (docSnapshot) => {
@@ -241,7 +226,7 @@ export default function ChatScreen() {
     useEffect(() => {
         const fetchRecipient = async () => {
             try {
-                const userDoc = await getDoc(doc(db, "users", id));
+                const userDoc = await getDoc(doc(db, "publicProfiles", id));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     setRecipient({
@@ -262,10 +247,16 @@ export default function ChatScreen() {
     useEffect(() => {
         if (!chatId) return;
 
+        let stopped = false;
+        let unsubscribe = () => {};
+        const initialize = async () => {
+          try {
+            await setDoc(doc(db, "chats", chatId), { participants: [user.uid, id].sort() }, { merge: true });
+            if (stopped) return;
         const messagesRef = collection(db, "chats", chatId, "messages");
         const q = query(messagesRef, orderBy("createdAt", "asc"));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        unsubscribe = onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data()
@@ -278,10 +269,13 @@ export default function ChatScreen() {
                     [`unreadCount_${user.uid}`]: 0
                 }, { merge: true }).catch(console.error);
             }
-        });
+        }, (error) => { console.error("Message subscription failed", error); setLoading(false); });
 
-        return () => unsubscribe();
-    }, [chatId, user]);
+          } catch (error) { console.error("Could not open chat", error); if (!stopped) setLoading(false); }
+        };
+        initialize();
+        return () => { stopped = true; unsubscribe(); };
+    }, [chatId, user, id]);
 
     // Handle Keyboard events
     // Handle Keyboard events with height tracking
@@ -322,8 +316,9 @@ export default function ChatScreen() {
         try {
             const chatRef = doc(db, "chats", chatId);
 
-            await setDoc(chatRef, {
-                participants: [user.uid, id],
+            const batch = writeBatch(db);
+            batch.set(chatRef, {
+                participants: [user.uid, id].sort(),
                 lastMessage: text,
                 lastMessageTimestamp: serverTimestamp(),
                 updatedAt: serverTimestamp(),
@@ -343,11 +338,14 @@ export default function ChatScreen() {
                 messageData.replyToSender = currentReply.senderName;
             }
 
-            await addDoc(collection(db, "chats", chatId, "messages"), messageData);
+            batch.set(doc(collection(db, "chats", chatId, "messages")), messageData);
+            await batch.commit();
 
         } catch (error) {
             console.error("Error sending message:", error);
-            alert("Failed to send message");
+            setInputText(text);
+            setReplyingTo(currentReply);
+            alert("Message not sent. Your draft has been restored.");
         } finally {
             setSending(false);
         }

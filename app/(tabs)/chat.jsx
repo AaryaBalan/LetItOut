@@ -89,7 +89,7 @@ export default function ChatTab() {
             for (const friendId of ids) {
                 if (friendId === user.uid) continue;
 
-                const userDoc = await getDoc(doc(db, "users", friendId));
+                const userDoc = await getDoc(doc(db, "publicProfiles", friendId));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     friendsData.push({
@@ -111,7 +111,8 @@ export default function ChatTab() {
     }, [user]);
 
     useEffect(() => {
-        fetchFriends();
+        const timer = setTimeout(() => { void fetchFriends(); }, 0);
+        return () => clearTimeout(timer);
     }, [fetchFriends]);
 
     const onRefresh = () => {

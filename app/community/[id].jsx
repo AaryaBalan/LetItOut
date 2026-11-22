@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     FlatList,
     Modal,
@@ -97,97 +97,7 @@ const getCategoryTheme = (category, isDark) => {
     return themes[category] || themes["Other"];
 };
 
-export default function CommunityDetail() {
-    const { id } = useLocalSearchParams();
-    const { theme } = useTheme();
-    const router = useRouter();
-    const [posts, setPosts] = useState([]);
-    const [filteredPosts, setFilteredPosts] = useState([]);
-    const [selectedFilter, setSelectedFilter] = useState("latest");
-    const [selectedSort, setSelectedSort] = useState("recent");
-    const [selectedMood, setSelectedMood] = useState(null);
-    const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
-    const [showFilterModal, setShowFilterModal] = useState(false);
-    const [loading, setLoading] = useState(true);
-
-    const categoryData = CATEGORIES.find((cat) => cat.id === id);
-
-    useEffect(() => {
-        const postsRef = collection(db, "posts");
-        const q = query(postsRef, orderBy("createdAt", "desc"));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const fetched = snapshot.docs.map((doc) => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    title: data.title || "",
-                    description: data.description || "",
-                    category: data.category || "",
-                    timestamp: data.createdAt
-                        ? getTimeAgo(data.createdAt)
-                        : "Just now",
-                    isAnonymous: data.isAnonymous,
-                    authorName: data.authorName || "Anonymous",
-                    authorId: data.authorId,
-                    createdAt: data.createdAt,
-                    reactions: data.reactions || { like: 0, hug: 0, metoo: 0 },
-                    commentCount: data.commentCount || 0,
-                    reactionCount: data.reactionCount || 0,
-                    helpNeeded: data.helpNeeded || false,
-                    feelPercentage: data.feelPercentage ?? 0
-                };
-            });
-            setPosts(fetched);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        // Filter by category (show all if id is 'All')
-        let filtered = id === "All"
-            ? posts
-            : posts.filter((p) => p.category === id);
-
-        // ENFORCE ANONYMOUS ONLY if toggle is on
-        if (showAnonymousOnly) {
-            filtered = filtered.filter(p => p.isAnonymous);
-        }
-
-        // Filter by mood if selected
-        if (selectedMood === "depression") {
-            filtered = filtered.filter((p) => {
-                const feel = p.feelPercentage ?? 0;
-                return feel < 0;
-            });
-        } else if (selectedMood === "happiness") {
-            filtered = filtered.filter((p) => (p.feelPercentage ?? 0) >= 0);
-        }
-
-        // Handle different sort options
-        if (selectedFilter === "help" || selectedSort === "help") {
-            filtered.sort((a, b) => {
-                if (a.helpNeeded && !b.helpNeeded) return -1;
-                if (!a.helpNeeded && b.helpNeeded) return 1;
-                return (b.reactionCount || 0) - (a.reactionCount || 0);
-            });
-        } else if (selectedSort === "popular") {
-            filtered.sort(
-                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
-            );
-        } else if (selectedSort === "mostCommented") {
-            filtered.sort(
-                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
-            );
-        }
-        // Default: recent (by createdAt desc - already from Firebase)
-
-        setFilteredPosts(filtered);
-    }, [posts, id, selectedFilter, selectedSort, selectedMood, showAnonymousOnly]);
-
-    const getTimeAgo = (timestamp) => {
+    function getTimeAgo(timestamp) {
         if (!timestamp) return "Just now";
 
         if (typeof timestamp === 'string') {
@@ -232,6 +142,97 @@ export default function CommunityDetail() {
         if (diffInDays < 365) return `${diffInMonths}mon ago`;
         return `${diffInYears}yr ago`;
     };
+
+export default function CommunityDetail() {
+    const { id } = useLocalSearchParams();
+    const { theme } = useTheme();
+    const router = useRouter();
+    const [posts, setPosts] = useState([]);
+    const [selectedFilter, setSelectedFilter] = useState("latest");
+    const [selectedSort, setSelectedSort] = useState("recent");
+    const [selectedMood, setSelectedMood] = useState(null);
+    const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    const categoryData = CATEGORIES.find((cat) => cat.id === id);
+
+    useEffect(() => {
+        const postsRef = collection(db, "posts");
+        const q = query(postsRef, orderBy("createdAt", "desc"));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetched = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    title: data.title || "",
+                    description: data.description || "",
+                    category: data.category || "",
+                    timestamp: data.createdAt
+                        ? getTimeAgo(data.createdAt)
+                        : "Just now",
+                    isAnonymous: data.isAnonymous,
+                    authorName: data.authorName || "Anonymous",
+                    authorId: data.authorId,
+                    createdAt: data.createdAt,
+                    reactions: data.reactions || { like: 0, hug: 0, metoo: 0 },
+                    commentCount: data.commentCount || 0,
+                    reactionCount: data.reactionCount || 0,
+                    helpNeeded: data.helpNeeded || false,
+                    feelPercentage: data.feelPercentage ?? 0
+                };
+            });
+            setPosts(fetched);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const filteredPosts = useMemo(() => {
+        // Filter by category (show all if id is 'All')
+        let filtered = id === "All"
+            ? [...posts]
+            : posts.filter((p) => p.category === id);
+
+        // ENFORCE ANONYMOUS ONLY if toggle is on
+        if (showAnonymousOnly) {
+            filtered = filtered.filter(p => p.isAnonymous);
+        }
+
+        // Filter by mood if selected
+        if (selectedMood === "depression") {
+            filtered = filtered.filter((p) => {
+                const feel = p.feelPercentage ?? 0;
+                return feel < 0;
+            });
+        } else if (selectedMood === "happiness") {
+            filtered = filtered.filter((p) => (p.feelPercentage ?? 0) >= 0);
+        }
+
+        // Handle different sort options
+        if (selectedFilter === "help" || selectedSort === "help") {
+            filtered.sort((a, b) => {
+                if (a.helpNeeded && !b.helpNeeded) return -1;
+                if (!a.helpNeeded && b.helpNeeded) return 1;
+                return (b.reactionCount || 0) - (a.reactionCount || 0);
+            });
+        } else if (selectedSort === "popular") {
+            filtered.sort(
+                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
+            );
+        } else if (selectedSort === "mostCommented") {
+            filtered.sort(
+                (a, b) => (b.reactionCount || 0) - (a.reactionCount || 0),
+            );
+        }
+        // Default: recent (by createdAt desc - already from Firebase)
+
+        return filtered;
+    }, [posts, id, selectedFilter, selectedSort, selectedMood, showAnonymousOnly]);
+
+
 
     const catTheme = getCategoryTheme(id, theme.isDark);
 

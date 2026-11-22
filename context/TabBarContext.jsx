@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef } from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
 import { Animated, Easing } from "react-native";
 
 const TabBarContext = createContext({
@@ -8,7 +8,7 @@ const TabBarContext = createContext({
 });
 
 export const TabBarProvider = ({ children }) => {
-  const translateY = useRef(new Animated.Value(0)).current;
+  const [translateY] = useState(() => new Animated.Value(0));
   const isHidden = useRef(false);
 
   const showTabBar = () => {

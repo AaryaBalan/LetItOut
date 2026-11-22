@@ -42,7 +42,7 @@ export default function MoodDashboard() {
 
   // Breathing animation for the mood orb
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(orbScale, {
           toValue: 1.06,
@@ -55,8 +55,10 @@ export default function MoodDashboard() {
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, []);
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [orbScale]);
 
   // Real-time listener for mood entries
   useEffect(() => {
@@ -284,7 +286,7 @@ export default function MoodDashboard() {
                 color={theme.textSecondary}
               />
               <Text style={[styles.heroLabel, { color: theme.text }]}>
-                Today's Mood
+                Today&apos;s Mood
               </Text>
             </View>
             <Text style={[styles.heroDate, { color: theme.textTertiary }]}>
@@ -341,7 +343,7 @@ export default function MoodDashboard() {
                   <Text
                     style={[styles.scoreText, { color: theme.textTertiary }]}
                   >
-                    Tap to log today's mood
+                    Tap to log today&apos;s mood
                   </Text>
                 </View>
               </View>

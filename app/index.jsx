@@ -55,7 +55,7 @@ export default function Index() {
             <View style={styles.contentContainer}>
                 <View style={styles.textContainer}>
                     <Text style={styles.heroTitle}>
-                        Support That's{"\n"}Always Close
+                        Support That&apos;s{"\n"}Always Close
                     </Text>
                     <Text style={styles.heroSubtitle}>
                         Anonymous sharing, guidance,{"\n"}and support - all in one place.

@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, limit, startAfter, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -26,8 +26,8 @@ import TabScreenWrapper from "../../components/TabScreenWrapper";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { useTabBar } from "../../context/TabBarContext";
+import { useAlert } from "../../context/AlertContext";
 import { useTheme } from "../../context/ThemeContext";
-import { posts as dummyPosts } from "../../data/dummyData";
 
 const getCategoryTheme = (category, isDark) => {
   const themes = {
@@ -55,185 +55,7 @@ const getCategoryIcon = (category) => {
   }
 };
 
-export default function Home() {
-  const { user, logout } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
-  const router = useRouter();
-  const lastOffsetY = useRef(0);
-  const { showTabBar, hideTabBar } = useTabBar();
-  const insets = useSafeAreaInsets();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
-  const drawerSlideAnim = useRef(new Animated.Value(-400)).current;
-  const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
-
-  const openDrawer = useCallback(() => {
-    setIsDrawerOpen(true);
-  }, []);
-
-  useEffect(() => {
-    if (isDrawerOpen) {
-      drawerSlideAnim.setValue(-400);
-      backdropOpacityAnim.setValue(0);
-      Animated.parallel([
-        Animated.timing(backdropOpacityAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(drawerSlideAnim, {
-          toValue: 0,
-          duration: 300,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        })
-      ]).start();
-    }
-  }, [isDrawerOpen, drawerSlideAnim, backdropOpacityAnim]);
-
-  const closeDrawer = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(backdropOpacityAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(drawerSlideAnim, {
-        toValue: -400,
-        duration: 250,
-        easing: Easing.in(Easing.ease),
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      setIsDrawerOpen(false);
-    });
-  }, [drawerSlideAnim, backdropOpacityAnim]);
-  const [selectedCategory, setSelectedCategory] = useState("All Feed");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [firebasePosts, setFirebasePosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const translateYHeader = useRef(new Animated.Value(0)).current;
-  const headerHidden = useRef(false);
-
-  const showHeader = useCallback(() => {
-    if (!headerHidden.current) return;
-    headerHidden.current = false;
-    Animated.timing(translateYHeader, {
-      toValue: 0,
-      duration: 250,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-      useNativeDriver: true }).start();
-  }, [translateYHeader]);
-
-  const hideHeader = useCallback(() => {
-    if (headerHidden.current) return;
-    headerHidden.current = true;
-    Animated.timing(translateYHeader, {
-      toValue: -220,
-      duration: 250,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-      useNativeDriver: true }).start();
-  }, [translateYHeader]);
-
-  // Filter States
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [selectedSort, setSelectedSort] = useState("recent");
-  const [selectedFilter, setSelectedFilter] = useState("latest");
-  const [selectedMood, setSelectedMood] = useState(null);
-  const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const slideAnim = useState(new Animated.Value(-100))[0]; // Start off-screen
-
-  useEffect(() => {
-    if (refreshing) {
-      // Reset and animate in
-      slideAnim.setValue(-100);
-      Animated.spring(slideAnim, {
-        toValue: 100, // Target position
-        useNativeDriver: true,
-        friction: 6,
-        tension: 40 }).start();
-    }
-  }, [refreshing, slideAnim]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    // Simulate refresh since Firestore is real-time
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  };
-
-  const categories = [
-    "All Feed",
-    "Stress",
-    "Family",
-    "Mental Health",
-    "Study",
-    "Relationship",
-    "Other"
-  ];
-
-  // Fetch posts from Firebase in real-time
-  useEffect(() => {
-    const postsRef = collection(db, "posts");
-    const q = query(postsRef, orderBy("createdAt", "desc"));
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const fetchedPosts = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            title: data.title,
-            description: data.description,
-            category: data.category,
-            timestamp: data.createdAt
-              ? getTimeAgo(data.createdAt)
-              : "Just now",
-            createdAtDate: data.createdAt ? new Date(data.createdAt.seconds * 1000) : new Date(),
-            reactions: data.reactions || { support: 0, hug: 0 },
-            reactionCount: data.reactionCount || 0,
-            comments: data.comments || [],
-            commentCount: data.comments?.length || 0,
-            isAnonymous: data.isAnonymous,
-            authorName: data.authorName || "Anonymous",
-            authorId: data.authorId,
-            feelPercentage: data.feelPercentage,
-            helpNeeded: data.helpNeeded };
-        });
-        setFirebasePosts(fetchedPosts);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching posts:", error);
-        setLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, []);
-
-  // Ensure header and tab bar are visible on mount
-  useEffect(() => {
-    showHeader();
-    showTabBar();
-  }, [showHeader, showTabBar]);
-
-  // Show header and tab bar if search is expanded
-  useEffect(() => {
-    if (isSearchExpanded) {
-      showHeader();
-      showTabBar();
-    }
-  }, [isSearchExpanded, showHeader, showTabBar]);
-
-
-
-  // Helper function to calculate time ago
-  const getTimeAgo = (timestamp) => {
+  function getTimeAgo(timestamp) {
     if (!timestamp) return "Just now";
 
     if (typeof timestamp === 'string') {
@@ -279,8 +101,218 @@ export default function Home() {
     return `${diffInYears}yr ago`;
   };
 
+export default function Home() {
+  const { user, logout } = useAuth();
+  const { showAlert } = useAlert();
+  const { theme, toggleTheme, isDark } = useTheme();
+  const router = useRouter();
+  const lastOffsetY = useRef(0);
+  const { showTabBar, hideTabBar } = useTabBar();
+  const insets = useSafeAreaInsets();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [drawerSlideAnim] = useState(() => new Animated.Value(-400));
+  const [backdropOpacityAnim] = useState(() => new Animated.Value(0));
+
+  const openDrawer = useCallback(() => {
+    setIsDrawerOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      drawerSlideAnim.setValue(-400);
+      backdropOpacityAnim.setValue(0);
+      Animated.parallel([
+        Animated.timing(backdropOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(drawerSlideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [isDrawerOpen, drawerSlideAnim, backdropOpacityAnim]);
+
+  const closeDrawer = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(backdropOpacityAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(drawerSlideAnim, {
+        toValue: -400,
+        duration: 250,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      setIsDrawerOpen(false);
+    });
+  }, [drawerSlideAnim, backdropOpacityAnim]);
+  const [selectedCategory, setSelectedCategory] = useState("All Feed");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [firebasePosts, setFirebasePosts] = useState([]);
+  const [olderPosts, setOlderPosts] = useState([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pageCursor = useRef(null);
+  const paging = useRef(false);
+  const loadMore = async () => {
+    if (!hasMore || paging.current || !pageCursor.current) return;
+    paging.current = true;
+    setLoadingMore(true);
+    try {
+      const page = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc"), startAfter(pageCursor.current), limit(20)));
+      if (page.docs.length) pageCursor.current = page.docs[page.docs.length - 1];
+      setOlderPosts(previous => [...previous, ...page.docs.map(d => ({ ...d.data(), id: d.id, timestamp: getTimeAgo(d.data().createdAt), createdAtDate: new Date(d.data().createdAt?.seconds ? d.data().createdAt.seconds * 1000 : d.data().createdAt) }))]);
+      setHasMore(page.size === 20);
+    } catch { showAlert("Could not load more posts", "Check your connection and try again."); }
+    finally { paging.current = false; setLoadingMore(false); }
+  };
+  const [loading, setLoading] = useState(true);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [translateYHeader] = useState(() => new Animated.Value(0));
+  const headerHidden = useRef(false);
+
+  const showHeader = useCallback(() => {
+    if (!headerHidden.current) return;
+    headerHidden.current = false;
+    Animated.timing(translateYHeader, {
+      toValue: 0,
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true }).start();
+  }, [translateYHeader]);
+
+  const hideHeader = useCallback(() => {
+    if (headerHidden.current) return;
+    headerHidden.current = true;
+    Animated.timing(translateYHeader, {
+      toValue: -220,
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true }).start();
+  }, [translateYHeader]);
+
+  // Filter States
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedSort, setSelectedSort] = useState("recent");
+  const [selectedFilter, setSelectedFilter] = useState("latest");
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [showAnonymousOnly, setShowAnonymousOnly] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const slideAnim = useState(new Animated.Value(-100))[0]; // Start off-screen
+
+  useEffect(() => {
+    if (refreshing) {
+      // Reset and animate in
+      slideAnim.setValue(-100);
+      Animated.spring(slideAnim, {
+        toValue: 100, // Target position
+        useNativeDriver: true,
+        friction: 6,
+        tension: 40 }).start();
+    }
+  }, [refreshing, slideAnim]);
+
+  const onRefresh = async () => {
+    if (refreshing || paging.current) return;
+    setRefreshing(true);
+    try {
+      const page = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20)));
+      setFirebasePosts(page.docs.map(d => ({ ...d.data(), id: d.id,
+        timestamp: getTimeAgo(d.data().createdAt),
+        createdAtDate: new Date(d.data().createdAt?.seconds ? d.data().createdAt.seconds * 1000 : d.data().createdAt)
+      })));
+      setOlderPosts([]);
+      pageCursor.current = page.docs[page.docs.length - 1] || null;
+      setHasMore(page.size === 20);
+    } catch { showAlert("Refresh failed", "Check your connection and try again."); }
+    finally { setRefreshing(false); }
+  };
+
+  const categories = [
+    "All Feed",
+    "Stress",
+    "Family",
+    "Mental Health",
+    "Study",
+    "Relationship",
+    "Other"
+  ];
+
+  // Fetch posts from Firebase in real-time
+  useEffect(() => {
+    const postsRef = collection(db, "posts");
+    const q = query(postsRef, orderBy("createdAt", "desc"), limit(20));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fetchedPosts = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description,
+            category: data.category,
+            timestamp: data.createdAt
+              ? getTimeAgo(data.createdAt)
+              : "Just now",
+            createdAtDate: data.createdAt ? new Date(data.createdAt?.seconds ? data.createdAt.seconds * 1000 : data.createdAt) : new Date(),
+            reactions: data.reactions || { support: 0, hug: 0 },
+            reactionCount: data.reactionCount || 0,
+            comments: data.comments || [],
+            commentCount: data.comments?.length || 0,
+            isAnonymous: data.isAnonymous,
+            authorName: data.authorName || "Anonymous",
+            authorId: data.authorId,
+            feelPercentage: data.feelPercentage,
+            helpNeeded: data.helpNeeded };
+        });
+        if (!pageCursor.current) {
+          pageCursor.current = snapshot.docs[snapshot.docs.length - 1] || null;
+          setHasMore(snapshot.size === 20);
+        }
+        setFirebasePosts(fetchedPosts);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching posts:", error);
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Ensure header and tab bar are visible on mount
+  useEffect(() => {
+    showHeader();
+    showTabBar();
+  }, [showHeader, showTabBar]);
+
+  // Show header and tab bar if search is expanded
+  useEffect(() => {
+    if (isSearchExpanded) {
+      showHeader();
+      showTabBar();
+    }
+  }, [isSearchExpanded, showHeader, showTabBar]);
+
+
+
+  // Helper function to calculate time ago
+
+
   // Combine Firebase posts with dummy data
-  const allPosts = [...firebasePosts, ...dummyPosts];
+  const allPosts = [...new Map([...olderPosts, ...firebasePosts].map(post => [post.id, post])).values()];
 
   const filteredPosts = allPosts.filter((post) => {
     // 1. Filter by category
@@ -473,8 +505,6 @@ export default function Home() {
               {categories.map((category) => {
                 const catTheme = getCategoryTheme(category, theme.isDark);
                 const isActive = selectedCategory === category;
-                const isFirst = category === categories[0];
-                const hasActiveFilters = (selectedSort !== "recent" || selectedFilter !== "latest" || selectedMood !== null || showAnonymousOnly);
                 return (
                   <TouchableOpacity
                     key={category}
@@ -508,6 +538,8 @@ export default function Home() {
         </Animated.View>
 
         <FlatList
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
           onScroll={(event) => {
             const currentOffsetY = event.nativeEvent.contentOffset.y;
             const diff = currentOffsetY - lastOffsetY.current;
@@ -538,7 +570,7 @@ export default function Home() {
             <View style={{ height: 116 + insets.top }} />
           }
           ListFooterComponent={
-            loading ? (
+            loading || loadingMore ? (
               <View style={styles.emptyContainer}>
                 <Loading size="large" text="Loading posts..." />
               </View>
@@ -560,10 +592,11 @@ export default function Home() {
                 </View>
                 <Text style={[styles.emptyTitle, { color: theme.text, fontSize: 18, fontFamily: 'Fredoka-Bold',  marginBottom: 8 }]}>No matches found</Text>
                 <Text style={[styles.emptySubtext, { color: theme.textSecondary, maxWidth: 280, textAlign: 'center', lineHeight: 20 }]}>
-                  We looked everywhere but couldn&apos;t find what you&apos;re looking for.
+                  No matches in the posts loaded so far. Clear filters or load more posts.
                 </Text>
+                {hasMore && <TouchableOpacity onPress={loadMore} style={{ padding: 16 }}><Text style={{ color: theme.text }}>Load more posts</Text></TouchableOpacity>}
               </View>
-            ) : null
+            ) : hasMore ? <TouchableOpacity onPress={loadMore} style={{ padding: 20 }}><Text style={{ color: theme.text, textAlign: "center" }}>Load more posts</Text></TouchableOpacity> : null
           }
           refreshControl={
             <RefreshControl

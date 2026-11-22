@@ -97,11 +97,10 @@ export default function PostCard({ post, hideDescription = false }) {
     // Fetch author profile code with real-time updates
     useEffect(() => {
         if (!post.authorId || post.isAnonymous) {
-            setAuthorProfileCode(null);
             return;
         }
 
-        const userRef = doc(db, "users", post.authorId);
+        const userRef = doc(db, "publicProfiles", post.authorId);
         const unsubscribe = onSnapshot(
             userRef,
             (docSnapshot) => {
@@ -174,7 +173,7 @@ export default function PostCard({ post, hideDescription = false }) {
             for (const comment of fetchedComments) {
                 if (comment.commentorId) {
                     try {
-                        const userDoc = await getDoc(doc(db, "users", comment.commentorId));
+                        const userDoc = await getDoc(doc(db, "publicProfiles", comment.commentorId));
                         if (userDoc.exists()) {
                             const userData = userDoc.data();
                             profiles[comment.commentorId] = userData.profileCode || userData.email || null;
