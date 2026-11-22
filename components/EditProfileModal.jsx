@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, writeBatch } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import {
     Modal,
@@ -41,7 +41,8 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
     useEffect(() => {
         if (visible && user) {
             // Fetch latest user data
-            fetchUserData();
+            const timer = setTimeout(() => { void fetchUserData(); }, 0);
+            return () => clearTimeout(timer);
         }
     }, [visible, user, fetchUserData]);
 
@@ -54,11 +55,11 @@ export default function EditProfileModal({ visible, onClose, user, onUpdate }) {
         setLoading(true);
         try {
             const userRef = doc(db, "users", user.uid);
-            await updateDoc(userRef, {
-                displayName: displayName.trim(),
-                bio: bio.trim(),
-                phoneNumber: phoneNumber.trim(),
-                updatedAt: new Date() });
+            const batch = writeBatch(db);
+            const publicData = { displayName: displayName.trim(), bio: bio.trim(), updatedAt: new Date() };
+            batch.update(userRef, { ...publicData, phoneNumber: phoneNumber.trim() });
+            batch.set(doc(db, "publicProfiles", user.uid), publicData, { merge: true });
+            await batch.commit();
 
             showAlert("Success", "Profile updated successfully!");
             onUpdate();

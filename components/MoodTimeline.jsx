@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { MOOD_OPTIONS } from "./MoodSelector";
 

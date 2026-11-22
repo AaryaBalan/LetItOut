@@ -26,8 +26,7 @@ function TabsLayoutInner() {
             let totalUnread = 0;
             snapshot.docs.forEach((docSnap) => {
                 const data = docSnap.data();
-                const unreadCount = data.unreadCount || {};
-                totalUnread += unreadCount[user.uid] || 0;
+                totalUnread += data[`unreadCount_${user.uid}`] || 0;
             });
             setUnreadChatCount(totalUnread);
         });

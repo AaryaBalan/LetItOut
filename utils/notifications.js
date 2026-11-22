@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
 
 /**
@@ -120,6 +120,7 @@ export const createCommentNotification = async (
     commenterUserId,
     commenterUserName,
     commentText,
+    commentId,
 ) => {
     // Don't notify if user comments on their own post
     if (postAuthorId === commenterUserId) return;
@@ -133,6 +134,7 @@ export const createCommentNotification = async (
             postId: String(postId),
             postTitle: postTitle,
             commentText: commentText,
+            commentId: commentId,
             read: false,
             createdAt: new Date().toISOString(),
             timestamp: serverTimestamp(),
@@ -149,11 +151,13 @@ export const createCommentNotification = async (
 export const createFriendRequestNotification = async (
     recipientId,
     senderId,
-    senderName
+    senderName,
+    friendshipId
 ) => {
     try {
         await addDoc(collection(db, "notifications"), {
             type: "friend_request",
+            friendshipId,
             fromUserId: senderId,
             fromUserName: senderName || "Anonymous",
             toUserId: recipientId,
@@ -173,11 +177,13 @@ export const createFriendRequestNotification = async (
 export const createFriendRequestAcceptedNotification = async (
     recipientId, // The person who sent the request (User A)
     accepterId,  // The person who accepted (User B)
-    accepterName
+    accepterName,
+    friendshipId
 ) => {
     try {
         await addDoc(collection(db, "notifications"), {
             type: "friend_request_accepted",
+            friendshipId,
             fromUserId: accepterId,
             fromUserName: accepterName || "Anonymous",
             toUserId: recipientId,
@@ -207,58 +213,11 @@ export const createPerspectiveNotification = async (
     if (commenterUserId === authorUserId) return;
 
     try {
-        const notificationsRef = collection(db, "notifications");
-        
-        // 1. Primary Query: Match specific commentId
-        let q = query(
-            notificationsRef,
-            where("type", "==", "perspective_change"),
-            where("postId", "==", String(postId)),
-            where("commentId", "==", String(commentId))
-        );
-        let snapshot = await getDocs(q);
-
-        // 2. Fallback Query: Match post & users (for legacy notifications without commentId)
-        if (snapshot.empty) {
-            const fallbackQuery = query(
-                notificationsRef,
-                where("type", "==", "perspective_change"),
-                where("postId", "==", String(postId)),
-                where("toUserId", "==", commenterUserId),
-                where("fromUserId", "==", authorUserId)
-            );
-            snapshot = await getDocs(fallbackQuery);
-        }
-
-        if (!snapshot.empty) {
-            // Update the existing notification document and bump it to the top
-            const existingNotifId = snapshot.docs[0].id;
-            const notifDocRef = doc(db, "notifications", existingNotifId);
-            await updateDoc(notifDocRef, {
-                rating: Number(rating),
-                read: false,
-                commentId: String(commentId), // Populate commentId for future primary matches
-                createdAt: new Date().toISOString(),
-                timestamp: serverTimestamp(),
-            });
-            console.log("Perspective notification updated and bumped to top");
-        } else {
-            // Create a new notification document
-            await addDoc(collection(db, "notifications"), {
-                type: "perspective_change",
-                fromUserId: authorUserId,
-                fromUserName: authorUserName || "Anonymous",
-                toUserId: commenterUserId,
-                postId: String(postId),
-                postTitle: postTitle,
-                commentId: String(commentId),
-                rating: Number(rating),
-                read: false,
-                createdAt: new Date().toISOString(),
-                timestamp: serverTimestamp(),
-            });
-            console.log("New perspective notification created");
-        }
+        await addDoc(collection(db, "notifications"), {
+            type: "perspective_change", fromUserId: authorUserId, fromUserName: authorUserName || "Anonymous",
+            toUserId: commenterUserId, postId: String(postId), postTitle, commentId: String(commentId),
+            rating: Number(rating), read: false, createdAt: new Date().toISOString(), timestamp: serverTimestamp()
+        });
     } catch (error) {
         console.error("Error creating/updating perspective notification:", error);
     }

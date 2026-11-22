@@ -76,7 +76,7 @@ export default function Explore() {
             for (const post of top10) {
                 if (post.authorId && !post.isAnonymous) {
                     try {
-                        const userRef = doc(db, "users", post.authorId);
+                        const userRef = doc(db, "publicProfiles", post.authorId);
                         const userSnap = await getDoc(userRef);
                         if (userSnap.exists()) {
                             const userData = userSnap.data();

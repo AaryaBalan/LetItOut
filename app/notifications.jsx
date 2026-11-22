@@ -44,7 +44,6 @@ export default function Notifications() {
     useEffect(() => {
         showTabBar();
         if (!user) {
-            setLoading(false);
             return;
         }
 
@@ -77,7 +76,7 @@ export default function Notifications() {
 
                 for (const userId of userIds) {
                     try {
-                        const userDoc = await getDoc(doc(db, "users", userId));
+                        const userDoc = await getDoc(doc(db, "publicProfiles", userId));
                         if (userDoc.exists()) {
                             const userData = userDoc.data();
                             profileCodes[userId] =
@@ -285,7 +284,8 @@ export default function Notifications() {
             await createFriendRequestAcceptedNotification(
                 notification.fromUserId,
                 user.uid,
-                user.displayName
+                user.displayName,
+                snapshot.docs[0].id
             );
 
         } catch (error) {

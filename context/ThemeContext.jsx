@@ -10,10 +10,7 @@ export const ThemeProvider = ({ children }) => {
   const [themeLoaded, setThemeLoaded] = useState(false);
 
   useEffect(() => {
-    loadTheme();
-  }, []);
-
-  const loadTheme = async () => {
+    async function loadTheme() {
     try {
       const savedTheme = await AsyncStorage.getItem('theme');
       if (savedTheme !== null) {
@@ -29,6 +26,9 @@ export const ThemeProvider = ({ children }) => {
       setThemeLoaded(true);
     }
   };
+
+    loadTheme();
+  }, []);
 
   const toggleTheme = async () => {
     try {

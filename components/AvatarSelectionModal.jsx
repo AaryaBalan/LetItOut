@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
     Modal,
     Pressable,
@@ -20,15 +20,15 @@ const AVATAR_COLORS = [
     '#FEF9C3', // Yellow
 ];
 
-export default function AvatarSelectionModal({
+function AvatarSelectionEditor({
     visible,
     onClose,
     onSelect,
     currentSeed }) {
     const { theme } = useTheme();
-    const [randomSeeds, setRandomSeeds] = useState([]);
-    const [selectedSeed, setSelectedSeed] = useState('');
-    const [selectedBg, setSelectedBg] = useState(AVATAR_COLORS[0]);
+    const [randomSeeds, setRandomSeeds] = useState(() => Array.from({ length: 12 }, () => Math.random().toString(36).slice(2, 15)));
+    const [selectedSeed, setSelectedSeed] = useState(() => (currentSeed || '').split('|')[0]);
+    const [selectedBg, setSelectedBg] = useState(() => (currentSeed || '').split('|')[1] || AVATAR_COLORS[0]);
 
     const generateRandomSeeds = () => {
         const seeds = Array.from({ length: 12 }, () =>
@@ -36,20 +36,6 @@ export default function AvatarSelectionModal({
         );
         setRandomSeeds(seeds);
     };
-
-    useEffect(() => {
-        if (visible) {
-            generateRandomSeeds();
-            if (typeof currentSeed === 'string' && currentSeed.includes('|')) {
-                const parts = currentSeed.split('|');
-                setSelectedSeed(parts[0]);
-                setSelectedBg(parts[1] || AVATAR_COLORS[0]);
-            } else {
-                setSelectedSeed(currentSeed);
-                setSelectedBg(AVATAR_COLORS[0]);
-            }
-        }
-    }, [visible, currentSeed]);
 
     const handleSelect = () => {
         onSelect(`${selectedSeed}|${selectedBg}`);
@@ -270,3 +256,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: "#FFFFFF",
         fontFamily: 'Fredoka-Regular' } });
+
+export default function AvatarSelectionModal(props) {
+  return props.visible ? <AvatarSelectionEditor {...props} /> : null;
+}

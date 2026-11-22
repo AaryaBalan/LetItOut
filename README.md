@@ -24,7 +24,7 @@ LetItOut brings a community feed, conversations, and personal reflection into on
 | Choose anonymous presentation for a post. | Send friend requests, chat, and share posts in conversations. | Use **My Center** to rate the impact of replies and review perspective shifts. |
 | Search and filter the feed to find relevant stories. | Customize your profile and avatar, and follow in-app notifications. | Switch between light and dark themes with a saved preference. |
 
-Anonymous posting changes how a post is presented in the interface; it does not imply that account data is anonymous to the backend. Perspective insights are based on the ratings entered in the app.
+Anonymous posts keep ownership in a private account record rather than publishing the author ID. This does not imply anonymity from database administrators. Perspective insights are based on the ratings entered in the app.
 
 ## Screen gallery
 
@@ -127,6 +127,10 @@ Original image files are stored in [`docs/images`](docs/images). The [source man
 | UI & motion | NativeWind, custom styles, Reanimated, Gesture Handler, and SVG |
 | Identity & illustration | DiceBear avatars, Expo vector icons, and bundled fonts |
 | Native integrations | Google Sign-In and Google Mobile Ads |
+
+## Security update
+
+Before deploying this version against an existing database, follow the [privacy migration and rollout guide](docs/security-rollout.md). The new rules require the updated client and migrated public profiles/reaction records. Use `npm run test:rules` (Java 21+) to verify access controls locally.
 
 ## Run locally
 

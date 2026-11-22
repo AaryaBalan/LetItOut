@@ -8,11 +8,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle, Path, Text as SvgText, G, Defs, LinearGradient, Stop } from "react-native-svg";
+import Svg, { Circle, Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import Loading from "../../components/Loading";
@@ -57,8 +56,7 @@ export default function InsightsScreen() {
     breakdown,
     topPositive,
     topChallenging,
-    lineChartData,
-    daysLabels
+    lineChartData
   } = useMemo(() => {
     const now = new Date();
     let startDate = new Date();
