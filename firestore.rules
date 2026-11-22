@@ -25,7 +25,7 @@ service cloud.firestore {
       }
     }
     match /publicProfiles/{uid} {
-      allow read: if signedIn();
+      allow read: if true;
       allow create, update: if self(uid) && request.resource.data.keys().hasOnly([
         'displayName', 'bio', 'profileCode', 'photoURL', 'createdAt', 'updatedAt'
       ]) && text(request.resource.data.displayName, 80) &&

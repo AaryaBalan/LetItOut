@@ -28,6 +28,8 @@ test('private account data is owner-only; public profile is allowlisted', async 
  await assertFails(getDoc(doc(db('bob'),'users','alice')));
  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'users','alice')));
  await assertSucceeds(getDoc(doc(db('bob'),'publicProfiles','alice')));
+ await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(),'publicProfiles','alice')));
+ await assertFails(setDoc(doc(env.unauthenticatedContext().firestore(),'publicProfiles','eve'),{displayName:'Eve'}));
  await assertFails(updateDoc(doc(db('alice'),'publicProfiles','alice'),{email:'leak@example.test'}));
 });
 test('message membership, sender identity and participant immutability', async () => {
