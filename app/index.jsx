@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
+    Platform,
     StatusBar,
     StyleSheet,
     Text,
@@ -170,7 +171,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingBottom: 40,
-        paddingTop: '50%', // Push text to middle-top like image
+        paddingTop: Platform.OS === 'web' ? 80 : '35%',
+        maxWidth: 480,
+        width: '100%',
+        alignSelf: 'center',
         zIndex: 10 },
     textContainer: {
         alignItems: 'center' },

@@ -1210,6 +1210,13 @@ export default function PostDetail() {
                                             commentorProfiles={commentorProfiles}
                                             themeOverride={activeTheme}
                                             postText={post?.description || ""}
+                                            onProfilePress={(commentorId) => {
+                                                if (user && user.uid === commentorId) {
+                                                    router.push("/(tabs)/profile");
+                                                } else {
+                                                    router.push(`/user/${commentorId}`);
+                                                }
+                                            }}
                                         />
                                     ))}
                                 </View>

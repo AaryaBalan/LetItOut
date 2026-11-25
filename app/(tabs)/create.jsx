@@ -23,7 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTabBar } from "../../context/TabBarContext";
 import { useTheme } from "../../context/ThemeContext";
 import { categories } from "../../data/dummyData";
-import { showInterstitialAd } from "../ads/InterstitialAds";
+import { showInterstitialAd } from "../../components/ads/InterstitialAds";
 import { useAlert } from "../../context/AlertContext";
 import { applyGhostVoice } from "../../utils/algorithms/ghostVoice";
 

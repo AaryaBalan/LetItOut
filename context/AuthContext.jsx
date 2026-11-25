@@ -11,17 +11,7 @@ import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/fires
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
 
-// Try to import Google Sign-In, but make it optional
-let GoogleSignin = null;
-let isGoogleSignInAvailable = false;
-
-try {
-  GoogleSignin =
-    require("@react-native-google-signin/google-signin").GoogleSignin;
-  isGoogleSignInAvailable = true;
-} catch (error) {
-  console.log("Google Sign-In not available:", error.message);
-}
+import { GoogleSignin, isGoogleSignInAvailable } from "../utils/googleAuth";
 
 const AuthContext = createContext({});
 

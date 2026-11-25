@@ -95,11 +95,6 @@ export const ThemeProvider = ({ children }) => {
     themeLoaded,
   };
 
-  // Don't render children until theme is loaded
-  if (!themeLoaded) {
-    return null;
-  }
-
   return (
     <ThemeContext.Provider value={value}>
       {children}

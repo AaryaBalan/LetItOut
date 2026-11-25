@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { computeReframingScore } from '../utils/algorithms/cbtReframing';
 import Avatar from './Avatar';
 import ReframingBadge from './ReframingBadge';
-import { computeReframingScore } from '../utils/algorithms/cbtReframing';
 
 const CommentThread = ({
     comment,
@@ -16,7 +16,8 @@ const CommentThread = ({
     userCommentSupports = {},
     commentorProfiles = {},
     themeOverride = null,
-    postText = ""
+    postText = "",
+    onProfilePress = null
 }) => {
     const { theme: contextTheme } = useTheme();
     const theme = themeOverride || contextTheme;
@@ -59,22 +60,35 @@ const CommentThread = ({
                 }]}>
                     <View style={styles.commentHeaderSection}>
                         {/* Avatar */}
-                        {comment.commentorId && commentorProfiles[comment.commentorId] ? (
-                            <Avatar seed={commentorProfiles[comment.commentorId]} size={depth > 0 ? 30 : 38} /> // Smaller avatars
-                        ) : (
-                            <View style={[styles.commentAvatarPlaceholder, {
-                                width: depth > 0 ? 24 : 28, // Smaller placeholders
-                                height: depth > 0 ? 24 : 28 }]}>
-                                <Ionicons name="person" size={12} color="#111827" />
-                            </View>
-                        )}
+                        <TouchableOpacity
+                            disabled={!comment.commentorId || !onProfilePress}
+                            onPress={() => comment.commentorId && onProfilePress?.(comment.commentorId)}
+                            activeOpacity={0.7}
+                        >
+                            {comment.commentorId && commentorProfiles[comment.commentorId] ? (
+                                <Avatar seed={commentorProfiles[comment.commentorId]} size={depth > 0 ? 30 : 38} />
+                            ) : (
+                                <View style={[styles.commentAvatarPlaceholder, {
+                                    width: depth > 0 ? 24 : 28,
+                                    height: depth > 0 ? 24 : 28
+                                }]}>
+                                    <Ionicons name="person" size={12} color="#111827" />
+                                </View>
+                            )}
+                        </TouchableOpacity>
 
                         <View style={styles.commentHeaderContent}>
                             {/* Header with collapse button */}
                             <View style={styles.commentHeader}>
-                                <Text style={[styles.commentUsername, { color: theme.text }]}>
-                                    {comment.username || 'Anonymous'}
-                                </Text>
+                                <TouchableOpacity
+                                    disabled={!comment.commentorId || !onProfilePress}
+                                    onPress={() => comment.commentorId && onProfilePress?.(comment.commentorId)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[styles.commentUsername, { color: theme.text }]}>
+                                        {comment.username || 'Anonymous'}
+                                    </Text>
+                                </TouchableOpacity>
                                 <Text style={[styles.commentTimestamp, { color: theme.textTertiary }]}>
                                     {comment.timestamp}
                                 </Text>
@@ -129,7 +143,7 @@ const CommentThread = ({
                                         style={styles.replyButton}
                                         onPress={() => onReply(comment)}
                                     >
-                                        <Ionicons name="arrow-undo" size={13} color= {theme.text} />
+                                        <Ionicons name="arrow-undo" size={13} color={theme.text} />
                                         <Text style={[styles.replyText, { color: theme.text }]}>
                                             Reply
                                         </Text>
@@ -172,6 +186,7 @@ const CommentThread = ({
                             commentorProfiles={commentorProfiles}
                             themeOverride={themeOverride}
                             postText={postText}
+                            onProfilePress={onProfilePress}
                         />
                     ))}
                 </View>
@@ -187,7 +202,8 @@ const styles = StyleSheet.create({
     commentCard: {
         borderRadius: 8, // Smaller border radius
         padding: 8, // Reduced padding
-        borderWidth: 1 },
+        borderWidth: 1
+    },
     commentHeaderSection: {
         flexDirection: 'row',
         gap: 8, // Reduced gap
@@ -196,30 +212,37 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         backgroundColor: '#F3F0FF',
         justifyContent: 'center',
-        alignItems: 'center' },
+        alignItems: 'center'
+    },
     commentHeaderContent: {
-        flex: 1 },
+        flex: 1
+    },
     commentHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 2, // Reduced margin
         gap: 6, // Reduced gap,
-        fontFamily: 'Frederick' },
+        fontFamily: 'Frederick'
+    },
     commentUsername: {
         fontSize: 13, // Slightly smaller
         fontWeight: '400',
-        fontFamily: 'Fredoka-Bold' },
+        fontFamily: 'Fredoka-Bold'
+    },
     commentTimestamp: {
         fontSize: 11, // Slightly smaller,
-        fontFamily: 'Fredoka-Regular' },
+        fontFamily: 'Fredoka-Regular'
+    },
     collapseButton: {
         marginLeft: 'auto',
-        padding: 2 },
+        padding: 2
+    },
     commentText: {
         fontSize: 13, // Slightly smaller
         lineHeight: 18, // Tighter line height
         marginBottom: 4, // Reduced margin,
-        fontFamily: 'Fredoka-Regular' },
+        fontFamily: 'Fredoka-Regular'
+    },
     commentActions: {
         marginTop: 8,
         flexDirection: 'row',
@@ -229,35 +252,44 @@ const styles = StyleSheet.create({
     supportButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 3 },
+        gap: 3
+    },
     supportText: {
         fontSize: 13, // Slightly smaller
         fontWeight: '400',
-        fontFamily: 'Fredoka-Regular' },
+        fontFamily: 'Fredoka-Regular'
+    },
     replyButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 3 },
+        gap: 3
+    },
     replyText: {
         fontSize: 13, // Slightly smaller
         fontWeight: '400',
-        fontFamily: 'Fredoka-Regular' },
+        fontFamily: 'Fredoka-Regular'
+    },
     replyCount: {
         fontSize: 13, // Slightly smaller
         marginLeft: 'auto',
-        fontFamily: 'Fredoka-Regular' },
+        fontFamily: 'Fredoka-Regular'
+    },
     verticalLine: {
         position: 'absolute',
         top: 0,
         bottom: 0,
         width: 1.5, // Thinner line
-        zIndex: 0 },
+        zIndex: 0
+    },
     horizontalConnector: {
         position: 'absolute',
         height: 2,
-        zIndex: 1 },
+        zIndex: 1
+    },
     repliesContainer: {
         position: 'relative',
-        marginTop: 4 } });
+        marginTop: 4
+    }
+});
 
 export default CommentThread;

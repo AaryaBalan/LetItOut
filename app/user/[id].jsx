@@ -22,13 +22,14 @@ import { useTheme } from "../../context/ThemeContext";
 import { createFriendRequestNotification } from "../../utils/notifications";
 
 export default function UserProfile() {
-    const { id } = useLocalSearchParams();
+    const { id: rawId } = useLocalSearchParams();
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
     const router = useRouter();
     const { user: currentUser } = useAuth();
     const { theme } = useTheme();
     const [userProfile, setUserProfile] = useState(null);
     const [userPosts, setUserPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(id));
     const [followStatus, setFollowStatus] = useState(null); // null (not following), 0 (requested), 1 (following), -1 (rejected)
     const [followLoading, setFollowLoading] = useState(false);
     const [perspectiveShifts, setPerspectiveShifts] = useState([]);
@@ -52,16 +53,18 @@ export default function UserProfile() {
     useEffect(() => {
         if (!id) return;
 
+        let unsubscribePosts = null;
+        let isMounted = true;
+
         const fetchUserAndPosts = async () => {
             try {
                 // Fetch User Profile
                 const userDocRef = doc(db, "users", id);
                 const userDocSnap = await getDoc(userDocRef);
+                const profileExists = userDocSnap.exists();
 
-                if (userDocSnap.exists()) {
+                if (profileExists && isMounted) {
                     setUserProfile(userDocSnap.data());
-                } else {
-                    console.log("No such user!");
                 }
 
                 // Fetch User's Public Posts
@@ -73,7 +76,8 @@ export default function UserProfile() {
                     where("authorId", "==", id)
                 );
 
-                const unsubscribe = onSnapshot(q, (snapshot) => {
+                unsubscribePosts = onSnapshot(q, (snapshot) => {
+                    if (!isMounted) return;
                     const fetchedPosts = snapshot.docs
                         .map((doc) => {
                             const data = doc.data();
@@ -91,19 +95,29 @@ export default function UserProfile() {
                         // Sort by date desc
                         .sort((a, b) => b.originalCreatedAt - a.originalCreatedAt);
 
+                    if (!profileExists && fetchedPosts.length > 0) {
+                        setUserProfile({
+                            displayName: fetchedPosts[0].authorName || "Community Member",
+                            postCount: fetchedPosts.length,
+                            loveSent: 0,
+                        });
+                    }
+
                     setUserPosts(fetchedPosts);
                     setLoading(false);
                 });
-
-                return () => unsubscribe();
             } catch (error) {
                 console.error("Error fetching user data:", error);
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         };
 
         fetchUserAndPosts();
-        fetchUserAndPosts();
+
+        return () => {
+            isMounted = false;
+            if (unsubscribePosts) unsubscribePosts();
+        };
     }, [id]);
 
     // Fetch perspective changes for this user to display in the graph

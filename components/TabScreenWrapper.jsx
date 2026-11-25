@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import BannerAds from '../app/ads/BannerAds';
+import BannerAds from './ads/BannerAds';
 
 export default function TabScreenWrapper({ children }) {
     return (

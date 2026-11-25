@@ -1,9 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { BottomTabBar } from "@react-navigation/bottom-tabs";
-import { Tabs } from "expo-router";
+import { BottomTabBar, Tabs } from "expo-router/js-tabs";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { TabBarProvider, useTabBar } from "../../context/TabBarContext";
@@ -13,6 +13,8 @@ function TabsLayoutInner() {
     const { user } = useAuth();
     const { theme } = useTheme();
     const { translateY } = useTabBar();
+    const insets = useSafeAreaInsets();
+    const tabBarHeight = 65 + insets.bottom;
     const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     // Fetch total unread chats count
@@ -42,6 +44,7 @@ function TabsLayoutInner() {
                     style={[
                         styles.animatedTabBarContainer,
                         {
+                            height: tabBarHeight,
                             transform: [{ translateY }]
                         },
                     ]}
@@ -61,8 +64,8 @@ function TabsLayoutInner() {
                     right: 0,
                     backgroundColor: theme.surface,
                     borderTopColor: theme.border,
-                    height: 65,
-                    paddingBottom: 10,
+                    height: tabBarHeight,
+                    paddingBottom: 10 + insets.bottom,
                     paddingTop: 8
                 },
                 tabBarLabelStyle: {
