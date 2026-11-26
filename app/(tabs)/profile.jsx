@@ -74,11 +74,9 @@ export default function Profile() {
   // Listen to user profile changes in real-time
   useEffect(() => {
     if (!user) {
-      setLoadingProfile(false);
       return;
     }
 
-    setProfileCode(user.profileCode || user.email || "");
 
     // Set up real-time listener for user profile
     const userRef = doc(db, "users", user.uid);
@@ -87,6 +85,7 @@ export default function Profile() {
       (docSnap) => {
         if (docSnap.exists()) {
           setUserProfile(docSnap.data());
+          setProfileCode(docSnap.data().profileCode || user.uid);
         }
         setLoadingProfile(false);
       },
@@ -133,7 +132,20 @@ export default function Profile() {
       if (userIds.length > 0) {
         // Fetch users. For simplicity, fetching all users in parallel. 
         // In prod, chunking or an 'in' query is better.
-        const userPromises = userIds.map(uid => getDoc(doc(db, "users", uid)));
+        const userPromises = userIds.map(async (uid) => {
+          try {
+            let snap = await getDoc(doc(db, "publicProfiles", uid));
+            if (!snap.exists()) {
+              try {
+                const legacySnap = await getDoc(doc(db, "users", uid));
+                if (legacySnap.exists()) snap = legacySnap;
+              } catch (_e) {}
+            }
+            return snap;
+          } catch (_e) {
+            return { exists: () => false };
+          }
+        });
         const userSnaps = await Promise.all(userPromises);
         const usersData = userSnaps
           .filter(snap => snap.exists())
@@ -161,6 +173,11 @@ export default function Profile() {
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
+      await setDoc(doc(db, "publicProfiles", user.uid), {
+        profileCode: newSeed,
+        displayName: userProfile?.displayName || user.displayName || "Member",
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
       setProfileCode(newSeed);
       showAlert("Success", "Profile image updated successfully!");
     } catch (error) {
@@ -174,7 +191,6 @@ export default function Profile() {
   // Fetch user's posts from Firebase
   useEffect(() => {
     if (!user) {
-      setLoadingPosts(false);
       return;
     }
 
@@ -211,7 +227,6 @@ export default function Profile() {
   // Fetch user's supportive history (reactions and comments) in real-time
   useEffect(() => {
     if (!user) {
-      setLoadingHistory(false);
       return;
     }
 
@@ -717,7 +732,7 @@ export default function Profile() {
                 <Ionicons name="heart" size={20} color="#F43F5E" />
               </View>
               <View style={styles.statInfo}>
-                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.loveSent || 0}</Text>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{supportiveHistory.length}</Text>
                 <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Love Sent</Text>
               </View>
             </View>
@@ -728,7 +743,7 @@ export default function Profile() {
                 <Ionicons name="book" size={20} color="#8B5CF6" />
               </View>
               <View style={styles.statInfo}>
-                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile?.postCount || 0}</Text>
+                <Text style={[styles.statNumber, { color: theme.text }]}>{userPosts.length}</Text>
                 <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Stories</Text>
               </View>
             </View>
@@ -1013,7 +1028,7 @@ export default function Profile() {
                             <Text style={[styles.historyCommentUsername, { color: theme.textTertiary }]}>Your Comment</Text>
                           </View>
                           <Text style={[styles.historyCommentText, { color: theme.textSecondary }]} numberOfLines={3}>
-                            "{item.comment}"
+                            &quot;{item.comment}&quot;
                           </Text>
                         </View>
                       )}

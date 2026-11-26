@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { BottomTabBar, Tabs } from "expo-router/js-tabs";
+import { BottomTabBar } from "expo-router/js-tabs";
+import { Tabs } from "expo-router";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
@@ -28,8 +29,7 @@ function TabsLayoutInner() {
             let totalUnread = 0;
             snapshot.docs.forEach((docSnap) => {
                 const data = docSnap.data();
-                const unreadCount = data.unreadCount || {};
-                totalUnread += unreadCount[user.uid] || 0;
+                totalUnread += data[`unreadCount_${user.uid}`] || 0;
             });
             setUnreadChatCount(totalUnread);
         });

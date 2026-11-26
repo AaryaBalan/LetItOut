@@ -1,3 +1,4 @@
+import { toggleReaction, addComment, toggleCommentSupport } from "../../services/interactions";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -5,7 +6,6 @@ import {
     arrayRemove,
     arrayUnion,
     collection,
-    deleteDoc,
     doc,
     getDoc,
     getDocs,
@@ -13,7 +13,7 @@ import {
     onSnapshot,
     query,
     serverTimestamp,
-    setDoc,
+    writeBatch,
     updateDoc,
     where
 } from "firebase/firestore";
@@ -65,6 +65,52 @@ const getCategoryColors = (category, isDark) => {
 const getCategoryLabel = (category) => {
     return category ? category.toUpperCase() : "GENERAL";
 };
+
+    function getTimeAgo(timestamp) {
+        if (!timestamp) return "Just now";
+
+        if (typeof timestamp === 'string') {
+            if (timestamp === 'Just now') return timestamp;
+            const match = timestamp.match(/^(\d+)d ago$/);
+            if (match) {
+                const days = parseInt(match[1], 10);
+                if (days >= 7) {
+                    const weeks = Math.floor(days / 7);
+                    const months = Math.floor(days / 30);
+                    const years = Math.floor(days / 365);
+                    if (days < 30) return `${weeks}w ago`;
+                    if (days < 365) return `${months}mon ago`;
+                    return `${years}yr ago`;
+                }
+            }
+            const parsedDate = new Date(timestamp);
+            if (isNaN(parsedDate.getTime())) {
+                return timestamp;
+            }
+            timestamp = parsedDate;
+        }
+
+        const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+        if (isNaN(postDate.getTime())) return "Just now";
+
+        const now = new Date();
+        const diffInMs = now - postDate;
+        const diffInMinutes = Math.floor(diffInMs / 60000);
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        const diffInMonths = Math.floor(diffInDays / 30);
+        const diffInYears = Math.floor(diffInDays / 365);
+
+        if (diffInMinutes < 1) return "Just now";
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+        if (diffInDays < 7) return `${diffInDays}d ago`;
+        if (diffInDays < 30) return `${diffInWeeks}w ago`;
+        if (diffInDays < 365) return `${diffInMonths}mon ago`;
+        return `${diffInYears}yr ago`;
+    };
 
 export default function PostDetail() {
   const { showAlert } = useAlert();
@@ -130,18 +176,30 @@ export default function PostDetail() {
                     // Reactions are fetched separately in real-time
 
                     // Check if current user is the author
-                    if (user && data.authorId === user.uid) {
+                    if (user && (data.authorId === user.uid || (await getDoc(doc(db, "users", user.uid, "ownedPosts", String(id)))).exists())) {
                         setIsAuthor(true);
                     }
 
                     // Fetch author profile code
                     if (data.authorId && !data.isAnonymous) {
-                        const userDoc = await getDoc(doc(db, "users", data.authorId));
-                        if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            setAuthorProfileCode(
-                                userData.profileCode || userData.email || null,
-                            );
+                        try {
+                            let userDoc = await getDoc(doc(db, "publicProfiles", data.authorId));
+                            if (!userDoc.exists()) {
+                                try {
+                                    const legacyDoc = await getDoc(doc(db, "users", data.authorId));
+                                    if (legacyDoc.exists()) userDoc = legacyDoc;
+                                } catch (_e) {}
+                            }
+                            if (userDoc.exists()) {
+                                const userData = userDoc.data();
+                                setAuthorProfileCode(
+                                    userData.profileCode || userData.email || null,
+                                );
+                            } else {
+                                setAuthorProfileCode(null);
+                            }
+                        } catch (_err) {
+                            setAuthorProfileCode(null);
                         }
                     } else {
                         setAuthorProfileCode(null);
@@ -219,7 +277,13 @@ export default function PostDetail() {
                 for (const comment of fetchedComments) {
                     if (comment.commentorId) {
                         try {
-                            const userDoc = await getDoc(doc(db, "users", comment.commentorId));
+                            let userDoc = await getDoc(doc(db, "publicProfiles", comment.commentorId));
+                            if (!userDoc.exists()) {
+                                try {
+                                    const legacyDoc = await getDoc(doc(db, "users", comment.commentorId));
+                                    if (legacyDoc.exists()) userDoc = legacyDoc;
+                                } catch (_e) {}
+                            }
                             if (userDoc.exists()) {
                                 const userData = userDoc.data();
                                 profiles[comment.commentorId] = userData.profileCode || userData.email || null;
@@ -294,7 +358,7 @@ export default function PostDetail() {
 
         if (commentIds.length === 0) return;
 
-        const q = query(commentSupportsRef, where("commentId", "in", commentIds));
+        const q = query(commentSupportsRef, where("postId", "==", String(id)));
 
         const unsubscribe = onSnapshot(
             q,
@@ -410,7 +474,7 @@ export default function PostDetail() {
                 for (const friendId of ids) {
                     if (friendId === user.uid) continue;
 
-                    const userDoc = await getDoc(doc(db, "users", friendId));
+                    const userDoc = await getDoc(doc(db, "publicProfiles", friendId));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
                         friendsList.push({
@@ -440,15 +504,16 @@ export default function PostDetail() {
 
             const shareText = `Check out this post: "${post.title}"\n\n${post.description.substring(0, 100)}${post.description.length > 100 ? '...' : ''}\n\nTap to view: letitout://post/${post.id}`;
 
-            await setDoc(chatRef, {
-                participants: [user.uid, friendId],
+            const batch = writeBatch(db);
+            batch.set(chatRef, {
+                participants: [user.uid, friendId].sort(),
                 lastMessage: shareText,
                 lastMessageTimestamp: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 [`unreadCount_${friendId}`]: increment(1)
             }, { merge: true });
 
-            await addDoc(collection(db, "chats", chatId, "messages"), {
+            batch.set(doc(collection(db, "chats", chatId, "messages")), {
                 text: shareText,
                 senderId: user.uid,
                 senderName: user.displayName || "Anonymous",
@@ -466,6 +531,7 @@ export default function PostDetail() {
                 }
             });
 
+            await batch.commit();
             showAlert("Success", "Post shared successfully!");
             setShowShareModal(false);
         } catch (error) {
@@ -477,51 +543,7 @@ export default function PostDetail() {
     };
 
     // Helper function to calculate time ago
-    const getTimeAgo = (timestamp) => {
-        if (!timestamp) return "Just now";
 
-        if (typeof timestamp === 'string') {
-            if (timestamp === 'Just now') return timestamp;
-            const match = timestamp.match(/^(\d+)d ago$/);
-            if (match) {
-                const days = parseInt(match[1], 10);
-                if (days >= 7) {
-                    const weeks = Math.floor(days / 7);
-                    const months = Math.floor(days / 30);
-                    const years = Math.floor(days / 365);
-                    if (days < 30) return `${weeks}w ago`;
-                    if (days < 365) return `${months}mon ago`;
-                    return `${years}yr ago`;
-                }
-            }
-            const parsedDate = new Date(timestamp);
-            if (isNaN(parsedDate.getTime())) {
-                return timestamp;
-            }
-            timestamp = parsedDate;
-        }
-
-        const postDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-
-        if (isNaN(postDate.getTime())) return "Just now";
-
-        const now = new Date();
-        const diffInMs = now - postDate;
-        const diffInMinutes = Math.floor(diffInMs / 60000);
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        const diffInDays = Math.floor(diffInHours / 24);
-        const diffInWeeks = Math.floor(diffInDays / 7);
-        const diffInMonths = Math.floor(diffInDays / 30);
-        const diffInYears = Math.floor(diffInDays / 365);
-
-        if (diffInMinutes < 1) return "Just now";
-        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        if (diffInDays < 7) return `${diffInDays}d ago`;
-        if (diffInDays < 30) return `${diffInWeeks}w ago`;
-        if (diffInDays < 365) return `${diffInMonths}mon ago`;
-        return `${diffInYears}yr ago`;
-    };
 
     // Helper function to build comment tree from flat array
     const buildCommentTree = (flatComments) => {
@@ -569,174 +591,39 @@ export default function PostDetail() {
 
 
     const handleHug = async () => {
-        if (!user) {
-            showAlert("Not Logged In", "Please log in to react.");
-            return;
-        }
-
+        if (!user) return showAlert("Sign in", "Please sign in to react.");
+        if (reactingType) return;
         setReactingType("hug");
         try {
-            if (hugActive && userReactions.hug) {
-                // Remove reaction
-                await deleteDoc(doc(db, "reactions", userReactions.hug));
-                // Decrement reactionCount
-                await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1)
-                });
-                // Decrement user's loveSent count
-                await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(-1)
-                });
-            } else {
-                // Add reaction
-                await addDoc(collection(db, "reactions"), {
-                    postId: String(id),
-                    userId: user.uid,
-                    userName: user.displayName || "Anonymous",
-                    type: "hug",
-                    timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString()
-                });
-                // Increment reactionCount
-                await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1)
-                });
-                // Increment user's loveSent count
-                await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(1)
-                });
-
-                // Create notification for post author
-                if (post && post.authorId) {
-                    await createHugNotification(
-                        post.authorId,
-                        String(id),
-                        post.title,
-                        user.uid,
-                        user.displayName || "Anonymous",
-                    );
-                }
-            }
+            const added = await toggleReaction(String(id), user, "hug", userReactions.hug);
+            if (added && post.authorId) await createHugNotification(post.authorId, String(id), post.title, user.uid, user.displayName);
         } catch (error) {
-            console.error("Error toggling hug reaction:", error);
-            showAlert("Error", "Failed to update reaction. Please try again.");
-        } finally {
-            setReactingType(null);
-        }
+            showAlert("Reaction failed", error.message);
+        } finally { setReactingType(null); }
     };
 
     const handleMeToo = async () => {
-        if (!user) {
-            showAlert("Not Logged In", "Please log in to react.");
-            return;
-        }
-
+        if (!user) return showAlert("Sign in", "Please sign in to react.");
+        if (reactingType) return;
         setReactingType("metoo");
         try {
-            if (meTooActive && userReactions.metoo) {
-                // Remove reaction
-                await deleteDoc(doc(db, "reactions", userReactions.metoo));
-                // Decrement reactionCount
-                await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1)
-                });
-                // Decrement user's loveSent count
-                await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(-1)
-                });
-            } else {
-                // Add reaction
-                await addDoc(collection(db, "reactions"), {
-                    postId: String(id),
-                    userId: user.uid,
-                    userName: user.displayName || "Anonymous",
-                    type: "metoo",
-                    timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString()
-                });
-                // Increment reactionCount
-                await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1)
-                });
-                // Increment user's loveSent count
-                await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(1)
-                });
-
-                // Create notification for post author
-                if (post && post.authorId) {
-                    await createMeTooNotification(
-                        post.authorId,
-                        String(id),
-                        post.title,
-                        user.uid,
-                        user.displayName || "Anonymous",
-                    );
-                }
-            }
+            const added = await toggleReaction(String(id), user, "metoo", userReactions.metoo);
+            if (added && post.authorId) await createMeTooNotification(post.authorId, String(id), post.title, user.uid, user.displayName);
         } catch (error) {
-            console.error("Error toggling me too reaction:", error);
-            showAlert("Error", "Failed to update reaction. Please try again.");
-        } finally {
-            setReactingType(null);
-        }
+            showAlert("Reaction failed", error.message);
+        } finally { setReactingType(null); }
     };
 
     const handleLike = async () => {
-        if (!user) {
-            showAlert("Not Logged In", "Please log in to react.");
-            return;
-        }
-
+        if (!user) return showAlert("Sign in", "Please sign in to react.");
+        if (reactingType) return;
         setReactingType("like");
         try {
-            if (likeActive && userReactions.like) {
-                // Remove reaction
-                await deleteDoc(doc(db, "reactions", userReactions.like));
-                // Decrement reactionCount
-                await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(-1)
-                });
-                // Decrement user's loveSent count
-                await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(-1)
-                });
-            } else {
-                // Add reaction
-                await addDoc(collection(db, "reactions"), {
-                    postId: String(id),
-                    userId: user.uid,
-                    userName: user.displayName || "Anonymous",
-                    type: "like",
-                    timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString()
-                });
-                // Increment reactionCount
-                await updateDoc(doc(db, "posts", String(id)), {
-                    reactionCount: increment(1)
-                });
-                // Increment user's loveSent count
-                await updateDoc(doc(db, "users", user.uid), {
-                    loveSent: increment(1)
-                });
-
-                // Create notification for post author
-                if (post && post.authorId) {
-                    await createLikeNotification(
-                        post.authorId,
-                        String(id),
-                        post.title,
-                        user.uid,
-                        user.displayName || "Anonymous",
-                    );
-                }
-            }
+            const added = await toggleReaction(String(id), user, "like", userReactions.like);
+            if (added && post.authorId) await createLikeNotification(post.authorId, String(id), post.title, user.uid, user.displayName);
         } catch (error) {
-            console.error("Error toggling like reaction:", error);
-            showAlert("Error", "Failed to update reaction. Please try again.");
-        } finally {
-            setReactingType(null);
-        }
+            showAlert("Reaction failed", error.message);
+        } finally { setReactingType(null); }
     };
 
     const handleAddComment = async () => {
@@ -752,30 +639,7 @@ export default function PostDetail() {
             console.log("Creating comment for postId:", id, "Type:", typeof id);
             const commentText = newComment.trim();
 
-            // Create comment in Firebase
-            const commentData = {
-                postId: String(id),
-                commentorId: user.uid,
-                commentorName: user.displayName || "Anonymous",
-                comment: commentText,
-                timestamp: serverTimestamp(),
-                createdAt: new Date().toISOString(),
-                reactionCount: 0,
-                parentId: replyingTo ? replyingTo.id : null, // Add parentId for replies
-            };
-            console.log("Comment data to save:", commentData);
-
-            await addDoc(collection(db, "comments"), commentData);
-
-            // Increment reactionCount (comments count towards total)
-            await updateDoc(doc(db, "posts", String(id)), {
-                reactionCount: increment(1)
-            });
-
-            // Increment user's loveSent count
-            await updateDoc(doc(db, "users", user.uid), {
-                loveSent: increment(1)
-            });
+            const commentId = await addComment(String(id), user, commentText, replyingTo?.id || null);
 
             // Create notification for post author or parent comment author
             if (replyingTo && replyingTo.commentorId) {
@@ -787,6 +651,7 @@ export default function PostDetail() {
                     user.uid,
                     user.displayName || "Anonymous",
                     commentText,
+                    commentId,
                 );
             } else if (post && post.authorId) {
                 // Notify the post author
@@ -797,6 +662,7 @@ export default function PostDetail() {
                     user.uid,
                     user.displayName || "Anonymous",
                     commentText,
+                    commentId,
                 );
             }
 
@@ -818,31 +684,7 @@ export default function PostDetail() {
         }
 
         try {
-            const commentSupportsRef = collection(db, "commentSupports");
-            const commentDocRef = doc(db, "comments", commentId);
-            const isSupported = !!userCommentSupports[commentId];
-
-            if (isSupported) {
-                // Remove support
-                await deleteDoc(doc(db, "commentSupports", userCommentSupports[commentId]));
-                // Decrement reactionCount
-                await updateDoc(commentDocRef, {
-                    reactionCount: increment(-1)
-                });
-            } else {
-                // Add support
-                await addDoc(commentSupportsRef, {
-                    commentId: commentId,
-                    userId: user.uid,
-                    userName: user.displayName || "Anonymous",
-                    timestamp: serverTimestamp(),
-                    createdAt: new Date().toISOString()
-                });
-                // Increment reactionCount
-                await updateDoc(commentDocRef, {
-                    reactionCount: increment(1)
-                });
-            }
+            await toggleCommentSupport(commentId, String(id), user, userCommentSupports[commentId]);
         } catch (error) {
             console.error("Error toggling comment support:", error);
             showAlert("Error", "Failed to update support. Please try again.");
@@ -850,11 +692,16 @@ export default function PostDetail() {
     };
 
     const handleReport = () => {
-        showAlert(
-            "Report Content",
-            "Thank you for helping keep our community safe.",
-            [{ text: "OK" }],
-        );
+        if (!user) return showAlert("Sign in", "Please sign in to report content.");
+        showAlert("Report content", "Choose the reason for reporting this post.", [
+            ...["Harassment", "Spam", "Harmful content"].map(reason => ({ text: reason, onPress: async () => {
+                try {
+                    await addDoc(collection(db, "reports"), { reporterId: user.uid, postId: String(id), reason, status: "pending", createdAt: serverTimestamp() });
+                    showAlert("Report submitted", "Your report is saved for moderator review.");
+                } catch (error) { showAlert("Report failed", error.message); }
+            }})),
+            { text: "Cancel", style: "cancel" }
+        ]);
     };
 
 
@@ -904,7 +751,11 @@ export default function PostDetail() {
                     onPress: async () => {
                         setDeletingPost(true);
                         try {
-                            await deleteDoc(doc(db, "posts", id));
+                            const batch = writeBatch(db);
+                            batch.delete(doc(db, "posts", id));
+                            const ownership = doc(db, "users", user.uid, "ownedPosts", id);
+                            if ((await getDoc(ownership)).exists()) batch.delete(ownership);
+                            await batch.commit();
                             showAlert("Success", "Post deleted successfully");
                             router.back();
                         } catch (error) {

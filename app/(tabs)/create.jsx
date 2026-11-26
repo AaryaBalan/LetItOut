@@ -1,7 +1,7 @@
+import { writeBatch , collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
-import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -126,14 +126,18 @@ export default function CreatePost() {
       }
 
       // Add document to 'posts' collection
-      const docRef = await addDoc(collection(db, "posts"), postData);
+      const docRef = doc(collection(db, "posts"));
+      const batch = writeBatch(db);
+      batch.set(docRef, postData);
+      batch.set(doc(db, "users", user.uid, "ownedPosts", docRef.id), { createdAt: serverTimestamp() });
+      await batch.commit();
 
       console.log("Post created with ID:", docRef.id);
 
       // Increment postCount for non-anonymous posts
       if (!isAnonymous && user.uid) {
         await updateDoc(doc(db, "users", user.uid), {
-          postCount: increment(1) });
+          postCount: increment(1) }).catch(error => console.warn("Post saved; profile count refresh failed", error));
       }
 
       showAlert(
@@ -303,7 +307,7 @@ export default function CreatePost() {
             </View>
 
             {/* Body Input */}
-            <Text style={[styles.inputLabel, { color: theme.textTertiary, marginTop: 24 }]}>What's happening?</Text>
+            <Text style={[styles.inputLabel, { color: theme.textTertiary, marginTop: 24 }]}>What&apos;s happening?</Text>
             <TextInput
               style={[styles.bodyInput, { color: theme.text }]}
               placeholder="Be as detailed as you like..."

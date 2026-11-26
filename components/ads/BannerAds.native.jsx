@@ -17,7 +17,7 @@ try {
     adsAvailable = false;
 }
 
-const safeUseForeground = useForeground || ((_callback) => {});
+const useSafeForeground = useForeground || ((_callback) => {});
 
 const adUnitId = adsAvailable && __DEV__ ? TestIds?.ADAPTIVE_BANNER || '' : 'ca-app-pub-2512361520457456/4724013214';
 
@@ -26,7 +26,7 @@ function BannerAds() {
     const [adFailed, setAdFailed] = useState(false);
 
     // Call hook unconditionally at the top of the component
-    safeUseForeground(() => {
+    useSafeForeground(() => {
         Platform.OS === 'ios' && bannerRef.current?.load();
     });
 

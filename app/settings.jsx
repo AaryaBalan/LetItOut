@@ -1,7 +1,8 @@
+import { auth } from "../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { updatePassword } from "firebase/auth";
-import { useState } from "react";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { useEffect, useState } from "react";
 import {
   Modal,
   ScrollView,
@@ -23,9 +24,18 @@ export default function Settings() {
   const { user } = useAuth();
   const { isDark, theme, toggleTheme } = useTheme();
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
+  useEffect(() => {
+    let active = true;
+    auth.currentUser?.getIdTokenResult().then(token => {
+      if (active) setIsModerator(token.claims.moderator === true);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.uid]);
 
   const handleDarkThemeToggle = (value) => {
     toggleTheme();
@@ -49,9 +59,16 @@ export default function Settings() {
 
     setLoading(true);
     try {
-      await updatePassword(user, newPassword);
+      if (!auth.currentUser) throw new Error("Please sign in again.");
+      const firebaseUser = auth.currentUser;
+      if (firebaseUser.providerData.some(provider => provider.providerId === "password")) {
+        if (!currentPassword) throw new Error("Enter your current password to confirm this change.");
+        await reauthenticateWithCredential(firebaseUser, EmailAuthProvider.credential(firebaseUser.email, currentPassword));
+      }
+      await updatePassword(firebaseUser, newPassword);
       showAlert("Success", "Password changed successfully");
       setShowChangePasswordModal(false);
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
@@ -135,6 +152,10 @@ export default function Settings() {
           </TouchableOpacity>
         </View>
 
+        {isModerator && <TouchableOpacity accessibilityRole="button" style={styles.section} onPress={() => router.push('/moderation')}>
+          <Text style={{ color: theme.text }}>Review content reports</Text>
+        </TouchableOpacity>}
+
         {/* Account Info */}
         <View style={[styles.section, { backgroundColor: theme.surface }]}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ACCOUNT INFORMATION</Text>
@@ -172,6 +193,9 @@ export default function Settings() {
             </View>
 
             <View style={styles.modalBody}>
+              <Text style={[styles.inputLabel, { color: theme.text }]}>Current Password</Text>
+              <TextInput accessibilityLabel="Current password" style={[styles.input, { color: theme.text, backgroundColor: theme.input, borderColor: theme.inputBorder }]}
+                value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry autoCapitalize="none" placeholder="For email/password accounts" placeholderTextColor={theme.placeholder} />
               <Text style={[styles.inputLabel, { color: theme.text }]}>New Password</Text>
               <TextInput
                 style={[styles.input, {

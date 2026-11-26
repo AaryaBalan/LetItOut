@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from './ThemeContext';
 
 const AlertContext = createContext();
@@ -45,7 +45,7 @@ export const AlertProvider = ({ children }) => {
                   style={[
                     styles.button,
                     btn.style === 'cancel' ? { backgroundColor: theme.card } : { backgroundColor: '#6366F1' },
-                    index > 0 && { marginLeft: 8 }
+                    { margin: 4 }
                   ]}
                   onPress={() => {
                     hideAlert();
@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   buttonContainer: {
+    flexWrap: 'wrap',
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',

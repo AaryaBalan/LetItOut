@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getCountFromServer, onSnapshot, query, serverTimestamp, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -53,18 +53,34 @@ export default function UserProfile() {
     useEffect(() => {
         if (!id) return;
 
-        let unsubscribePosts = null;
-        let isMounted = true;
-
+        let stopped = false;
+        let unsubscribe = () => {};
         const fetchUserAndPosts = async () => {
             try {
                 // Fetch User Profile
-                const userDocRef = doc(db, "users", id);
-                const userDocSnap = await getDoc(userDocRef);
-                const profileExists = userDocSnap.exists();
+                let userDocSnap = await getDoc(doc(db, "publicProfiles", id));
+                let userData = null;
 
-                if (profileExists && isMounted) {
-                    setUserProfile(userDocSnap.data());
+                if (userDocSnap.exists()) {
+                    userData = userDocSnap.data();
+                } else {
+                    try {
+                        const legacySnap = await getDoc(doc(db, "users", id));
+                        if (legacySnap.exists()) {
+                            userData = legacySnap.data();
+                        }
+                    } catch (_e) {
+                        // Ignore permission error if legacy collection is restricted
+                    }
+                }
+
+                if (userData) {
+                    const [reactionsCount, commentsCount] = await Promise.all([
+                      getCountFromServer(query(collection(db, "reactions"), where("userId", "==", id))),
+                      getCountFromServer(query(collection(db, "comments"), where("commentorId", "==", id)))
+                    ]);
+                    if (stopped) return;
+                    setUserProfile({ ...userData, loveSent: reactionsCount.data().count + commentsCount.data().count });
                 }
 
                 // Fetch User's Public Posts
@@ -76,8 +92,8 @@ export default function UserProfile() {
                     where("authorId", "==", id)
                 );
 
-                unsubscribePosts = onSnapshot(q, (snapshot) => {
-                    if (!isMounted) return;
+                if (stopped) return;
+                unsubscribe = onSnapshot(q, (snapshot) => {
                     const fetchedPosts = snapshot.docs
                         .map((doc) => {
                             const data = doc.data();
@@ -95,7 +111,7 @@ export default function UserProfile() {
                         // Sort by date desc
                         .sort((a, b) => b.originalCreatedAt - a.originalCreatedAt);
 
-                    if (!profileExists && fetchedPosts.length > 0) {
+                    if (!userData && fetchedPosts.length > 0) {
                         setUserProfile({
                             displayName: fetchedPosts[0].authorName || "Community Member",
                             postCount: fetchedPosts.length,
@@ -108,16 +124,12 @@ export default function UserProfile() {
                 });
             } catch (error) {
                 console.error("Error fetching user data:", error);
-                if (isMounted) setLoading(false);
+                if (!stopped) setLoading(false);
             }
         };
 
         fetchUserAndPosts();
-
-        return () => {
-            isMounted = false;
-            if (unsubscribePosts) unsubscribePosts();
-        };
+        return () => { stopped = true; unsubscribe(); };
     }, [id]);
 
     // Fetch perspective changes for this user to display in the graph
@@ -212,7 +224,7 @@ export default function UserProfile() {
                 setFollowStatus(null);
             } else {
                 // Follow (create request with status 0)
-                await addDoc(collection(db, "friends"), {
+                const requestDoc = await addDoc(collection(db, "friends"), {
                     followerId: currentUser.uid,
                     followingId: id,
                     status: 0, // 0: Requested, 1: Accepted
@@ -223,7 +235,8 @@ export default function UserProfile() {
                 await createFriendRequestNotification(
                     id,
                     currentUser.uid,
-                    currentUser.displayName
+                    currentUser.displayName,
+                    requestDoc.id
                 );
 
                 setFollowStatus(0);
@@ -461,7 +474,7 @@ export default function UserProfile() {
                                 <Ionicons name="book" size={20} color="#8B5CF6" />
                             </View>
                             <View>
-                                <Text style={[styles.statNumber, { color: theme.text }]}>{userProfile.postCount || 0}</Text>
+                                <Text style={[styles.statNumber, { color: theme.text }]}>{userPosts.length}</Text>
                                 <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Stories</Text>
                             </View>
                         </View>

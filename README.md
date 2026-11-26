@@ -1,50 +1,239 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="assets/images/letitout_logo.png" alt="LetItOut logo" width="112" />
+  <h1>LetItOut</h1>
+  <p><strong>Share what’s on your mind. Find connection. Reflect on what changes.</strong></p>
+  <p>A community app for sharing feelings, supporting each other, and keeping track of your emotional journey.</p>
+  <p>
+    <img src="https://img.shields.io/badge/Expo-SDK_57-111827?style=flat-square" alt="Expo SDK 57" />
+    <img src="https://img.shields.io/badge/React_Native-0.86.3-6D5DFB?style=flat-square" alt="React Native 0.86.3" />
+    <img src="https://img.shields.io/badge/React-19.2.3-111827?style=flat-square" alt="React 19.2.3" />
+    <img src="https://img.shields.io/badge/Backend-Firebase-F4B400?style=flat-square" alt="Firebase backend" />
+  </p>
+  <p><a href="#the-experience">Features</a> · <a href="#screen-gallery">Screenshots</a> · <a href="#run-locally">Quick start</a> · <a href="#project-structure">Project structure</a></p>
+</div>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+---
 
-## Get started
+## The experience
 
-1. Install dependencies
+LetItOut brings a community feed, conversations, and personal reflection into one mobile app. Share a story, respond to someone who needs support, or revisit how a conversation changed your perspective.
 
-   ```bash
-   npm install
-   ```
+| Share | Connect | Reflect |
+| :--- | :--- | :--- |
+| Write posts with categories, a mood level, and an optional help-needed flag. | Explore communities, react to stories, and join threaded replies. | Log moods, write journal entries, and browse your mood history. |
+| Choose anonymous presentation for a post. | Send friend requests, chat, and share posts in conversations. | Use **My Center** to rate the impact of replies and review perspective shifts. |
+| Search and filter the feed to find relevant stories. | Customize your profile and avatar, and follow in-app notifications. | Switch between light and dark themes with a saved preference. |
 
-2. Start the app
+Anonymous posts keep ownership in a private account record rather than publishing the author ID. This does not imply anonymity from database administrators. Perspective insights are based on the ratings entered in the app.
 
-   ```bash
-   npx expo start
-   ```
+## Screen gallery
 
-In the output, you'll find options to open the app in a
+All **16 images** from the supplied [Drive folder](https://drive.google.com/drive/folders/1kpH3LHsEU4LbemXlv7J6HTvi4G2mZRzD) are included below. These supplied screenshots capture earlier app designs, so some navigation and layouts may differ from the current SDK 57 source. Tap any image to view it at full resolution.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Share & support
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+<table>
+  <tr>
+    <th width="50%">Community feed</th>
+    <th width="50%">Stories & supportive replies</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/community-feed.jpg"><img src="docs/images/community-feed.jpg" alt="LetItOut — Community feed" width="270" /></a></td>
+    <td align="center"><a href="docs/images/post-and-replies.jpg"><img src="docs/images/post-and-replies.jpg" alt="LetItOut — Stories & supportive replies" width="270" /></a></td>
+  </tr>
+  <tr>
+    <th width="50%">Share a feeling</th>
+    <th width="50%">Notifications</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/create-post.jpg"><img src="docs/images/create-post.jpg" alt="LetItOut — Share a feeling" width="270" /></a></td>
+    <td align="center"><a href="docs/images/notifications.jpg"><img src="docs/images/notifications.jpg" alt="LetItOut — Notifications" width="270" /></a></td>
+  </tr>
+</table>
 
-## Get a fresh project
+### Discover & belong
 
-When you're ready, run:
+<table>
+  <tr>
+    <th width="50%">Your profile</th>
+    <th width="50%">Explore communities</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/your-profile.jpg"><img src="docs/images/your-profile.jpg" alt="LetItOut — Your profile" width="270" /></a></td>
+    <td align="center"><a href="docs/images/explore-communities.jpg"><img src="docs/images/explore-communities.jpg" alt="LetItOut — Explore communities" width="270" /></a></td>
+  </tr>
+  <tr>
+    <th width="50%">Discover stories</th>
+    <th width="50%">Member profile</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/explore-stories.jpg"><img src="docs/images/explore-stories.jpg" alt="LetItOut — Discover stories" width="270" /></a></td>
+    <td align="center"><a href="docs/images/member-profile.jpg"><img src="docs/images/member-profile.jpg" alt="LetItOut — Member profile" width="270" /></a></td>
+  </tr>
+</table>
+
+### Conversations & early My Center designs
+
+<table>
+  <tr>
+    <th width="50%">Messages</th>
+    <th width="50%">Conversations & shared posts</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/messages.jpg"><img src="docs/images/messages.jpg" alt="LetItOut — Messages" width="270" /></a></td>
+    <td align="center"><a href="docs/images/conversation.jpg"><img src="docs/images/conversation.jpg" alt="LetItOut — Conversations & shared posts" width="270" /></a></td>
+  </tr>
+  <tr>
+    <th width="50%">My Center · posts (earlier design)</th>
+    <th width="50%">My Center · insights (earlier design)</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/my-center-posts-early.jpg"><img src="docs/images/my-center-posts-early.jpg" alt="LetItOut — My Center · posts (earlier design)" width="270" /></a></td>
+    <td align="center"><a href="docs/images/my-center-insights-early.jpg"><img src="docs/images/my-center-insights-early.jpg" alt="LetItOut — My Center · insights (earlier design)" width="270" /></a></td>
+  </tr>
+</table>
+
+### Reflect & track perspective
+
+<table>
+  <tr>
+    <th width="50%">My Center · perspective journals</th>
+    <th width="50%">My Center · insights</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/my-center-posts.jpg"><img src="docs/images/my-center-posts.jpg" alt="LetItOut — My Center · perspective journals" width="270" /></a></td>
+    <td align="center"><a href="docs/images/my-center-insights.jpg"><img src="docs/images/my-center-insights.jpg" alt="LetItOut — My Center · insights" width="270" /></a></td>
+  </tr>
+  <tr>
+    <th width="50%">Post reflection</th>
+    <th width="50%">Comment perspective ratings</th>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/images/post-reflection.jpg"><img src="docs/images/post-reflection.jpg" alt="LetItOut — Post reflection" width="270" /></a></td>
+    <td align="center"><a href="docs/images/comment-perspective.jpg"><img src="docs/images/comment-perspective.jpg" alt="LetItOut — Comment perspective ratings" width="270" /></a></td>
+  </tr>
+</table>
+
+Original image files are stored in [`docs/images`](docs/images). The [source manifest](docs/images/sources.json) records each Drive file ID, original filename, and gallery caption.
+
+## Built with
+
+| Layer | Technology |
+| :--- | :--- |
+| App runtime | Expo SDK 57, React Native 0.86.3, React 19.2.3 |
+| Navigation | Expo Router with file-based routes and a custom tab bar |
+| Backend | Firebase Authentication and Cloud Firestore |
+| Local persistence | AsyncStorage for authentication persistence and preferences |
+| UI & motion | NativeWind, custom styles, Reanimated, Gesture Handler, and SVG |
+| Identity & illustration | DiceBear avatars, Expo vector icons, and bundled fonts |
+| Native integrations | Google Sign-In and Google Mobile Ads |
+
+## Security update
+
+Before deploying this version against an existing database, follow the [privacy migration and rollout guide](docs/security-rollout.md). The new rules require the updated client and migrated public profiles/reaction records. Use `npm run test:rules` (Java 21+) to verify access controls locally.
+
+## Run locally
+
+### 1. Install the project
+
+Use Node.js compatible with the installed React Native version, for example **Node 22.13 or newer within the 22.x line**, and npm.
 
 ```bash
-npm run reset-project
+git clone https://github.com/AaryaBalan/LetItOut.git
+cd LetItOut
+npm ci
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Configure Firebase
 
-## Learn more
+The app currently reads its Firebase configuration directly from [`config/firebase.js`](config/firebase.js); it does not use an environment-variable template.
 
-To learn more about developing your project with Expo, look at the following resources:
+For your own backend:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Register an app in your Firebase project and replace the configuration in `config/firebase.js`.
+2. Enable **Email/Password** authentication. Configure Google authentication if you plan to use native Google Sign-In.
+3. Create a Cloud Firestore database. Review [`firestore.rules`](firestore.rules) and [`firestore.indexes.json`](firestore.indexes.json) before deploying them to your project.
+4. For Google Sign-In, replace the web client ID in [`context/AuthContext.jsx`](context/AuthContext.jsx) and configure the Android/iOS OAuth clients for your application identifiers and signing certificates.
 
-## Join the community
+Firebase CLI configuration is provided in [`firebase.json`](firebase.json). If you have installed and authenticated the Firebase CLI, deploy the reviewed rules and indexes explicitly to your project:
 
-Join our community of developers creating universal apps.
+```bash
+firebase deploy --only firestore --project YOUR_FIREBASE_PROJECT_ID
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 3. Open with Expo Go
+
+```bash
+npx expo start --go --clear
+```
+
+Open the QR code with **Expo Go compatible with SDK 57**. Keep your phone and development computer on the same network.
+
+> **SDK versions must match.** If Expo Go reports an incompatible project, check the project’s `expo` version and the SDK supported by the installed Expo Go app. After changing SDK versions, stop the old Metro server with `Ctrl+C` and restart with the command above.
+
+Google Sign-In and mobile ads use native modules and require a native build for full functionality. Their imports are guarded in this project so they can be unavailable in Expo Go.
+
+### 4. Run a native build
+
+For Android, install the Android SDK and a compatible JDK, then connect an Android device with USB debugging enabled or start an emulator:
+
+```bash
+npm run android
+```
+
+For iOS, use macOS with Xcode and the iOS build tooling installed:
+
+```bash
+npm run ios
+```
+
+The `android/` and `ios/` directories are generated and ignored by Git. After an SDK upgrade, back up any custom native changes before regenerating them with `npx expo prebuild --clean` and rebuilding.
+
+The ads plugin in [`app.json`](app.json) currently uses Google’s sample application IDs. Configure your own IDs before distributing an app with live ads.
+
+## Useful commands
+
+| Command | Purpose |
+| :--- | :--- |
+| `npm start` | Start the Expo development server |
+| `npx expo start --go --clear` | Start Expo Go with a cleared Metro cache |
+| `npm run android` | Build and launch the native Android app |
+| `npm run ios` | Build and launch the native iOS app |
+| `npm run web` | Start the web development target |
+| `npm run lint` | Run the Expo ESLint configuration |
+| `npx expo install --check` | Check installed packages against the Expo SDK |
+| `npx expo-doctor` | Check Expo configuration and project compatibility |
+
+Web is a configured development target; native integrations need platform-specific verification. These commands describe the project workflow and are not a claim that all platforms have been tested.
+
+## Project structure
+
+```text
+LetItOut/
+├── app/                    # Expo Router screens and layouts
+│   ├── (tabs)/             # Feed, chat, create, mood, and profile
+│   ├── auth/               # Sign-in and registration
+│   ├── chat/               # Individual conversations
+│   ├── community/          # Community views
+│   ├── mood/               # Mood logging, journal, history, and insights
+│   ├── post/               # Post details and replies
+│   ├── user/               # Member profiles
+│   └── my-center.jsx       # Personal posts and perspective insights
+├── components/             # Shared UI, cards, modals, and navigation
+├── context/                # Auth, theme, alerts, and tab bar state
+├── config/firebase.js      # Firebase initialization
+├── utils/                  # Notification helpers
+├── assets/                 # Fonts, icons, and app artwork
+├── docs/images/            # All 16 supplied screenshots and source manifest
+├── app.json                # Expo configuration and native plugins
+├── eas.json                # EAS build profiles
+├── firestore.rules         # Firestore access rules
+└── firestore.indexes.json  # Firestore index definitions
+```
+
+---
+
+<div align="center">
+  <strong>LetItOut</strong><br />
+  <sub>A little space to share. A little room to grow.</sub>
+</div>

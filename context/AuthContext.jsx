@@ -7,7 +7,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, serverTimestamp, runTransaction } from "firebase/firestore";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
 
@@ -16,6 +16,45 @@ import { GoogleSignin, isGoogleSignInAvailable } from "../utils/googleAuth";
 const AuthContext = createContext({});
 
 export const useAuth = () => useContext(AuthContext);
+
+// Only publish non-sensitive profile fields. Never spread private account data.
+async function createUserDocument(user, additionalData = {}) {
+  if (!user) return;
+  const ref = doc(db, "users", user.uid);
+  const publicRef = doc(db, "publicProfiles", user.uid);
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(ref);
+    const publicSnapshot = await transaction.get(publicRef);
+
+    if (snapshot.exists()) {
+      const existingData = snapshot.data();
+      if (!publicSnapshot.exists()) {
+        const createdAt = existingData.createdAt || serverTimestamp();
+        transaction.set(publicRef, {
+          displayName: existingData.displayName || user.displayName || "Member",
+          photoURL: existingData.photoURL || user.photoURL || null,
+          profileCode: typeof existingData.profileCode === 'string' && !existingData.profileCode.includes('@') ? existingData.profileCode : user.uid,
+          bio: existingData.bio || "",
+          createdAt,
+          updatedAt: serverTimestamp(),
+        });
+      } else if (additionalData.displayName) {
+        transaction.update(ref, { displayName: additionalData.displayName });
+        transaction.set(publicRef, { displayName: additionalData.displayName }, { merge: true });
+      }
+      return;
+    }
+    const createdAt = serverTimestamp();
+    const profile = {
+      displayName: additionalData.displayName || user.displayName || "Member",
+      photoURL: user.photoURL || null,
+      profileCode: user.uid,
+      bio: "", createdAt, updatedAt: createdAt,
+    };
+    transaction.set(ref, { ...profile, email: user.email, loveSent: 0, postCount: 0 });
+    transaction.set(publicRef, profile);
+  });
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -35,70 +74,42 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    let unsubscribeSnapshot = null;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
-        unsubscribeSnapshot = null;
-      }
-
-      if (user) {
-        // Fetch additional user data from Firestore and listen to updates
-        unsubscribeSnapshot = onSnapshot(doc(db, "users", user.uid), async (userDoc) => {
-          if (userDoc.exists()) {
-            setUser({ ...user, ...userDoc.data() });
-          } else {
-            // If user exists in Auth but not in Firestore (e.g. DB deleted), create it
-            await createUserDocument(user);
-            setUser(user);
-          }
-          setLoading(false);
-        });
-      } else {
+    let unsubscribeSnapshot = () => {};
+    let generation = 0;
+    const unsubscribeAuth = onAuthStateChanged(auth, async firebaseUser => {
+      const current = ++generation;
+      unsubscribeSnapshot();
+      unsubscribeSnapshot = () => {};
+      if (!firebaseUser) {
         setUser(null);
         setLoading(false);
+        return;
       }
+      setLoading(true);
+      const fallback = { uid: firebaseUser.uid, email: firebaseUser.email, displayName: firebaseUser.displayName };
+      const fail = error => {
+        if (current !== generation) return;
+        console.error("Profile loading failed", error);
+        setUser(fallback);
+        setLoading(false);
+      };
+      try {
+        await createUserDocument(firebaseUser);
+        if (current !== generation) return;
+        unsubscribeSnapshot = onSnapshot(doc(db, "users", firebaseUser.uid), snapshot => {
+          if (current !== generation) return;
+          const profile = snapshot.data() || {};
+          setUser({ ...profile, ...fallback, displayName: profile.displayName || firebaseUser.displayName });
+          setLoading(false);
+        }, fail);
+      } catch (error) { fail(error); }
     });
-
     return () => {
+      generation++;
       unsubscribeAuth();
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      unsubscribeSnapshot();
     };
   }, []);
-
-  // Create user document in Firestore
-  const createUserDocument = async (user, additionalData = {}) => {
-    if (!user) return;
-
-    const userRef = doc(db, "users", user.uid);
-    const snapshot = await getDoc(userRef);
-
-    if (!snapshot.exists()) {
-      const { email, displayName, photoURL } = user;
-      const createdAt = serverTimestamp();
-
-      try {
-        await setDoc(userRef, {
-          email,
-          displayName:
-            displayName ||
-            additionalData.displayName ||
-            email.split("@")[0],
-          photoURL: photoURL || null,
-          profileCode: email, // Initially set to email
-          loveSent: 0, // Track total reactions and comments sent
-          postCount: 0, // Track total posts created
-          createdAt,
-          updatedAt: createdAt,
-          ...additionalData,
-        });
-      } catch (error) {
-        console.error("Error creating user document:", error);
-        throw error;
-      }
-    }
-  };
 
   const signup = async (email, password, displayName = "") => {
     try {

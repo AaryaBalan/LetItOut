@@ -1,12 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, View, Text } from 'react-native';
 
 const Loading = ({ size = 'large', style, text }) => {
     const color = '#8B5CF6';
-    const rotateAnim = useRef(new Animated.Value(0)).current;
-    const counterRotateAnim = useRef(new Animated.Value(0)).current;
-    const pulseAnim = useRef(new Animated.Value(0)).current;
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [rotateAnim] = useState(() => new Animated.Value(0));
+    const [counterRotateAnim] = useState(() => new Animated.Value(0));
+    const [pulseAnim] = useState(() => new Animated.Value(0));
+    const [fadeAnim] = useState(() => new Animated.Value(0));
 
     useEffect(() => {
         // Fade in entire component on mount
@@ -48,6 +48,7 @@ const Loading = ({ size = 'large', style, text }) => {
                     useNativeDriver: true })
             ])
         ).start();
+        return () => { rotateAnim.stopAnimation(); counterRotateAnim.stopAnimation(); pulseAnim.stopAnimation(); fadeAnim.stopAnimation(); };
     }, [rotateAnim, counterRotateAnim, pulseAnim, fadeAnim]);
 
     const spin = rotateAnim.interpolate({
